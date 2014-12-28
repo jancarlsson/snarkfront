@@ -48,6 +48,8 @@ template <typename ALG>
 class AST_Const : public AST_Node<ALG>
 {
 public:
+    typedef typename ALG::ValueType ValueType;
+
     AST_Const() = default;
 
     template <typename VAL>
