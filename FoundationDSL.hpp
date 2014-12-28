@@ -145,6 +145,22 @@ std::array<c_uint64<FR>, N> zero(const std::array<uint64_x<FR>, N>& dummy) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// powers of 2
+//
+
+template <typename ALG>
+std::size_t sizeBits(const AST_Const<ALG>&) {
+    typename AST_Const<ALG>::ValueType dummy;
+    return sizeBits(dummy);
+}
+
+template <typename ALG>
+std::size_t sizeBits(const AST_Var<ALG>&) {
+    typename AST_Var<ALG>::ValueType dummy;
+    return sizeBits(dummy);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // zero knowledge proof management
 //
 
