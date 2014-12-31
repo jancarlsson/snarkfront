@@ -3,10 +3,7 @@
 #include <iostream>
 #include <string>
 #include <unistd.h>
-#include "FoundationDSL.hpp"
-#include "GenericProgressBar.hpp"
-#include "MainEC.hpp"
-#include "SHA_256.hpp"
+#include "snarkfront.hpp"
 
 using namespace snarkfront;
 using namespace std;
