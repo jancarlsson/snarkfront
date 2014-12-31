@@ -6,7 +6,11 @@
 //
 
 // the basic language
-#include "FoundationDSL.hpp"
+#include "DSL_base.hpp"
+#include "DSL_bless.hpp"
+#include "DSL_identity.hpp"
+#include "DSL_ppzk.hpp"
+#include "DSL_utility.hpp"
 
 // progress bar for proof generation and verification
 #include "GenericProgressBar.hpp"
@@ -15,7 +19,7 @@
 #include "HexUtil.hpp"
 
 // initialize elliptic curves
-#include "MainEC.hpp"
+#include "InitPairing.hpp"
 
 // Merkle tree
 #include "MerkleTree.hpp"
