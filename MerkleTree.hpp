@@ -3,8 +3,13 @@
 
 #include <array>
 #include <cstdint>
+#include <iostream>
+#include <istream>
+#include <ostream>
 #include <vector>
-#include "FoundationDSL.hpp"
+#include "DSL_base.hpp"
+#include "DSL_bless.hpp"
+#include "DSL_utility.hpp"
 #include "PowersOf2.hpp"
 #include "SHA_256.hpp"
 #include "SHA_512.hpp"
@@ -167,13 +172,49 @@ public:
         return -1;
     }
 
+    void marshal_out(std::ostream& os) const {
+        os << m_depth << std::endl
+           << m_rootPath
+           << m_siblings;
+
+        for (const auto& a : m_childBits) {
+            os << a << std::endl;
+        }
+    }
+
+    bool marshal_in(std::istream& is) {
+        m_depth = 0; // use as valid flag
+
+        std::size_t len = 0;
+        is >> len;
+        if (!is || 0 == len) return false;
+
+        m_rootPath.resize(len);
+        is >> m_rootPath;
+        if (!is) return false;
+
+        m_siblings.resize(len);
+        is >> m_siblings;
+        if (!is) return false;
+
+        m_childBits.resize(len);
+        for (auto& r : m_childBits) {
+            is >> r;
+            if (!is) return false;
+        }
+
+        m_depth = len;
+
+        return true;
+    }
+
 private:
     // note: not called by proof generation
     static DigType zero() {
         return {0};
     }
 
-    const std::size_t m_depth;
+    std::size_t m_depth;
 
     // indices start from 0 at the leaves increasing up to the root
     std::vector<DigType> m_rootPath, m_siblings;
@@ -181,6 +222,18 @@ private:
     // next available leaf element
     std::vector<BIT> m_childBits;
 };
+
+template <typename HASH, typename BIT>
+std::ostream& operator<< (std::ostream& os, const MerkleAuthPath<HASH, BIT>& a) {
+    a.marshal_out(os);
+    return os;
+}
+
+template <typename HASH, typename BIT>
+std::istream& operator>> (std::istream& is, MerkleAuthPath<HASH, BIT>& a) {
+    a.marshal_in(is);
+    return is;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Merkle tree (binary)
@@ -193,10 +246,14 @@ public:
     typedef HASH HashType;
     typedef typename HASH::DigType DigType;
 
+    MerkleTree()
+        : m_isFull(true),
+          m_authPath(0)
+    {}
+
     // unmanaged (eval namespace)
     MerkleTree(const std::size_t depth)
-        : m_depth(depth),
-          m_isFull(false),
+        : m_isFull(false),
           m_authPath(depth)
     {}
 
@@ -242,12 +299,41 @@ public:
         }
     }
 
-private:
-    const std::size_t m_depth;
-    bool m_isFull;
+    void marshal_out(std::ostream& os) const {
+        os << m_isFull << std::endl
+           << m_authPath;
+    }
 
+    bool marshal_in(std::istream& is) {
+        m_isFull = true; // use as valid flag
+
+        bool full = true;
+        is >> full;
+        if (!is) return false;
+
+        if (! m_authPath.marshal_in(is)) return false;
+
+        m_isFull = full;
+
+        return true;
+    }
+
+private:
+    bool m_isFull;
     MerkleAuthPath<HASH, int> m_authPath;
 };
+
+template <typename HASH>
+std::ostream& operator<< (std::ostream& os, const MerkleTree<HASH>& a) {
+    a.marshal_out(os);
+    return os;
+}
+
+template <typename HASH>
+std::istream& operator>> (std::istream& is, MerkleTree<HASH>& a) {
+    a.marshal_in(is);
+    return is;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // typedefs
