@@ -5,11 +5,7 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
-#include "FoundationDSL.hpp"
-#include "GenericProgressBar.hpp"
-#include "HexUtil.hpp"
-#include "MainEC.hpp"
-#include "MerkleTree.hpp"
+#include "snarkfront.hpp"
 
 using namespace snarkfront;
 using namespace std;
@@ -29,22 +25,22 @@ template <typename PAIRING, typename EVAL, typename EVAL_PATH, typename ZK_PATH>
 void runTest(const size_t treeDepth,
              const size_t leafNumber)
 {
-    EVAL evalTree(treeDepth);
+    EVAL currentTree(treeDepth);
 
     vector<typename EVAL::DigType> oldLeafs;
     vector<EVAL_PATH> oldPaths;
 
     typename EVAL::HashType::WordType count = 0;
 
-    while (! evalTree.isFull()) {
+    while (! currentTree.isFull()) {
         const typename EVAL::DigType leaf{count};
-        evalTree.updatePath(leaf, oldPaths);
+        currentTree.updatePath(leaf, oldPaths);
 
         // save an old authentication path
         oldLeafs.emplace_back(leaf);
-        oldPaths.emplace_back(evalTree.authPath());
+        oldPaths.emplace_back(currentTree.authPath());
 
-        evalTree.updateSiblings(leaf);
+        currentTree.updateSiblings(leaf);
         ++count;
     }
 
