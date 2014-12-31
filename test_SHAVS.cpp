@@ -6,15 +6,7 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
-#include "FoundationDSL.hpp"
-#include "GenericProgressBar.hpp"
-#include "HexUtil.hpp"
-#include "MainEC.hpp"
-#include "SHA_1.hpp"
-#include "SHA_224.hpp"
-#include "SHA_256.hpp"
-#include "SHA_384.hpp"
-#include "SHA_512.hpp"
+#include "snarkfront.hpp"
 
 using namespace snarkfront;
 using namespace std;
