@@ -14,13 +14,17 @@ LIBRARY_HPP = \
 	BitwiseOps.hpp \
 	Counter.hpp \
 	DataBuffer.hpp \
+	DSL_base.hpp \
+	DSL_bless.hpp \
+	DSL_identity.hpp \
+	DSL_ppzk.hpp \
+	DSL_utility.hpp \
 	EnumOps.hpp \
 	EvalAST.hpp \
-	FoundationDSL.hpp \
 	GenericProgressBar.hpp \
 	HexUtil.hpp \
+	InitPairing.hpp \
 	Lazy.hpp \
-	MainEC.hpp \
 	MerkleTree.hpp \
 	PowersOf2.hpp \
 	R1C.hpp \
@@ -111,26 +115,35 @@ AR_FLAGS = $(CXXFLAGS) $(CXXFLAGS_SNARKLIB)
 LIBRARY_CPP = \
 	EnumOps.cpp \
 	DataBuffer.cpp \
-	FoundationDSL.cpp \
+	DSL_base.cpp \
+	DSL_bless.cpp \
+	DSL_identity.cpp \
 	GenericProgressBar.cpp \
 	HexUtil.cpp \
+	InitPairing.cpp \
 	PowersOf2.cpp
 
 libsnarkfront.so : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(CXX) -c $(SO_FLAGS) -o EnumOps.o EnumOps.cpp
 	$(CXX) -c $(SO_FLAGS) -o DataBuffer.o DataBuffer.cpp
-	$(CXX) -c $(SO_FLAGS) -o FoundationDSL.o FoundationDSL.cpp
+	$(CXX) -c $(SO_FLAGS) -o DSL_base.o DSL_base.cpp
+	$(CXX) -c $(SO_FLAGS) -o DSL_bless.o DSL_bless.cpp
+	$(CXX) -c $(SO_FLAGS) -o DSL_identity.o DSL_identity.cpp
 	$(CXX) -c $(SO_FLAGS) -o GenericProgressBar.o GenericProgressBar.cpp
 	$(CXX) -c $(SO_FLAGS) -o HexUtil.o HexUtil.cpp
+	$(CXX) -c $(SO_FLAGS) -o InitPairing.o InitPairing.cpp
 	$(CXX) -c $(SO_FLAGS) -o PowersOf2.o PowersOf2.cpp
 	$(CXX) -o libsnarkfront.so -shared $(LIBRARY_CPP:.cpp=.o)
 
 libsnarkfront.a : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(CXX) -c $(AR_FLAGS) -o EnumOps.o EnumOps.cpp
 	$(CXX) -c $(AR_FLAGS) -o DataBuffer.o DataBuffer.cpp
-	$(CXX) -c $(AR_FLAGS) -o FoundationDSL.o FoundationDSL.cpp
+	$(CXX) -c $(AR_FLAGS) -o DSL_base.o DSL_base.cpp
+	$(CXX) -c $(AR_FLAGS) -o DSL_bless.o DSL_bless.cpp
+	$(CXX) -c $(AR_FLAGS) -o DSL_identity.o DSL_identity.cpp
 	$(CXX) -c $(AR_FLAGS) -o GenericProgressBar.o GenericProgressBar.cpp
 	$(CXX) -c $(AR_FLAGS) -o HexUtil.o HexUtil.cpp
+	$(CXX) -c $(AR_FLAGS) -o InitPairing.o InitPairing.cpp
 	$(CXX) -c $(AR_FLAGS) -o PowersOf2.o PowersOf2.cpp
 	$(AR) qc libsnarkfront.a $(LIBRARY_CPP:.cpp=.o)
 	$(RANLIB) libsnarkfront.a
