@@ -27,6 +27,10 @@ public:
     typedef HASH HashType;
     typedef typename HASH::DigType DigType;
 
+    MerkleAuthPath()
+        : m_depth(0)
+    {}
+
     // eval
     MerkleAuthPath(const std::size_t depth)
         : m_depth(depth),
@@ -336,6 +340,101 @@ std::istream& operator>> (std::istream& is, MerkleTree<HASH>& a) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Merkle tree with authentication paths
+//
+
+template <typename TREE, typename PATH, typename COUNT>
+class MerkleBundle
+{
+public:
+    typedef typename TREE::DigType DigType;
+
+    MerkleBundle()
+        : m_treeSize(0)
+    {}
+
+    MerkleBundle(const std::size_t depth)
+        : m_tree(depth),
+          m_treeSize(0)
+    {}
+
+    bool isFull() const {
+        return m_tree.isFull();
+    }
+
+    COUNT treeSize() const {
+        return m_treeSize;
+    }
+
+    const DigType& rootHash() const {
+        return m_tree.authPath().rootHash();
+    }
+
+    void addLeaf(const DigType& cm, const bool keepPath = false) {
+        m_tree.updatePath(cm, m_authPath);
+
+        if (keepPath) {
+            m_authLeaf.emplace_back(cm);
+            m_authPath.emplace_back(m_tree.authPath());
+        }
+
+        m_tree.updateSiblings(cm);
+
+        ++m_treeSize;
+    }
+
+    const std::vector<DigType>& authLeaf() const {
+        return m_authLeaf;
+    }
+
+    const std::vector<PATH>& authPath() const {
+        return m_authPath;
+    }
+
+    void marshal_out(std::ostream& os) const {
+        os << m_tree
+           << m_treeSize << std::endl
+           << m_authLeaf;
+
+        for (const auto& r : m_authPath)
+            os << r;
+    }
+
+    bool marshal_in(std::istream& is) {
+        if (!m_tree.marshal_in(is) || !(is >> m_treeSize) || !(is >> m_authLeaf))
+            return false;
+
+        m_authPath.resize(m_authLeaf.size());
+        for (auto& r : m_authPath) {
+            if (! r.marshal_in(is)) return false;
+        }
+
+        return true;
+    }
+
+private:
+    TREE m_tree;
+    COUNT m_treeSize;
+
+    std::vector<DigType> m_authLeaf;
+    std::vector<PATH> m_authPath;
+};
+
+template <typename TREE, typename PATH, typename COUNT>
+std::ostream& operator<< (std::ostream& os,
+                          const MerkleBundle<TREE, PATH, COUNT>& a) {
+    a.marshal_out(os);
+    return os;
+}
+
+template <typename TREE, typename PATH, typename COUNT>
+std::istream& operator>> (std::istream& is,
+                          MerkleBundle<TREE, PATH, COUNT>& a) {
+    a.marshal_in(is);
+    return is;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // typedefs
 //
 
@@ -347,9 +446,16 @@ namespace zk {
 namespace eval {
     typedef MerkleAuthPath<SHA256, int> MerkleAuthPath_SHA256;
     typedef MerkleAuthPath<SHA512, int> MerkleAuthPath_SHA512;
-    typedef MerkleTree<SHA256> MerkleTree_SHA256;
-    typedef MerkleTree<SHA512> MerkleTree_SHA512;
 } // namespace eval
+
+typedef MerkleTree<eval::SHA256> MerkleTree_SHA256;
+typedef MerkleTree<eval::SHA512> MerkleTree_SHA512;
+
+template <typename COUNT> using
+MerkleBundle_SHA256 = MerkleBundle<MerkleTree_SHA256, eval::MerkleAuthPath_SHA256, COUNT>;
+
+template <typename COUNT> using
+MerkleBundle_SHA512 = MerkleBundle<MerkleTree_SHA512, eval::MerkleAuthPath_SHA512, COUNT>;
 
 } // namespace snarkfront
 
