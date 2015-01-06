@@ -21,39 +21,30 @@ void printUsage(const char* exeName) {
     exit(EXIT_FAILURE);
 }
 
-template <typename PAIRING, typename EVAL, typename EVAL_PATH, typename ZK_PATH>
+template <typename PAIRING, typename BUNDLE, typename ZK_PATH>
 void runTest(const size_t treeDepth,
              const size_t leafNumber)
 {
-    EVAL currentTree(treeDepth);
+    BUNDLE bundle(treeDepth);
 
-    vector<typename EVAL::DigType> oldLeafs;
-    vector<EVAL_PATH> oldPaths;
+    while (! bundle.isFull()) {
+        const typename BUNDLE::DigType leaf{bundle.treeSize()};
 
-    typename EVAL::HashType::WordType count = 0;
-
-    while (! currentTree.isFull()) {
-        const typename EVAL::DigType leaf{count};
-        currentTree.updatePath(leaf, oldPaths);
-
-        // save an old authentication path
-        oldLeafs.emplace_back(leaf);
-        oldPaths.emplace_back(currentTree.authPath());
-
-        currentTree.updateSiblings(leaf);
-        ++count;
+        bundle.addLeaf(
+            leaf,
+            leafNumber == bundle.treeSize());
     }
 
-    if (leafNumber >= oldLeafs.size()) {
+    if (leafNumber >= bundle.treeSize()) {
         cout << "leaf number " << leafNumber
-             << " is larger than " << oldLeafs.size()
+             << " is larger than " << bundle.treeSize()
              << endl;
 
         exit(EXIT_FAILURE);
     }
 
-    const auto& leaf = oldLeafs[leafNumber];
-    const auto& authPath = oldPaths[leafNumber];
+    const auto& leaf = bundle.authLeaf().front();
+    const auto& authPath = bundle.authPath().front();
 
     cout << "leaf " << leafNumber << " child bits ";
     for (int i = authPath.childBits().size() - 1; i >= 0; --i) {
@@ -98,16 +89,14 @@ bool runTest(const string& shaBits,
 
     if ("256" == shaBits) {
         runTest<PAIRING,
-                eval::MerkleTree_SHA256,
-                eval::MerkleAuthPath_SHA256,
+                MerkleBundle_SHA256<uint32_t>, // count could be size_t
                 zk::MerkleAuthPath_SHA256<FR>>(
             treeDepth,
             leafNumber);
 
     } else if ("512" == shaBits) {
         runTest<PAIRING,
-                eval::MerkleTree_SHA512,
-                eval::MerkleAuthPath_SHA512,
+                MerkleBundle_SHA512<uint64_t>, // count could be size_t
                 zk::MerkleAuthPath_SHA512<FR>>(
             treeDepth,
             leafNumber);
