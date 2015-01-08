@@ -13,22 +13,22 @@ using namespace std;
 
 void printUsage(const char* exeName) {
     cout << "usage: cat NIST_SHAVS_byte_test_vector_file | " << exeName
-         << " -c BN128|Edwards -b 1|224|256|384|512 [-i Len|COUNT] [-p]" << endl
+         << " -p BN128|Edwards -b 1|224|256|384|512 [-i Len|COUNT] [-z]" << endl
          << endl
          << "example: SHA1 short messages" << endl
-         << "cat SHA1ShortMsg.rsp | " << exeName << " -c BN128 -b 1" << endl
+         << "cat SHA1ShortMsg.rsp | " << exeName << " -p BN128 -b 1" << endl
          << endl
          << "example: SHA256 long messages with proof" << endl
-         << "cat SHA256LongMsg.rsp | " << exeName << " -c Edwards -b 256 -p" << endl
+         << "cat SHA256LongMsg.rsp | " << exeName << " -p Edwards -b 256 -z" << endl
          << endl
          << "example: SHA512 Monte Carlo mode" << endl
-         << "cat SHA512Monte.txt | " << exeName << " -c BN128 -b 512" << endl
+         << "cat SHA512Monte.txt | " << exeName << " -p BN128 -b 512" << endl
          << endl
          << "example: SHA224 short messages, only Len = 464 test case" << endl
-         << "cat SHA224ShortMsg.rsp | " << exeName << " -c Edwards -b 224 -i 464" << endl
+         << "cat SHA224ShortMsg.rsp | " << exeName << " -p Edwards -b 224 -i 464" << endl
          << endl
          << "example: SHA384 Monte Carlo mode, only COUNT = 75 test case" << endl
-         << "cat SHA384Monte.txt | " << exeName << " -c BN128 -b 384 -i 75" << endl;
+         << "cat SHA384Monte.txt | " << exeName << " -p BN128 -b 384 -i 75" << endl;
 
     exit(EXIT_FAILURE);
 }
@@ -239,30 +239,28 @@ void readLoop(const size_t shaBits, const size_t testCase, const bool zkProof)
 int main(int argc, char *argv[])
 {
     // command line switches
-    string ellipticCurve;
+    string pairing;
     std::size_t shaBits = 0, testCase = -1;
     bool zkProof = false;
     int opt;
-    while (-1 != (opt = getopt(argc, argv, "c:b:i:p"))) {
+    while (-1 != (opt = getopt(argc, argv, "p:b:i:z"))) {
         switch (opt) {
-        case ('c') :
-            ellipticCurve = optarg;
+        case ('p') :
+            pairing = optarg;
             break;
-        case ('b') :
-            {
+        case ('b') : {
                 stringstream ss(optarg);
                 ss >> shaBits;
                 if (!ss) printUsage(argv[0]);
             }
             break;
-        case ('i') :
-            {
+        case ('i') : {
                 stringstream ss(optarg);
                 ss >> testCase;
                 if (!ss) printUsage(argv[0]);
             }
             break;
-        case ('p') :
+        case ('z') :
             zkProof = true;
             break;
         }
@@ -276,12 +274,12 @@ int main(int argc, char *argv[])
         512 != shaBits)
         printUsage(argv[0]);
 
-    if ("BN128" == ellipticCurve) {
+    if (pairingBN128(pairing)) {
         // Barreto-Naehrig 128 bits
         init_BN128();
         readLoop<BN128_PAIRING>(shaBits, testCase, zkProof);
 
-    } else if ("Edwards" == ellipticCurve) {
+    } else if (pairingEdwards(pairing)) {
         // Edwards 80 bits
         init_Edwards();
         readLoop<EDWARDS_PAIRING>(shaBits, testCase, zkProof);
