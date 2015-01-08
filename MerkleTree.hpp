@@ -6,6 +6,7 @@
 #include <iostream>
 #include <istream>
 #include <ostream>
+#include <set>
 #include <vector>
 #include "DSL_base.hpp"
 #include "DSL_bless.hpp"
@@ -347,6 +348,7 @@ template <typename TREE, typename PATH, typename COUNT>
 class MerkleBundle
 {
 public:
+    typedef typename TREE::HashType HashType;
     typedef typename TREE::DigType DigType;
 
     MerkleBundle()
@@ -370,7 +372,7 @@ public:
         return m_tree.authPath().rootHash();
     }
 
-    void addLeaf(const DigType& cm, const bool keepPath = false) {
+    void addLeaf(const DigType& cm, const bool keepPath = true) {
         m_tree.updatePath(cm, m_authPath);
 
         if (keepPath) {
@@ -389,6 +391,22 @@ public:
 
     const std::vector<PATH>& authPath() const {
         return m_authPath;
+    }
+
+    void authGarbageCollect(const std::set<HashType>& keepSet) {
+        std::vector<DigType> keepLeaf;
+        std::vector<PATH> keepPath;
+
+        for (std::size_t i = 0; i < m_authLeaf.size(); ++i) {
+            const auto& cm = m_authLeaf[i];
+            if (keepSet.count(cm)) {
+                keepLeaf.emplace_back(cm);
+                keepPath.emplace_back(m_authPath[i]);
+            }
+        }
+
+        m_authLeaf = keepLeaf;
+        m_authPath = keepPath;
     }
 
     void marshal_out(std::ostream& os) const {
