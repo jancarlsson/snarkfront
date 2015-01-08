@@ -12,15 +12,15 @@ using namespace std;
 
 void printUsage(const char* exeName) {
     cout << "usage: " << exeName
-         << " -c BN128|Edwards -b 1|224|256|384|512|512_224|512_256 [-r]" << endl
+         << " -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256 [-r]" << endl
          << endl
          << "text from standard input:" << endl
          << "echo \"abc\" | " << exeName
-         << " -c BN128|Edwards -b 1|224|256|384|512|512_224|512_256" << endl
+         << " -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256" << endl
          << endl
          << "random data:" << endl
          << exeName
-         << " -c BN128|Edwards -b 1|224|256|384|512|512_224|512_256 -r" << endl;
+         << " -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256 -r" << endl;
 
     exit(EXIT_FAILURE);
 }
@@ -127,13 +127,13 @@ bool runTest(const string& shaBits, const bool stdInput)
 int main(int argc, char *argv[])
 {
     // command line switches
-    string ellipticCurve, shaBits;
+    string pairing, shaBits;
     bool stdInput = true;
     int opt;
-    while (-1 != (opt = getopt(argc, argv, "c:b:r"))) {
+    while (-1 != (opt = getopt(argc, argv, "p:b:r"))) {
         switch (opt) {
-        case ('c') :
-            ellipticCurve = optarg;
+        case ('p') :
+            pairing = optarg;
             break;
         case ('b') :
             shaBits = optarg;
@@ -146,12 +146,12 @@ int main(int argc, char *argv[])
 
     bool result;
 
-    if ("BN128" == ellipticCurve) {
+    if (pairingBN128(pairing)) {
         // Barreto-Naehrig 128 bits
         init_BN128();
         result = runTest<BN128_PAIRING>(shaBits, stdInput);
 
-    } else if ("Edwards" == ellipticCurve) {
+    } else if (pairingEdwards(pairing)) {
         // Edwards 80 bits
         init_Edwards();
         result = runTest<EDWARDS_PAIRING>(shaBits, stdInput);
