@@ -12,6 +12,19 @@
 namespace snarkfront {
 
 ////////////////////////////////////////////////////////////////////////////////
+// elliptic curve pairing
+//
+
+// check if string name is: BN128, Edwards
+bool validPairingName(const std::string& name);
+
+// returns true if "BN128"
+bool pairingBN128(const std::string& name);
+
+// returns true if "Edwards"
+bool pairingEdwards(const std::string& name);
+
+////////////////////////////////////////////////////////////////////////////////
 // powers of 2
 //
 
