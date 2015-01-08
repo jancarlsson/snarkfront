@@ -12,7 +12,7 @@ using namespace std;
 
 void printUsage(const char* exeName) {
     cout << "usage: " << exeName
-         << " -c BN128|Edwards"
+         << " -p BN128|Edwards"
             " -b 256|512"
             " -d tree_depth"
             " -i leaf_number"
@@ -124,26 +124,24 @@ bool runTest(const string& shaBits,
 int main(int argc, char *argv[])
 {
     // command line switches
-    string ellipticCurve, shaBits;
+    string pairing, shaBits;
     size_t treeDepth = -1, leafNumber = -1;
     int opt;
-    while (-1 != (opt = getopt(argc, argv, "c:b:d:i:"))) {
+    while (-1 != (opt = getopt(argc, argv, "p:b:d:i:"))) {
         switch (opt) {
-        case ('c') :
-            ellipticCurve = optarg;
+        case ('p') :
+            pairing = optarg;
             break;
         case ('b') :
             shaBits = optarg;
             break;
-        case('d') :
-            {
+        case('d') : {
                 stringstream ss(optarg);
                 ss >> treeDepth;
                 if (!ss) printUsage(argv[0]);
             }
             break;
-        case('i') :
-            {
+        case('i') : {
                 stringstream ss(optarg);
                 ss >> leafNumber;
                 if (!ss) printUsage(argv[0]);
@@ -152,25 +150,21 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (shaBits.empty() || -1 == treeDepth || -1 == leafNumber) {
+    if (!validPairingName(pairing) || shaBits.empty() || -1 == treeDepth || -1 == leafNumber)
         printUsage(argv[0]);
-    }
 
     bool result;
 
-    if ("BN128" == ellipticCurve) {
+    if (pairingBN128(pairing)) {
         // Barreto-Naehrig 128 bits
         init_BN128();
         result = runTest<BN128_PAIRING>(shaBits, treeDepth, leafNumber);
 
-    } else if ("Edwards" == ellipticCurve) {
+    } else if (pairingEdwards(pairing)) {
         // Edwards 80 bits
         init_Edwards();
         result = runTest<EDWARDS_PAIRING>(shaBits, treeDepth, leafNumber);
 
-    } else {
-        // no elliptic curve specified
-        printUsage(argv[0]);
     }
 
     cout << "proof verification " << (result ? "OK" : "FAIL") << endl;
