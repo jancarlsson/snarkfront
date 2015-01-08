@@ -118,6 +118,7 @@ LIBRARY_CPP = \
 	DSL_base.cpp \
 	DSL_bless.cpp \
 	DSL_identity.cpp \
+	DSL_utility.cpp \
 	GenericProgressBar.cpp \
 	HexUtil.cpp \
 	InitPairing.cpp \
@@ -129,6 +130,7 @@ libsnarkfront.so : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(CXX) -c $(SO_FLAGS) -o DSL_base.o DSL_base.cpp
 	$(CXX) -c $(SO_FLAGS) -o DSL_bless.o DSL_bless.cpp
 	$(CXX) -c $(SO_FLAGS) -o DSL_identity.o DSL_identity.cpp
+	$(CXX) -c $(SO_FLAGS) -o DSL_utility.o DSL_utility.cpp
 	$(CXX) -c $(SO_FLAGS) -o GenericProgressBar.o GenericProgressBar.cpp
 	$(CXX) -c $(SO_FLAGS) -o HexUtil.o HexUtil.cpp
 	$(CXX) -c $(SO_FLAGS) -o InitPairing.o InitPairing.cpp
@@ -141,6 +143,7 @@ libsnarkfront.a : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(CXX) -c $(AR_FLAGS) -o DSL_base.o DSL_base.cpp
 	$(CXX) -c $(AR_FLAGS) -o DSL_bless.o DSL_bless.cpp
 	$(CXX) -c $(AR_FLAGS) -o DSL_identity.o DSL_identity.cpp
+	$(CXX) -c $(AR_FLAGS) -o DSL_utility.o DSL_utility.cpp
 	$(CXX) -c $(AR_FLAGS) -o GenericProgressBar.o GenericProgressBar.cpp
 	$(CXX) -c $(AR_FLAGS) -o HexUtil.o HexUtil.cpp
 	$(CXX) -c $(AR_FLAGS) -o InitPairing.o InitPairing.cpp
