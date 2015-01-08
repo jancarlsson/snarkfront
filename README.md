@@ -253,22 +253,22 @@ time.
 The test_SHAVS binary has additional modes not exposed by the shell script.
 
     $ ./test_SHAVS
-    usage: cat NIST_SHAVS_byte_test_vector_file | ./test_SHAVS -c BN128|Edwards -b 1|224|256|384|512 [-i Len|COUNT] [-p]
+    usage: cat NIST_SHAVS_byte_test_vector_file | ./test_SHAVS -p BN128|Edwards -b 1|224|256|384|512 [-i Len|COUNT] [-p]
 
     example: SHA1 short messages
-    cat SHA1ShortMsg.rsp | ./test_SHAVS -c BN128 -b 1
+    cat SHA1ShortMsg.rsp | ./test_SHAVS -p BN128 -b 1
 
     example: SHA256 long messages with proof
-    cat SHA256LongMsg.rsp | ./test_SHAVS -c Edwards -b 256 -p
+    cat SHA256LongMsg.rsp | ./test_SHAVS -p Edwards -b 256 -p
 
     example: SHA512 Monte Carlo mode
-    cat SHA512Monte.txt | ./test_SHAVS -c BN128 -b 512
+    cat SHA512Monte.txt | ./test_SHAVS -p BN128 -b 512
 
     example: SHA224 short messages, only Len = 464 test case
-    cat SHA224ShortMsg.rsp | ./test_SHAVS -c Edwards -b 224 -i 464
+    cat SHA224ShortMsg.rsp | ./test_SHAVS -p Edwards -b 224 -i 464
 
     example: SHA384 Monte Carlo mode, only COUNT = 75 test case
-    cat SHA384Monte.txt | ./test_SHAVS -c BN128 -b 384 -i 75
+    cat SHA384Monte.txt | ./test_SHAVS -p BN128 -b 384 -i 75
 
 The "-p" switch enables zero knowledge proofs. This is very expensive if run
 for hundreds or thousands of test cases. For this reason, the shell script
@@ -367,18 +367,18 @@ test_sha (zero knowledge SHA-2)
 The usage message explains how to run this.
 
     $ ./test_sha 
-    usage: ./test_sha -c BN128|Edwards -b 1|224|256|384|512|512_224|512_256 [-r]
+    usage: ./test_sha -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256 [-r]
 
     text from standard input:
-    echo "abc" | ./test_sha -c BN128|Edwards -b 1|224|256|384|512|512_224|512_256
+    echo "abc" | ./test_sha -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256
 
     random data:
-    ./test_sha -c BN128|Edwards -b 1|224|256|384|512|512_224|512_256 -r
+    ./test_sha -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256 -r
 
 Two elliptic curves are supported.
 
-- Barreto-Naehrig at 128 bits, use option: "-c BN128"
-- Edwards at 80 bits, use option: "-c Edwards"
+- Barreto-Naehrig at 128 bits, use option: "-p BN128"
+- Edwards at 80 bits, use option: "-p Edwards"
 
 All SHA-2 variants are supported, use option: "-b number" which selects algorithm
 SHA-number.
@@ -392,7 +392,7 @@ Some examples:
 
 (SHA-256 hash of "abc" using Barreto-Naehrig elliptic curve)
 
-    $ echo "abc" | ./test_sha -c BN128 -b 256
+    $ echo "abc" | ./test_sha -p BN128 -b 256
     0       61 62 63 80 00 00 00 00  00 00 00 00 00 00 00 00  |abc.............|
     16      00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
     32      00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
@@ -420,7 +420,7 @@ Some examples:
 
 (SHA-512 hash of random data using Edwards elliptic curve)
 
-    $ ./test_sha -c Edwards -b 512 -r
+    $ ./test_sha -p Edwards -b 512 -r
     0       bc e9 25 f4 b6 8e 0a 5f  5a 69 5e b1 b9 06 d1 5f  |..%...._Zi^...._|
     16      e4 3a b0 3f e1 b8 de f5  c0 bb 26 34 be ca 26 de  |.:.?......&4..&.|
     32      5e 8f 17 ce 6a 04 ae 1d  6e fb 44 7a 27 9c 46 73  |^...j...n.Dz'.Fs|
@@ -462,7 +462,7 @@ test_merkle (zero knowledge Merkle tree)
 The usage message explains how to run this.
 
     $ ./test_merkle 
-    usage: ./test_merkle -c BN128|Edwards -b 256|512 -d tree_depth -i leaf_number
+    usage: ./test_merkle -p BN128|Edwards -b 256|512 -d tree_depth -i leaf_number
 
 The binary Merkle tree uses either SHA-256 or SHA-512. The test fills the tree
 while maintaining all authentication paths from leaves to the root. When the
@@ -473,7 +473,7 @@ remains secret, known only to the entity which generates the proof.
 
 Here is an example:
 
-    $ ./test_merkle -c Edwards -b 256 -d 8 -i 123
+    $ ./test_merkle -p Edwards -b 256 -d 8 -i 123
     leaf 123 child bits 01111011
     root path
     [7] 151a93fe 4455c504 4f344030 4f4faf9b c256b138 521fd887 6b284d63 2c0282a4
