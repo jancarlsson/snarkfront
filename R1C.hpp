@@ -179,6 +179,7 @@ public:
     template <typename PAIRING>
     snarklib::PPZK_Proof<PAIRING> proof(
         const snarklib::PPZK_Keypair<PAIRING>& key,
+        const std::size_t reserveTune,
         snarklib::ProgressCallback* callback = nullptr)
     {
         swap_AB_if_beneficial();
@@ -188,6 +189,7 @@ public:
             m_input.sizeFR(),
             key.pk(),
             m_witness_FR,
+            reserveTune,
             callback);
     }
 
