@@ -70,7 +70,7 @@ snarklib::PPZK_Proof<PAIRING> proof(
     const snarklib::PPZK_Keypair<PAIRING>& keypair)
 {
     return TL<R1C<typename PAIRING::Fr>>::singleton()
-        ->proof(keypair);
+        ->proof(keypair, 0);
 }
 
 template <typename PAIRING>
@@ -79,7 +79,17 @@ snarklib::PPZK_Proof<PAIRING> proof(
     snarklib::ProgressCallback& callback)
 {
     return TL<R1C<typename PAIRING::Fr>>::singleton()
-        ->proof(keypair, std::addressof(callback));
+        ->proof(keypair, 0, std::addressof(callback));
+}
+
+template <typename PAIRING>
+snarklib::PPZK_Proof<PAIRING> proof(
+    const snarklib::PPZK_Keypair<PAIRING>& keypair,
+    const std::size_t reserveTune,
+    snarklib::ProgressCallback& callback)
+{
+    return TL<R1C<typename PAIRING::Fr>>::singleton()
+        ->proof(keypair, reserveTune, std::addressof(callback));
 }
 
 template <typename PAIRING>
