@@ -20,7 +20,9 @@ GenericProgressBar::GenericProgressBar(ostream& os,
     : m_os(os),
       m_width(width)
 {
+#ifdef USE_ASSERT
     assert(2 <= width);
+#endif
 }
 
 void GenericProgressBar::majorSteps(const size_t numberSteps) {
