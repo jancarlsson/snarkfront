@@ -23,7 +23,9 @@ public:
     const T& lookUp(const std::size_t index) 
     {
         // protect against huge index from accidental pointer argument
+#ifdef USE_ASSERT
         assert(index < 1024);
+#endif
 
         for (std::size_t i = m_lut.size(); i <= index; ++i) {
             // m_lut[i] = 2 * m_lut[i - 1];
