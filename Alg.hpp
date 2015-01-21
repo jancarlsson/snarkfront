@@ -80,8 +80,10 @@ public:
     template <typename T>
     void bless(const T& a) {
         // object is not already initialized
+#ifdef USE_ASSERT
         assert(m_splitBits.empty());
         assert(m_r1Terms.empty());
+#endif
 
         m_value = VAL(a);
         m_witness = FR(valueToString(VAL(a)));
@@ -222,13 +224,17 @@ public:
 private:
     VAL valueFromWitness(const R1Cowitness<FR>& input) const {
         const std::size_t peekID = TL<R1C<FR>>::singleton()->counterID();
+#ifdef USE_ASSERT
         assert(peekID <= input.sizeSTR());
+#endif
 
         std::stringstream ss(input[peekID]);
 
         VAL value;
         ss >> value;
+#ifdef USE_ASSERT
         assert(!!ss);
+#endif
 
         return value;
     }
