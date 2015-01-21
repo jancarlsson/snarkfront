@@ -31,7 +31,7 @@ public:
     // modulo addition
     static T ADDMOD(const T x, const T y) { return x + y; }
     static T _ADDMOD(const T x, const T y) { return ADDMOD(x, y); }
-        
+
     // bitwise shift
     static T SHL(const T x, const unsigned int n) { return x << n; }
     static T _SHL(const T x, const unsigned int n) { return SHL(x, n); }
