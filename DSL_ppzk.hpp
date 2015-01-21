@@ -6,7 +6,8 @@
 #include "Alg.hpp"
 #include "Alg_bool.hpp"
 #include "DSL_base.hpp"
-#include <PPZK.hpp> // snarklib
+#include <PPZK_keypair.hpp> // snarklib
+#include <PPZK_proof.hpp> // snarklib
 #include <ProgressCallback.hpp> // snarklib
 #include "R1C.hpp"
 #include "TLsingleton.hpp"
