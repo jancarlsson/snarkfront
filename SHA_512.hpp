@@ -76,7 +76,7 @@ public:
         m_g = m_H[6];
         m_h = m_H[7];
     }
-    
+
     void workingLoop() {
         // inner loop (NIST FIPS 180-4 section 6.4.2)
         for (std::size_t i = 0; i < 80; ++i) {
