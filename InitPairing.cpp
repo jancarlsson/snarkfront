@@ -18,7 +18,9 @@ void init_BN128() {
     typedef snarklib::BN128 CURVE;
 
     // the R and Q modulus should be about the same size for GMP
+#ifdef USE_ASSERT
     assert(CURVE::r_limbs == CURVE::q_limbs);
+#endif
 
     // critically important to initialize finite field and group parameters
     CURVE::Fields<BN128_NRQ, BN128_MODULUS_R>::initParams();
@@ -41,7 +43,9 @@ void init_Edwards() {
     typedef snarklib::Edwards CURVE;
 
     // the R and Q modulus should be about the same size for GMP
+#ifdef USE_ASSERT
     assert(CURVE::r_limbs == CURVE::q_limbs);
+#endif
 
     // critically important to initialize finite field and group parameters
     CURVE::Fields<EDWARDS_NRQ, EDWARDS_MODULUS_R>::initParams();
