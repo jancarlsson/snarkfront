@@ -12,7 +12,9 @@
 #include "Counter.hpp"
 #include "EnumOps.hpp"
 #include "PowersOf2.hpp"
-#include <PPZK.hpp> // snarklib
+#include <PPZK_keypair.hpp> // snarklib
+#include <PPZK_proof.hpp> // snarklib
+#include <PPZK_verify.hpp> // snarklib
 #include <ProgressCallback.hpp> // snarklib
 #include <Rank1DSL.hpp> // snarklib
 #include "Rank1Ops.hpp"
@@ -169,9 +171,12 @@ public:
     {
         swap_AB_if_beneficial();
 
+        const auto keyRand = snarklib::PPZK_Keypair<PAIRING>::randomness();
+
         return snarklib::PPZK_Keypair<PAIRING>(
             m_constraintSystem,
             m_input.sizeFR(),
+            keyRand,
             callback);
     }
 
@@ -184,11 +189,14 @@ public:
     {
         swap_AB_if_beneficial();
 
+        const auto proofRand = snarklib::PPZK_Proof<PAIRING>::randomness();
+
         return snarklib::PPZK_Proof<PAIRING>(
             m_constraintSystem,
             m_input.sizeFR(),
             key.pk(),
             m_witness_FR,
+            proofRand,
             reserveTune,
             callback);
     }
@@ -289,7 +297,9 @@ public:
         const std::size_t termCnt = arg.r1Terms().size();
 
         typename ALG::ValueType dummy;
+#ifdef USE_ASSERT
         assert(sizeBits(dummy) == termCnt || 1 == termCnt);
+#endif
 
         // For bool and BigInt, sizeBits(dummy) is 1 so the
         // conditional always fails. It can only be true for uint32/64.
@@ -304,7 +314,9 @@ public:
         const std::size_t termCnt = arg.r1Terms().size();
 
         typename ALG::ValueType dummy;
+#ifdef USE_ASSERT
         assert(sizeBits(dummy) == termCnt || 1 == termCnt);
+#endif
 
         // For uint32/64, sizeBits(dummy) is greater than 1 so the
         // conditional is equivalent to: 1 == termCnt. This will be
@@ -471,8 +483,10 @@ public:
     {
         const std::size_t N = x.size();
         const std::size_t halfN = N / 2;
+#ifdef USE_ASSERT
         assert(N == 2 * halfN);
         assert(N == witness.size());
+#endif
 
         if (2 == N) {
             return createResult(
@@ -537,7 +551,9 @@ private:
 
     // z = OP(x, y)
     void addConstraint(const LogicalOps op, const R1T& x, const R1T& y, const R1T& z) {
+#ifdef USE_ASSERT
         assert(z.isVariable() && (x.isVariable() || y.isVariable()));
+#endif
 
         switch (op) {
         case (LogicalOps::AND) :
@@ -564,7 +580,9 @@ private:
 
     // z = OP(x, y)
     void addConstraint(const ScalarOps op, const R1T& x, const R1T& y, const R1T& z) {
+#ifdef USE_ASSERT
         assert(z.isVariable() && (x.isVariable() || y.isVariable()));
+#endif
 
         switch (op) {
         case (ScalarOps::ADD) :
@@ -583,7 +601,9 @@ private:
 
     // z = OP(x, y)
     void addConstraint(const BitwiseOps op, const R1T& x, const R1T& y, const R1T& z) {
+#ifdef USE_ASSERT
         assert(z.isVariable() && (x.isVariable() || y.isVariable()));
+#endif
 
         switch (op) {
         case (BitwiseOps::AND) :
@@ -613,7 +633,9 @@ private:
     }
 
     R1T otherTermZero(const BitwiseOps op, const R1T& x) {
+#ifdef USE_ASSERT
         assert(x.isVariable());
+#endif
 
         switch (op) {
         case (BitwiseOps::AND) :
