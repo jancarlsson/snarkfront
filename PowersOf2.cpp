@@ -23,10 +23,10 @@ vector<int> valueBits_internal(const UINT_N& a) {
 
     return v;
 }
-    
+
 vector<int> valueBits(const uint32_t& a) { return valueBits_internal(a); }
 vector<int> valueBits(const uint64_t& a) { return valueBits_internal(a); }
-    
+
 size_t countBits(const vector<int>& v) {
     size_t count = 0;
 
