@@ -49,8 +49,10 @@ void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
             bitsValue(xhigh, xrem);
             xhighCnt = xrem.size();
 
+#ifdef USE_ASSERT
             assert(xlow == xvalue);
             assert(xhighCnt < sizeBits(xvalue));
+#endif
 
         } else {
             x_witness = ALG::valueToString(xvalue);
@@ -76,8 +78,10 @@ void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
             bitsValue(yhigh, yrem);
             yhighCnt = yrem.size();
 
+#ifdef USE_ASSERT
             assert(ylow == yvalue);
             assert(yhighCnt < sizeBits(yvalue));
+#endif
 
         } else {
             y_witness = ALG::valueToString(yvalue);
@@ -95,14 +99,18 @@ void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
         addover(high, low, ylow);
 
         const Value zvalue = BitOps::ADDMOD(xvalue, yvalue);
+#ifdef USE_ASSERT
         assert(zvalue == low);
+#endif
 
         std::vector<int> zbits = valueBits(low);
         for (std::size_t i = 0; i < xhighCnt + yhighCnt + 1; ++i) {
             zbits.push_back(high & 0x1);
             high >>= 1;
         }
+#ifdef USE_ASSERT
         assert(0 == high);
+#endif
 
         const Fr zwitness = x_witness + y_witness;
         const R1T z = RS->createResult(op, x, y, zwitness);
@@ -113,8 +121,10 @@ void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
     } else if (BitwiseOps::CMPLMNT == op) {
         // y is only argument
         const std::vector<R1T> y = RS->argBits(R);
+#ifdef USE_ASSERT
         assert(y.size() >= sizeBits(yvalue));
         assert(y.size() == R.splitBits().size());
+#endif
 
         // z is result
         const Value zvalue = BitOps::CMPLMNT(yvalue);
@@ -129,7 +139,9 @@ void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
             z.emplace_back(
                 RS->createResult(op, y[i], y[i], boolTo<Fr>(b)));
         }
+#ifdef USE_ASSERT
         assert(zbits == valueBits(zvalue));
+#endif
 
         S.push(
             ALG(zvalue, ALG::valueToString(zvalue), zbits, z));
@@ -142,7 +154,9 @@ void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
         const Fr xwitness = L.witness();
 
         const std::vector<R1T> x = RS->argBits(L);
+#ifdef USE_ASSERT
         assert(x.size() >= sizeBits(xvalue));
+#endif
 
         // z is result
         const Value zvalue = evalOp(op, xvalue, yvalue);
@@ -156,7 +170,9 @@ void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
 
         } else {
             const std::vector<R1T> y = RS->argBits(R);
+#ifdef USE_ASSERT
             assert(y.size() >= sizeBits(yvalue));
+#endif
 
             Value mask = 0x1;
             for (std::size_t i = 0; i < sizeBits(zvalue); ++i) {
@@ -200,7 +216,9 @@ void evalStackCmp_internal(std::stack<ALG>& S, const EqualityCmp op)
     const std::vector<int> ybits = R.splitBits();
     const std::vector<R1T> y = RS->argBits(R);
 
+#ifdef USE_ASSERT
     assert(y.size() >= sizeBits(yvalue));
+#endif
 
     // x is left argument
     const auto L = S.top();
@@ -209,7 +227,9 @@ void evalStackCmp_internal(std::stack<ALG>& S, const EqualityCmp op)
     const std::vector<int> xbits = L.splitBits();
     const std::vector<R1T> x = RS->argBits(L);
 
+#ifdef USE_ASSERT
     assert(x.size() >= sizeBits(xvalue));
+#endif
 
     // intermediate constraint variables for each bit
     std::vector<R1T> zvec;
