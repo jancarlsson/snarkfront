@@ -20,7 +20,9 @@ template <typename FR>
 void rank1_booleanity(snarklib::R1System<FR>& S,
                       const snarklib::R1Variable<FR>& x)
 {
+#ifdef USE_ASSERT
     assert(! x.zeroIndex());
+#endif
     S.addConstraint(x * (FR::one() - x) == FR::zero()); // only roots are 0 and 1
 }
 
@@ -28,7 +30,9 @@ template <typename FR>
 void rank1_booleanity(snarklib::R1System<FR>& S,
                       const snarklib::R1Term<FR>& x)
 {
+#ifdef USE_ASSERT
     assert(x.isVariable());
+#endif
     rank1_booleanity(S, x.var());
 }
 
@@ -46,7 +50,9 @@ void rank1_split(snarklib::R1System<FR>& S,
                  const snarklib::R1Term<FR>& x,
                  const std::vector<snarklib::R1Term<FR>>& b)
 {
+#ifdef USE_ASSERT
     assert(x.isVariable());
+#endif
 
     snarklib::R1Combination<FR> LC;
     LC.reserveTerms(b.size());
@@ -114,7 +120,9 @@ template <typename FR>
 void rank1_shiftleft(std::vector<snarklib::R1Term<FR>>& x,
                      const std::size_t n)
 {
+#ifdef USE_ASSERT
     assert(! x.empty());
+#endif
     if (0 == n) return; // do nothing
 
     const auto N = n % x.size();
@@ -132,7 +140,9 @@ template <typename FR>
 void rank1_shiftright(std::vector<snarklib::R1Term<FR>>& x,
                       const std::size_t n)
 {
+#ifdef USE_ASSERT
     assert(! x.empty());
+#endif
     if (0 == n) return; // do nothing
 
     const auto N = n % x.size();
@@ -150,7 +160,9 @@ template <typename FR>
 void rank1_rotateleft(std::vector<snarklib::R1Term<FR>>& x,
                       const std::size_t n)
 {
+#ifdef USE_ASSERT
     assert(! x.empty());
+#endif
     if (0 == n) return; // do nothing
 
     const auto N = n % x.size();
@@ -168,7 +180,9 @@ template <typename FR>
 void rank1_rotateright(std::vector<snarklib::R1Term<FR>>& x,
                        const std::size_t n)
 {
+#ifdef USE_ASSERT
     assert(! x.empty());
+#endif
     if (0 == n) return; // do nothing
 
     const auto N = n % x.size();
