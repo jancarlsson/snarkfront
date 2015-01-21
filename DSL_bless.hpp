@@ -62,7 +62,9 @@ void bless(std::array<T, N>& x, const U& a)
         sizeT = sizeBits(x[0]),
         sizeU = sizeBits(a);
 
+#ifdef USE_ASSERT
     assert(sizeT * N == sizeU);
+#endif
 
     typedef typename T::FrType FR;
 
