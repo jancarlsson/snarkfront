@@ -31,7 +31,9 @@ snarklib::BigInt<N> operator+ (const snarklib::BigInt<N>& a,
                                const snarklib::BigInt<N>& b)
 {
     snarklib::BigInt<N> c;
+#ifdef USE_ASSERT
     assert(addBigInt(a, b, c));
+#endif
     return c;
 }
 
@@ -46,7 +48,9 @@ bool subBigInt(const snarklib::BigInt<N>& a,
     if (mpn_cmp(a.data(), b.data(), N) < 0) return false; // failure
                                                           // if b > a
     const mp_limb_t borrow = mpn_sub(c.data(), a.data(), N, b.data(), N);
+#ifdef USE_ASSERT
     assert(0 == borrow);
+#endif
     return true;
 }
 
@@ -55,7 +59,9 @@ snarklib::BigInt<N> operator- (const snarklib::BigInt<N>& a,
                                const snarklib::BigInt<N>& b)
 {
     snarklib::BigInt<N> c;
+#ifdef USE_ASSERT
     assert(subBigInt(a, b, c));
+#endif
     return c;
 }
 
@@ -83,7 +89,9 @@ snarklib::BigInt<N> operator* (const snarklib::BigInt<N>& a,
                                const snarklib::BigInt<N>& b)
 {
     snarklib::BigInt<N> c;
+#ifdef USE_ASSERT
     assert(mulBigInt(a, b, c));
+#endif
     return c;
 }
 
