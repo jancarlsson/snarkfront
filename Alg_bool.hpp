@@ -20,7 +20,9 @@ void evalStackOp(std::stack<Alg_bool<FR>>& S, const LogicalOps op)
     const auto R = S.top();
     S.pop();
     const bool yvalue = R.value();
+#ifdef USE_ASSERT
     assert(1 == R.r1Terms().size());
+#endif
     const R1T y = RS->argScalar(R);
 
     // z is result
@@ -39,7 +41,9 @@ void evalStackOp(std::stack<Alg_bool<FR>>& S, const LogicalOps op)
         const auto L = S.top();
         S.pop();
         const bool xvalue = L.value();
+#ifdef USE_ASSERT
         assert(1 == L.r1Terms().size());
+#endif
         const R1T x = RS->argScalar(L);
 
         zvalue = evalOp(op, xvalue, yvalue);
