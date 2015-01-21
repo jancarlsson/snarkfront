@@ -102,7 +102,7 @@ public:
     {
         m_links.push_back(std::addressof(b));
     }
-        
+
     AST_Op(const OP op, const AST_Node<ALG>& a, const AST_Node<ALG>* b)
         : AST_Op{op, a, *b}
     {
