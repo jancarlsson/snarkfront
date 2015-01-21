@@ -84,7 +84,9 @@ public:
     }
 
     void computeHash() {
+#ifdef USE_ASSERT
         assert(inputOK());
+#endif
 
         auto* ptr = static_cast<CRTP*>(this);
 
