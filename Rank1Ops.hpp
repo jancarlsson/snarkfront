@@ -16,8 +16,8 @@ namespace snarkfront {
 //
 
 // constrain rank-1 variable to 0 and 1 values
-template <typename FR>
-void rank1_booleanity(snarklib::R1System<FR>& S,
+template <template <typename> class SYS, typename FR>
+void rank1_booleanity(SYS<FR>& S,
                       const snarklib::R1Variable<FR>& x)
 {
 #ifdef USE_ASSERT
@@ -26,8 +26,8 @@ void rank1_booleanity(snarklib::R1System<FR>& S,
     S.addConstraint(x * (FR::one() - x) == FR::zero()); // only roots are 0 and 1
 }
 
-template <typename FR>
-void rank1_booleanity(snarklib::R1System<FR>& S,
+template <template <typename> class SYS, typename FR>
+void rank1_booleanity(SYS<FR>& S,
                       const snarklib::R1Term<FR>& x)
 {
 #ifdef USE_ASSERT
@@ -36,8 +36,8 @@ void rank1_booleanity(snarklib::R1System<FR>& S,
     rank1_booleanity(S, x.var());
 }
 
-template <typename FR>
-void rank1_booleanity(snarklib::R1System<FR>& S,
+template <template <typename> class SYS, typename FR>
+void rank1_booleanity(SYS<FR>& S,
                       const std::vector<snarklib::R1Term<FR>>& x)
 {
     for (const auto& a : x)
@@ -45,8 +45,8 @@ void rank1_booleanity(snarklib::R1System<FR>& S,
 }
 
 // constrain between a scalar in [0, 2^k) and representation as k bits
-template <typename FR>
-void rank1_split(snarklib::R1System<FR>& S,
+template <template <typename> class SYS, typename FR>
+void rank1_split(SYS<FR>& S,
                  const snarklib::R1Term<FR>& x,
                  const std::vector<snarklib::R1Term<FR>>& b)
 {
@@ -102,9 +102,9 @@ DEFN_R1OP(MUL, x * y == z)
 // function to apply operators
 //
 
-template <typename R1OP>
+template <template <typename> class SYS, typename R1OP>
 void rank1_op(
-    snarklib::R1System<typename R1OP::FieldType>& S,
+    SYS<typename R1OP::FieldType>& S,
     const snarklib::R1Term<typename R1OP::FieldType>& x,
     const snarklib::R1Term<typename R1OP::FieldType>& y,
     const snarklib::R1Term<typename R1OP::FieldType>& z)
