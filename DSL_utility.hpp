@@ -25,6 +25,22 @@ bool pairingBN128(const std::string& name);
 bool pairingEdwards(const std::string& name);
 
 ////////////////////////////////////////////////////////////////////////////////
+// SHA-2
+//
+
+// check if: "1", "224", "256", "384", "512", "512_224", "512_256"
+bool validSHA2Name(const std::string& shaBits);
+
+// check if: 1, 224, 256, 384, 512
+bool validSHA2Name(const std::size_t shaBits);
+
+// returns true if "SHA256"
+bool nameSHA256(const std::string& shaBits);
+
+// returns true if "SHA512"
+bool nameSHA512(const std::string& shaBits);
+
+////////////////////////////////////////////////////////////////////////////////
 // powers of 2
 //
 
