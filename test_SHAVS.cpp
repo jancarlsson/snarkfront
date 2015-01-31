@@ -266,12 +266,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    // check for valid SHA bits
-    if (1 != shaBits &&
-        224 != shaBits &&
-        256 != shaBits &&
-        384 != shaBits &&
-        512 != shaBits)
+    if (!validPairingName(pairing) || !validSHA2Name(shaBits))
         printUsage(argv[0]);
 
     if (pairingBN128(pairing)) {
@@ -283,10 +278,6 @@ int main(int argc, char *argv[])
         // Edwards 80 bits
         init_Edwards();
         readLoop<EDWARDS_PAIRING>(shaBits, testCase, zkProof);
-
-    } else {
-        // no elliptic curve specified
-        printUsage(argv[0]);
     }
 
     exit(EXIT_SUCCESS);
