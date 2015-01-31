@@ -144,6 +144,9 @@ int main(int argc, char *argv[])
         }
     }
 
+    if (!validPairingName(pairing) || !validSHA2Name(shaBits))
+        printUsage(argv[0]);
+
     bool result;
 
     if (pairingBN128(pairing)) {
@@ -155,10 +158,6 @@ int main(int argc, char *argv[])
         // Edwards 80 bits
         init_Edwards();
         result = runTest<EDWARDS_PAIRING>(shaBits, stdInput);
-
-    } else {
-        // no elliptic curve specified
-        printUsage(argv[0]);
     }
 
     cout << "test " << (result ? "passed" : "failed") << endl;
