@@ -12,6 +12,8 @@ LIBRARY_HPP = \
 	AST.hpp \
 	BigIntOps.hpp \
 	BitwiseOps.hpp \
+	CompilePPZK.hpp \
+	CompileQAP.hpp \
 	Counter.hpp \
 	DataBuffer.hpp \
 	DSL_base.hpp \
@@ -22,6 +24,7 @@ LIBRARY_HPP = \
 	EnumOps.hpp \
 	EvalAST.hpp \
 	GenericProgressBar.hpp \
+	Getopt.hpp \
 	HexUtil.hpp \
 	InitPairing.hpp \
 	Lazy.hpp \
@@ -45,6 +48,7 @@ default :
 	@echo make lib SNARKLIB_PREFIX=\<path\>
 	@echo make archive SNARKLIB_PREFIX=\<path\>
 	@echo make tests SNARKLIB_PREFIX=\<path\>
+	@echo make tools SNARKLIB_PREFIX=\<path\>
 	@echo make install PREFIX=\<path\>
 	@echo make doc
 	@echo make clean
@@ -59,18 +63,25 @@ install :
 	$(error Please provide PREFIX, e.g. make install PREFIX=/usr/local)
 else
 install :
-	mkdir -p $(PREFIX)/include/snarkfront $(PREFIX)/lib
+	mkdir -p $(PREFIX)/include/snarkfront $(PREFIX)/lib $(PREFIX)/bin
 	cp libsnarkfront.* $(PREFIX)/lib
 	cp $(LIBRARY_HPP) $(PREFIX)/include/snarkfront
+	cp randomness $(PREFIX)/bin
+	cp qap $(PREFIX)/bin
+	cp ppzk $(PREFIX)/bin
 endif
 
 CLEAN_FILES = \
 	libsnarkfront.so \
 	libsnarkfront.a \
+	make_merkle \
 	test_merkle \
 	test_proof \
 	test_sha \
 	test_SHAVS \
+	randomness \
+	qap \
+	ppzk \
 	README.html \
 	input.txt \
 	keygen.txt \
@@ -91,6 +102,18 @@ lib :
 archive :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make archive SNARKLIB_PREFIX=/usr/local)
 
+make_merkle :
+	$(error Please provide SNARKLIB_PREFIX, e.g. make make_merkle SNARKLIB_PREFIX=/usr/local)
+
+ppzk :
+	$(error Please provide SNARKLIB_PREFIX, e.g. make ppzk SNARKLIB_PREFIX=/usr/local)
+
+qap :
+	$(error Please provide SNARKLIB_PREFIX, e.g. make qap SNARKLIB_PREFIX=/usr/local)
+
+randomness :
+	$(error Please provide SNARKLIB_PREFIX, e.g. make randomness SNARKLIB_PREFIX=/usr/local)
+
 test_merkle :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make test_merkle SNARKLIB_PREFIX=/usr/local)
 
@@ -105,6 +128,9 @@ test_SHAVS :
 
 tests :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make tests SNARKLIB_PREFIX=/usr/local)
+
+tools :
+	$(error Please provide SNARKLIB_PREFIX, e.g. make tools SNARKLIB_PREFIX=/usr/local)
 else
 CXXFLAGS_SNARKLIB = -I$(SNARKLIB_PREFIX)/include/snarklib -DUSE_ASM -DUSE_ADD_SPECIAL -DUSE_ASSERT
 LDFLAGS_SNARKLIB = -lgmpxx -lgmp
@@ -120,6 +146,7 @@ LIBRARY_CPP = \
 	DSL_identity.cpp \
 	DSL_utility.cpp \
 	GenericProgressBar.cpp \
+	Getopt.cpp \
 	HexUtil.cpp \
 	InitPairing.cpp \
 	PowersOf2.cpp
@@ -132,6 +159,7 @@ libsnarkfront.so : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(CXX) -c $(SO_FLAGS) -o DSL_identity.o DSL_identity.cpp
 	$(CXX) -c $(SO_FLAGS) -o DSL_utility.o DSL_utility.cpp
 	$(CXX) -c $(SO_FLAGS) -o GenericProgressBar.o GenericProgressBar.cpp
+	$(CXX) -c $(SO_FLAGS) -o Getopt.o Getopt.cpp
 	$(CXX) -c $(SO_FLAGS) -o HexUtil.o HexUtil.cpp
 	$(CXX) -c $(SO_FLAGS) -o InitPairing.o InitPairing.cpp
 	$(CXX) -c $(SO_FLAGS) -o PowersOf2.o PowersOf2.cpp
@@ -145,6 +173,7 @@ libsnarkfront.a : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(CXX) -c $(AR_FLAGS) -o DSL_identity.o DSL_identity.cpp
 	$(CXX) -c $(AR_FLAGS) -o DSL_utility.o DSL_utility.cpp
 	$(CXX) -c $(AR_FLAGS) -o GenericProgressBar.o GenericProgressBar.cpp
+	$(CXX) -c $(AR_FLAGS) -o Getopt.o Getopt.cpp
 	$(CXX) -c $(AR_FLAGS) -o HexUtil.o HexUtil.cpp
 	$(CXX) -c $(AR_FLAGS) -o InitPairing.o InitPairing.cpp
 	$(CXX) -c $(AR_FLAGS) -o PowersOf2.o PowersOf2.cpp
@@ -154,6 +183,22 @@ libsnarkfront.a : $(LIBRARY_HPP) $(LIBRARY_CPP)
 lib : libsnarkfront.so
 
 archive : libsnarkfront.a
+
+make_merkle : make_merkle.cpp libsnarkfront.a
+	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o make_merkle.o
+	$(CXX) -o $@ make_merkle.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+
+ppzk : ppzk.cpp libsnarkfront.a
+	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o ppzk.o
+	$(CXX) -o $@ ppzk.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+
+qap : qap.cpp libsnarkfront.a
+	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o qap.o
+	$(CXX) -o $@ qap.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+
+randomness : randomness.cpp libsnarkfront.a
+	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o randomness.o
+	$(CXX) -o $@ randomness.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
 
 test_merkle : test_merkle.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_merkle.o
@@ -171,5 +216,7 @@ test_SHAVS : test_SHAVS.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_SHAVS.o
 	$(CXX) -o $@ test_SHAVS.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
 
-tests : test_merkle test_proof test_sha test_SHAVS
+tests : make_merkle test_merkle test_proof test_sha test_SHAVS
+
+tools : randomness qap ppzk
 endif
