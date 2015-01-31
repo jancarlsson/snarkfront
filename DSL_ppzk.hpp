@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include "Alg.hpp"
 #include "Alg_bool.hpp"
 #include "DSL_base.hpp"
@@ -22,6 +23,20 @@ template <typename PAIRING> using Keypair = snarklib::PPZK_Keypair<PAIRING>;
 template <typename PAIRING> using Input = R1Cowitness<typename PAIRING::Fr>;
 template <typename PAIRING> using Proof = snarklib::PPZK_Proof<PAIRING>;
 typedef snarklib::ProgressCallback ProgressCallback;
+
+template <typename PAIRING>
+void write_files(const std::string& filePrefix, const std::size_t maxSize)
+{
+    TL<R1C<typename PAIRING::Fr>>::singleton()
+        ->writeFiles(filePrefix, maxSize);
+}
+
+template <typename PAIRING>
+void finalize_files()
+{
+    TL<R1C<typename PAIRING::Fr>>::singleton()
+        ->finalizeFiles();
+}
 
 template <typename PAIRING>
 void reset()
