@@ -60,6 +60,13 @@ Elliptic curve pairings:
 - Barreto-Naehrig at 128 bits of security
 - Edwards at 80 bits of security
 
+Use both API and CLI toolchain:
+
+- programmatic API with cryptographic structures in C++ templates (done)
+- map-reduce cryptographic structures in files from command line (work in progress)
+
+*The CLI allows optimizing memory locality by trading time for space.*
+
 --------------------------------------------------------------------------------
 Alice and Bob need a zero knowledge proof
 --------------------------------------------------------------------------------
@@ -205,10 +212,10 @@ First, install snarklib: (nothing to build because all header files)
 Second, build and install snarkfront:
 
     $ cd ~/snarkfront
-    $ make lib archive SNARKLIB_PREFIX=/usr/local
+    $ make tools SNARKLIB_PREFIX=/usr/local
     $ make install PREFIX=/usr/local
 
-The only applications are for testing. To build them: (as statically linked)
+To build the testing applications: (as statically linked)
 
     $ cd ~/snarkfront
     $ make tests SNARKLIB_PREFIX=/usr/local
@@ -219,6 +226,7 @@ This generates:
 2. test_proof  - isolated stages for: key generation, input, proof, verify
 3. test_sha    - play with zero knowledge SHA-2
 4. test_merkle - play with zero knowledge Merkle trees
+5. make_merkle - Merkle tree constraint system in files
 
 --------------------------------------------------------------------------------
 test_SHAVS (Secure Hash Algorithm and Verification System)
