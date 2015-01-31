@@ -87,14 +87,14 @@ bool runTest(const string& shaBits,
 {
     typedef typename PAIRING::Fr FR;
 
-    if ("256" == shaBits) {
+    if (nameSHA256(shaBits)) {
         runTest<PAIRING,
                 MerkleBundle_SHA256<uint32_t>, // count could be size_t
                 zk::MerkleAuthPath_SHA256<FR>>(
             treeDepth,
             leafNumber);
 
-    } else if ("512" == shaBits) {
+    } else if (nameSHA512(shaBits)) {
         runTest<PAIRING,
                 MerkleBundle_SHA512<uint64_t>, // count could be size_t
                 zk::MerkleAuthPath_SHA512<FR>>(
@@ -150,7 +150,10 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (!validPairingName(pairing) || shaBits.empty() || -1 == treeDepth || -1 == leafNumber)
+    if (!validPairingName(pairing) ||
+        !(nameSHA256(shaBits) || nameSHA512(shaBits)) ||
+        -1 == treeDepth ||
+        -1 == leafNumber)
         printUsage(argv[0]);
 
     bool result;
@@ -164,7 +167,6 @@ int main(int argc, char *argv[])
         // Edwards 80 bits
         init_Edwards();
         result = runTest<EDWARDS_PAIRING>(shaBits, treeDepth, leafNumber);
-
     }
 
     cout << "proof verification " << (result ? "OK" : "FAIL") << endl;
