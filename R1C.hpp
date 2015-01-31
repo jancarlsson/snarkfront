@@ -12,6 +12,7 @@
 #include "Counter.hpp"
 #include "EnumOps.hpp"
 #include "PowersOf2.hpp"
+#include <HugeSystem.hpp> // snarklib
 #include <PPZK_keypair.hpp> // snarklib
 #include <PPZK_proof.hpp> // snarklib
 #include <PPZK_verify.hpp> // snarklib
@@ -131,6 +132,18 @@ public:
     R1C()
         : m_swap_AB_if_beneficial(false)
     {}
+
+    // constraint system written out to files as it is built
+    void writeFiles(const std::string& filePrefix, const std::size_t maxSize) {
+        m_constraintSystem.clearAppend(filePrefix, maxSize);
+    }
+
+    // constraint system is finished, write final part to disk
+    // returns true if ok, false if there was an error
+    bool finalizeFiles() {
+        m_constraintSystem.finalize(input().sizeFR());
+        return !!m_constraintSystem;
+    }
 
     void reset() {
         // variable indices
@@ -557,23 +570,23 @@ private:
 
         switch (op) {
         case (LogicalOps::AND) :
-            rank1_op<R1_AND<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_AND<FR>>(m_constraintSystem, x, y, z);
             break;
 
         case (LogicalOps::OR) :
-            rank1_op<R1_OR<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_OR<FR>>(m_constraintSystem, x, y, z);
             break;
 
         case (LogicalOps::XOR) :
-            rank1_op<R1_XOR<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_XOR<FR>>(m_constraintSystem, x, y, z);
             break;
 
         case (LogicalOps::SAME) :
-            rank1_op<R1_SAME<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_SAME<FR>>(m_constraintSystem, x, y, z);
             break;
 
         case (LogicalOps::CMPLMNT) :
-            rank1_op<R1_CMPLMNT<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_CMPLMNT<FR>>(m_constraintSystem, x, y, z);
             break;
         }
     }
@@ -586,15 +599,15 @@ private:
 
         switch (op) {
         case (ScalarOps::ADD) :
-            rank1_op<R1_ADD<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_ADD<FR>>(m_constraintSystem, x, y, z);
             break;
 
         case (ScalarOps::SUB) :
-            rank1_op<R1_SUB<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_SUB<FR>>(m_constraintSystem, x, y, z);
             break;
 
         case (ScalarOps::MUL) :
-            rank1_op<R1_MUL<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_MUL<FR>>(m_constraintSystem, x, y, z);
             break;
         }
     }
@@ -607,27 +620,27 @@ private:
 
         switch (op) {
         case (BitwiseOps::AND) :
-            rank1_op<R1_AND<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_AND<FR>>(m_constraintSystem, x, y, z);
             break;
 
         case (BitwiseOps::OR) :
-            rank1_op<R1_OR<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_OR<FR>>(m_constraintSystem, x, y, z);
             break;
 
         case (BitwiseOps::XOR) :
-            rank1_op<R1_XOR<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_XOR<FR>>(m_constraintSystem, x, y, z);
             break;
 
         case (BitwiseOps::SAME) :
-            rank1_op<R1_SAME<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_SAME<FR>>(m_constraintSystem, x, y, z);
             break;
 
         case (BitwiseOps::CMPLMNT) :
-            rank1_op<R1_CMPLMNT<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_CMPLMNT<FR>>(m_constraintSystem, x, y, z);
             break;
 
         case (BitwiseOps::ADDMOD) :
-            rank1_op<R1_ADD<FR>>(m_constraintSystem, x, y, z);
+            rank1_op<snarklib::HugeSystem, R1_ADD<FR>>(m_constraintSystem, x, y, z);
             break;
         }
     }
@@ -678,7 +691,7 @@ private:
 
     // quadratic constraint system
     bool m_swap_AB_if_beneficial;
-    snarklib::R1System<FR> m_constraintSystem;
+    snarklib::HugeSystem<FR> m_constraintSystem;
 
     // variable assignment witness
     snarklib::R1Witness<FR> m_witness_FR;
