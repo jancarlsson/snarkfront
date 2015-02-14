@@ -91,10 +91,9 @@ private:
 // (extract) read from stream into data buffer object
 template <typename T>
 std::istream& operator>> (std::istream& is, DataBuffer<T>& a) {
-    std::uint8_t c;
-    while (! is.eof() && (is >> c)) {
+    char c;
+    while (!is.eof() && !!is.get(c))
         a.push8(c);
-    }
 
     return is;
 }
