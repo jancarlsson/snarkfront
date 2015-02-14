@@ -193,6 +193,10 @@ public:
             callback);
     }
 
+    const snarklib::R1Witness<FR>& witness() const {
+        return m_witness_FR;
+    }
+
     // generate proof with private witness
     template <typename PAIRING>
     snarklib::PPZK_Proof<PAIRING> proof(
