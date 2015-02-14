@@ -62,10 +62,8 @@ Elliptic curve pairings:
 
 Use both API and CLI toolchain:
 
-- programmatic API with cryptographic structures in C++ templates (done)
-- map-reduce cryptographic structures in files from command line (work in progress)
-
-*The CLI allows optimizing memory locality by trading time for space.*
+- programmatic API with cryptographic structures in C++ templates
+- map-reduce cryptographic structures in files from command line
 
 --------------------------------------------------------------------------------
 Alice and Bob need a zero knowledge proof
@@ -110,7 +108,7 @@ lock and see it open. However, if she disassembles the lock, Alice learns
 nothing about the combination to the lock.
 
 --------------------------------------------------------------------------------
-Honest Charles helps Alice and Bob trust each other with snarkfront
+Honest Charles helps Alice and Bob trust each other with the snarkfront API
 --------------------------------------------------------------------------------
 
 - The lock is SHA-256. The problem is digest == SHA256(message).
@@ -192,6 +190,39 @@ Honest Charles. Bob generates a proof that he knows secretMsg without revealing
 what this is.
 
 --------------------------------------------------------------------------------
+API versus CLI
+--------------------------------------------------------------------------------
+
+The API will give better single-core performance on computers with enough RAM.
+In practice, that means 16 GB to 32 GB at a minimum.
+The API trades off space to buy time.
+
+The CLI is the only option for computers with less RAM. That is true for almost
+all mass market consumer laptops and desktops (as of 2015).
+The CLI trades off time to buy space.
+
+Note the API does not use OpenMP. The API is single threaded and runs on one
+core only. There is no technical reason it must work this way.
+
+The CLI scales well to multi-core and distributed fleets. The directed
+acyclic graph of cryptographic arithmetic possesses natural concurrency
+and parallelism. The toolchain transformations correspond to this graph.
+
+In summary:
+
+    if (RAM < 16GB) {
+        Must use the CLI
+    } else if (RAM < 32GB) {
+        Might be able to use the API, otherwise use the CLI
+    } else {
+        if (single_core) {
+            Use the API, it will be faster
+        } else {
+            Use the CLI, it can be faster
+        }
+    }
+
+--------------------------------------------------------------------------------
 Build instructions
 --------------------------------------------------------------------------------
 
@@ -226,7 +257,7 @@ This generates:
 2. test_proof  - isolated stages for: key generation, input, proof, verify
 3. test_sha    - play with zero knowledge SHA-2
 4. test_merkle - play with zero knowledge Merkle trees
-5. make_merkle - Merkle tree constraint system in files
+5. test_bundle - CLI testing with Merkle trees
 
 --------------------------------------------------------------------------------
 test_SHAVS (Secure Hash Algorithm and Verification System)
@@ -379,6 +410,9 @@ The usage message explains how to run this.
     text from standard input:
     echo "abc" | ./test_sha -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256
 
+    hash only, skip zero knowledge proof:
+    echo "abc" | ./test_sha -b 1|224|256|384|512|512_224|512_256
+
     random data:
     ./test_sha -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256 -r
 
@@ -521,6 +555,179 @@ Note the index convention runs in the opposite direction of tree depth. The
 root element at the top of the tree is index 7. The index 0 is at the leaves
 of the tree. This reversed indexing is consistent with how the proof works.
 The proof follows the path from the leaf upwards to the root.
+
+--------------------------------------------------------------------------------
+test_cli.sh
+--------------------------------------------------------------------------------
+
+An example script exercises the command line toolchain end-to-end.
+
+    $ ./test_cli.sh
+    usage: ./test_cli.sh BN128|Edwards 256|512 <tree_depth> <vector_blocks> <window_blocks>
+
+It uses test_bundle to generate a Merkle tree, add a commitment leaf, then
+write the constraint system, input, and witness to files.
+
+    $ ./test_bundle 
+    new tree:      ./test_bundle -p BN128|Edwards -b 256|512 -t merkle_tree_file -d tree_depth
+    add leaf:      ./test_bundle -p BN128|Edwards -b 256|512 -t merkle_tree_file -c hex_digest [-k]
+    constraints:   ./test_bundle -p BN128|Edwards -b 256|512 -t merkle_tree_file -s constraint_system_file -n constraints_per_file
+    proof input:   ./test_bundle -p BN128|Edwards -b 256|512 -t merkle_tree_file -i proof_input_file
+    proof witness: ./test_bundle -p BN128|Edwards -b 256|512 -t merkle_tree_file -w proof_witness_file
+
+These files are inputs to the four toolchain executables which perform the
+zero knowledge cryptographic calculations.
+
+1. randomness - sample entropy from /dev/urandom and save in files (dangerous!)
+2. qap - map constraint system to query vectors
+3. ppzk - map query vectors and randomness to generate key pair, reduce proving key and witness to generate proof
+4. verify - check that verification key, input, and proof are consistent
+
+Here is an easy example. This creates a Merkle tree of depth one using the
+80 bit Edwards curve and SHA-256. The map-reduce index space is trivial with
+a single partition for the query vectors and windowed exponentiation table.
+
+    $ ./test_cli.sh Edwards 256 1 1 1
+    create merkle tree
+    add commitment leaf
+    generate constraint system (may take a while)
+    generate proof inputs
+    generate proof witness
+    key randomness ***destroy tmp_test_cli.keyrand after use***
+    qap query A
+    qap query B
+    qap query C
+    qap query H
+    g1_exp_count 606516
+    g2_exp_count 75705
+    qap query K
+    qap query input consistency
+
+    ***** PROVING KEY *****
+
+    ppzk query A
+
+    tmp_test_cli.pkqueryA0
+    (1) ..................................................
+
+    ppzk query B
+
+    tmp_test_cli.pkqueryB0
+    (1) ..................................................
+
+    ppzk query C
+
+    tmp_test_cli.pkqueryC0
+    (1) ..................................................
+
+    ppzk query H
+
+    tmp_test_cli.pkqueryH0
+    (1) ..................................................
+
+    ppzk query K
+
+    tmp_test_cli.pkqueryK0
+    (1) ..................................................
+
+    ***** VERIFICATION KEY *****
+
+    ppzk query IC
+
+    (1) ..................................................
+
+    ***tmp_test_cli.keyrand no longer needed***
+
+    ***** PROOF *****
+
+    proof randomness ***destroy tmp_test_cli.proofrand after use***
+
+    qap witness
+
+    ppzk witness A
+
+    tmp_test_cli.pkqueryA0
+    (1) ..................................................
+
+    ppzk witness B
+
+    tmp_test_cli.pkqueryB0
+    (1) ..................................................
+
+    ppzk witness C
+
+    tmp_test_cli.pkqueryC0
+    (1) ..................................................
+
+    ppzk witness H
+
+    tmp_test_cli.pkqueryH0
+    (1) ..................................................
+
+    ppzk witness K
+
+    tmp_test_cli.pkqueryK0
+    (1) ..................................................
+
+    ***tmp_test_cli.proofrand no longer needed***
+
+    ***** VERIFY *****
+
+    PASS
+
+Many files are left behind by the script.
+
+    $ du -k -c tmp_test_cli.*
+    8       tmp_test_cli.input
+    4       tmp_test_cli.keyrand
+    4       tmp_test_cli.merkle
+    32204   tmp_test_cli.pkqueryA0
+    42108   tmp_test_cli.pkqueryB0
+    17360   tmp_test_cli.pkqueryC0
+    21436   tmp_test_cli.pkqueryH0
+    48      tmp_test_cli.pkqueryIC
+    16884   tmp_test_cli.pkqueryK0
+    4       tmp_test_cli.pkwitnessA
+    4       tmp_test_cli.pkwitnessB
+    4       tmp_test_cli.pkwitnessC
+    4       tmp_test_cli.pkwitnessH
+    4       tmp_test_cli.pkwitnessK
+    4       tmp_test_cli.proofrand
+    4       tmp_test_cli.qapqueryA
+    5216    tmp_test_cli.qapqueryA0
+    4       tmp_test_cli.qapqueryB
+    4144    tmp_test_cli.qapqueryB0
+    4       tmp_test_cli.qapqueryC
+    2908    tmp_test_cli.qapqueryC0
+    4       tmp_test_cli.qapqueryH
+    7080    tmp_test_cli.qapqueryH0
+    4       tmp_test_cli.qapqueryIC
+    16      tmp_test_cli.qapqueryIC0
+    4       tmp_test_cli.qapqueryK
+    5568    tmp_test_cli.qapqueryK0
+    7080    tmp_test_cli.qapwitness0
+    4       tmp_test_cli.system
+    26752   tmp_test_cli.system0
+    2172    tmp_test_cli.witness
+    191044  total
+
+A more realistic example is a Merkle tree of depth 64 using the 128 bit
+Barreto-Naehrig curve. As before, the SHA-256 compression function is used.
+Query vectors are partitioned into 16 blocks. The windowed exponentiation
+table is partitioned into 8 blocks.
+
+    $ ./test_cli.sh BN128 256 64 16 8
+
+Note this may take hours to run and writes 16 GB of files to disk. However,
+RAM use remains between 500 MB and 2 GB. A laptop with 4 GB RAM and a slow
+x86-64 bit CPU running at 1 GHz can generate the key pair in under eight hours
+using a single core without stressing itself (getting hot or thrashing disk).
+
+Note also the test_cli.sh script and partitioning chosen in these examples is
+not optimal. The blocks of the partitioned problem may be mapped and reduced
+concurrently according to interdependencies between them. Optimal partitioning
+would be tuned to the RAM and CPU cores available. This test script is just to
+verify end-to-end functionality in a transparent way.
 
 --------------------------------------------------------------------------------
 References
