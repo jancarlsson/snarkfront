@@ -17,36 +17,43 @@ template <typename PAIRING>
 class QAP_query_ABCH
 {
     typedef typename PAIRING::Fr FR;
+    typedef typename snarklib::QAP_QueryABC<snarklib::HugeSystem, FR> ABC;
 
 public:
     QAP_query_ABCH(const std::size_t numBlocks,
                    const std::string& sysfile,
                    const std::string& randfile)
         : m_numBlocks(numBlocks),
-          m_hugeSystem(sysfile),
-          m_error(false)
+          m_hugeSystem(sysfile)
     {
         std::ifstream ifs(randfile);
-        if (!ifs || !m_randomness.marshal_in(ifs) || !m_hugeSystem.loadIndex())
-            m_error = true;
+        m_error = !ifs || !m_randomness.marshal_in(ifs) || !m_hugeSystem.loadIndex();
+    }
+
+    // for g1_exp_count() and g2_exp_count() only
+    QAP_query_ABCH(const std::string& sysfile)
+        : m_numBlocks(0),
+          m_hugeSystem(sysfile)
+    {
+        m_error = !m_hugeSystem.loadIndex();
     }
 
     bool operator! () const { return m_error; }
 
     void A(const std::string& outfile) {
-        writeFiles<snarklib::QAP_QueryA<snarklib::HugeSystem, FR>>(outfile);
+        writeFilesABC(outfile, ABC::VecSelect::A);
     }
 
     void B(const std::string& outfile) {
-        writeFiles<snarklib::QAP_QueryB<snarklib::HugeSystem, FR>>(outfile);
+        writeFilesABC(outfile, ABC::VecSelect::B);
     }
 
     void C(const std::string& outfile) {
-        writeFiles<snarklib::QAP_QueryC<snarklib::HugeSystem, FR>>(outfile);
+        writeFilesABC(outfile, ABC::VecSelect::C);
     }
 
     void H(const std::string& outfile) {
-        writeFiles<snarklib::QAP_QueryH<snarklib::HugeSystem, FR>>(outfile);
+        writeFilesH(outfile);
     }
 
     std::size_t g1_exp_count(const std::string& afile,
@@ -69,15 +76,9 @@ public:
 
 private:
     template <typename QUERY>
-    void writeFiles(const std::string& outfile)
+    void writeFiles(const std::string& outfile,
+                    const QUERY& Q)
     {
-        const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
-            qap(m_hugeSystem,
-                m_hugeSystem.numCircuitInputs(),
-                m_randomness.point());
-
-        QUERY Q(qap);
-
         auto space = snarklib::BlockVector<FR>::space(Q.vec());
         space.blockPartition(std::array<size_t, 1>{m_numBlocks});
         space.param(Q.nonzeroCount());
@@ -87,6 +88,29 @@ private:
             m_error = true;
         else
             space.marshal_out(ofs);
+    }
+
+    void writeFilesABC(const std::string& outfile,
+                       const unsigned int mask)
+    {
+        const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
+            qap(m_hugeSystem,
+                m_hugeSystem.numCircuitInputs(),
+                m_randomness.point());
+
+        writeFiles(outfile,
+                   snarklib::QAP_QueryABC<snarklib::HugeSystem, FR>(qap, mask));
+    }
+
+    void writeFilesH(const std::string& outfile)
+    {
+        const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
+            qap(m_hugeSystem,
+                m_hugeSystem.numCircuitInputs(),
+                m_randomness.point());
+
+        writeFiles(outfile,
+                   snarklib::QAP_QueryH<snarklib::HugeSystem, FR>(qap));
     }
 
     std::size_t nonzeroCount(const std::string& abchfile) {
@@ -122,12 +146,10 @@ public:
         : m_afile(afile),
           m_bfile(bfile),
           m_cfile(cfile),
-          m_hugeSystem(sysfile),
-          m_error(false)
+          m_hugeSystem(sysfile)
     {
         std::ifstream ifs(randfile);
-        if (!ifs || !m_randomness.marshal_in(ifs) || !m_hugeSystem.loadIndex())
-            m_error = true;
+        m_error = !ifs || !m_randomness.marshal_in(ifs) || !m_hugeSystem.loadIndex();
     }
 
     bool operator! () const { return m_error; }
@@ -202,12 +224,10 @@ public:
                  const std::string& sysfile,
                  const std::string& randfile)
         : m_afile(afile),
-          m_hugeSystem(sysfile),
-          m_error(false)
+          m_hugeSystem(sysfile)
     {
         std::ifstream ifs(randfile);
-        if (!ifs || !m_randomness.marshal_in(ifs) || !m_hugeSystem.loadIndex())
-            m_error = true;
+        m_error = !ifs || !m_randomness.marshal_in(ifs) || !m_hugeSystem.loadIndex();
     }
 
     bool operator! () const { return m_error; }
@@ -261,6 +281,61 @@ private:
     const std::string m_afile;
 
     snarklib::PPZK_KeypairRandomness<FR> m_randomness;
+    snarklib::HugeSystem<FR> m_hugeSystem;
+    bool m_error;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// witness ABCH
+//
+
+template <typename PAIRING>
+class QAP_witness_ABCH
+{
+    typedef typename PAIRING::Fr FR;
+
+public:
+    QAP_witness_ABCH(const std::size_t numBlocks,
+                     const std::string& sysfile,
+                     const std::string& randfile,
+                     const std::string& witfile)
+        : m_numBlocks(numBlocks),
+          m_hugeSystem(sysfile)
+    {
+        std::ifstream ifsR(randfile), ifsW(witfile);
+        m_error =
+            !ifsR || !m_randomness.marshal_in(ifsR) ||
+            !ifsW || !m_witness.marshal_in(ifsW) ||
+            !m_hugeSystem.loadIndex();
+    }
+
+    bool operator! () const { return m_error; }
+
+    void writeFiles(const std::string& outfile)
+    {
+        const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
+            qap(m_hugeSystem,
+                m_hugeSystem.numCircuitInputs());
+
+        const snarklib::QAP_WitnessABCH<snarklib::HugeSystem, FR>
+            ABCH(qap,
+                 m_witness,
+                 m_randomness.d1(),
+                 m_randomness.d2(),
+                 m_randomness.d3());
+
+        auto space = snarklib::BlockVector<FR>::space(ABCH.vec());
+        space.blockPartition(std::array<size_t, 1>{m_numBlocks});
+
+        if (! write_blockvector(outfile, space, ABCH.vec()))
+            m_error = true;
+    }
+
+private:
+    const std::size_t m_numBlocks;
+
+    snarklib::R1Witness<FR> m_witness;
+    snarklib::PPZK_ProofRandomness<FR> m_randomness;
     snarklib::HugeSystem<FR> m_hugeSystem;
     bool m_error;
 };
