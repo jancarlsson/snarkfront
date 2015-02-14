@@ -28,6 +28,9 @@ LIBRARY_HPP = \
 	HexUtil.hpp \
 	InitPairing.hpp \
 	Lazy.hpp \
+	MerkleAuthPath.hpp \
+	MerkleBundle.hpp \
+	MerkleForest.hpp \
 	MerkleTree.hpp \
 	PowersOf2.hpp \
 	R1C.hpp \
@@ -42,6 +45,19 @@ LIBRARY_HPP = \
 	SHA_512.hpp \
 	snarkfront.hpp \
 	TLsingleton.hpp
+
+LIBRARY_BIN = \
+	randomness \
+	qap \
+	ppzk \
+	verify
+
+LIBRARY_TESTS = \
+	test_bundle \
+	test_merkle \
+	test_proof \
+	test_sha \
+	test_SHAVS
 
 default :
 	@echo Build options:
@@ -66,29 +82,21 @@ install :
 	mkdir -p $(PREFIX)/include/snarkfront $(PREFIX)/lib $(PREFIX)/bin
 	cp libsnarkfront.* $(PREFIX)/lib
 	cp $(LIBRARY_HPP) $(PREFIX)/include/snarkfront
-	cp randomness $(PREFIX)/bin
-	cp qap $(PREFIX)/bin
-	cp ppzk $(PREFIX)/bin
+	cp $(LIBRARY_BIN) $(PREFIX)/bin
 endif
 
 CLEAN_FILES = \
 	libsnarkfront.so \
 	libsnarkfront.a \
-	make_merkle \
-	test_merkle \
-	test_proof \
-	test_sha \
-	test_SHAVS \
-	randomness \
-	qap \
-	ppzk \
+	$(LIBRARY_TESTS) \
+	$(LIBRARY_BIN) \
 	README.html \
 	input.txt \
 	keygen.txt \
 	proof.txt
 
 clean :
-	rm -f *.o $(CLEAN_FILES)
+	rm -f *.o $(CLEAN_FILES) tmp_test_cli.*
 
 
 ################################################################################
@@ -102,9 +110,6 @@ lib :
 archive :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make archive SNARKLIB_PREFIX=/usr/local)
 
-make_merkle :
-	$(error Please provide SNARKLIB_PREFIX, e.g. make make_merkle SNARKLIB_PREFIX=/usr/local)
-
 ppzk :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make ppzk SNARKLIB_PREFIX=/usr/local)
 
@@ -113,6 +118,9 @@ qap :
 
 randomness :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make randomness SNARKLIB_PREFIX=/usr/local)
+
+test_bundle :
+	$(error Please provide SNARKLIB_PREFIX, e.g. make test_bundle SNARKLIB_PREFIX=/usr/local)
 
 test_merkle :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make test_merkle SNARKLIB_PREFIX=/usr/local)
@@ -131,6 +139,9 @@ tests :
 
 tools :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make tools SNARKLIB_PREFIX=/usr/local)
+
+verify :
+	$(error Please provide SNARKLIB_PREFIX, e.g. make verify SNARKLIB_PREFIX=/usr/local)
 else
 CXXFLAGS_SNARKLIB = -I$(SNARKLIB_PREFIX)/include/snarklib -DUSE_ASM -DUSE_ADD_SPECIAL -DUSE_ASSERT
 LDFLAGS_SNARKLIB = -lgmpxx -lgmp
@@ -184,10 +195,6 @@ lib : libsnarkfront.so
 
 archive : libsnarkfront.a
 
-make_merkle : make_merkle.cpp libsnarkfront.a
-	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o make_merkle.o
-	$(CXX) -o $@ make_merkle.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
-
 ppzk : ppzk.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o ppzk.o
 	$(CXX) -o $@ ppzk.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
@@ -199,6 +206,10 @@ qap : qap.cpp libsnarkfront.a
 randomness : randomness.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o randomness.o
 	$(CXX) -o $@ randomness.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+
+test_bundle : test_bundle.cpp libsnarkfront.a
+	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_bundle.o
+	$(CXX) -o $@ test_bundle.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
 
 test_merkle : test_merkle.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_merkle.o
@@ -216,7 +227,11 @@ test_SHAVS : test_SHAVS.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_SHAVS.o
 	$(CXX) -o $@ test_SHAVS.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
 
-tests : make_merkle test_merkle test_proof test_sha test_SHAVS
+tests : $(LIBRARY_TESTS)
 
-tools : randomness qap ppzk
+tools : $(LIBRARY_BIN)
+
+verify : verify.cpp libsnarkfront.a
+	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o verify.o
+	$(CXX) -o $@ verify.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
 endif
