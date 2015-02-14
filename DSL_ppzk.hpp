@@ -82,6 +82,13 @@ const R1Cowitness<typename PAIRING::Fr>& input()
 }
 
 template <typename PAIRING>
+const snarklib::R1Witness<typename PAIRING::Fr>& witness()
+{
+    return TL<R1C<typename PAIRING::Fr>>::singleton()
+        ->witness();
+}
+
+template <typename PAIRING>
 snarklib::PPZK_Proof<PAIRING> proof(
     const snarklib::PPZK_Keypair<PAIRING>& keypair)
 {
