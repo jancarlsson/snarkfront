@@ -102,6 +102,19 @@ bool asciiHexToVector(const std::string& hexDigits, std::vector<T>& v)
 }
 
 template <typename T, std::size_t N>
+bool asciiHexToArray(const std::string& hexDigits, std::array<T, N>& dig)
+{
+    std::vector<T> v;
+
+    if (!asciiHexToVector(hexDigits, v) || N != v.size()) {
+        return false;
+    } else {
+        for (std::size_t i = 0; i < N; ++i) dig[i] = v[i];
+        return true;
+    }
+}
+
+template <typename T, std::size_t N>
 std::string asciiHex(const std::array<T, N>& a,
                      const bool space = false)
 {
