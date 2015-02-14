@@ -15,25 +15,26 @@ void printUsage(const char* exeName) {
         R = " -r randomness_file",
         N = " -n block_number",
         optN = " [-n block_number]",
-        QUERY = " -q",
-        EXP = " -e",
         A = " -a file",
         B = " -b file",
         C = " -c file",
         H = " -h file",
         K = " -k file",
-        IC = " -i file";
+        IC = " -i file",
+        WIT = " -w witness_file";
 
     cout << endl << "QAP query generation:" << endl
-         << "  A:  " << exeName << PAIR << SYS << R << QUERY << A << N << endl
-         << "  B:  " << exeName << PAIR << SYS << R << QUERY << B << N << endl
-         << "  C:  " << exeName << PAIR << SYS << R << QUERY << C << N << endl
-         << "  H:  " << exeName << PAIR << SYS << R << QUERY << H << N << endl
-         << "  K:  " << exeName << PAIR << SYS << R << QUERY << A << B << C << K << optN << endl
-         << "  IC: " << exeName << PAIR << SYS << R << QUERY << A << IC << endl
+         << "  A:  " << exeName << PAIR << SYS << R << A << N << endl
+         << "  B:  " << exeName << PAIR << SYS << R << B << N << endl
+         << "  C:  " << exeName << PAIR << SYS << R << C << N << endl
+         << "  H:  " << exeName << PAIR << SYS << R << H << N << endl
+         << "  K:  " << exeName << PAIR << SYS << R << A << B << C << K << optN << endl
+         << "  IC: " << exeName << PAIR << SYS << R << A << IC << endl
          << endl << "window table exponent count:" << endl
-         << "  g1_exp_count: " << exeName << PAIR << SYS << R << EXP << A << B << C << H << endl
-         << "  g2_exp_count: " << exeName << PAIR << SYS << R << EXP << B << endl;
+         << "  g1_exp_count: " << exeName << PAIR << SYS << A << B << C << H << endl
+         << "  g2_exp_count: " << exeName << PAIR << SYS << B << endl
+         << endl << "QAP witness generation:" << endl
+         << "  ABCH: " << exeName << PAIR << SYS << R << WIT << H << N << endl;
 
     exit(EXIT_FAILURE);
 }
@@ -82,9 +83,63 @@ bool queryIC(const std::string& afile,
     return !!query;
 }
 
+template <typename PAIRING>
+bool witnessABCH(const std::string& hfile,
+                 const std::size_t blocknum,
+                 const std::string& sysfile,
+                 const std::string& randfile,
+                 const std::string& witfile)
+{
+    QAP_witness_ABCH<PAIRING> query(blocknum, sysfile, randfile, witfile);
+    query.writeFiles(hfile);
+    return !!query;
+}
+
+template <typename PAIRING>
+bool cmdSwitch(const string& sysfile,
+               const string& randfile,
+               const string& afile,
+               const string& bfile,
+               const string& cfile,
+               const string& hfile,
+               const string& kfile,
+               const string& icfile,
+               const string& witfile,
+               const size_t blocknum)
+{
+    bool ok = false;
+
+    if (! witfile.empty()) {
+        ok = witnessABCH<PAIRING>(hfile, blocknum, sysfile, randfile, witfile);
+
+    } else if (! kfile.empty()) {
+        ok = queryK<PAIRING>(afile, bfile, cfile, kfile, blocknum, sysfile, randfile);
+
+    } else if (! icfile.empty()) {
+        ok = queryIC<PAIRING>(afile, icfile, sysfile, randfile);
+
+    } else if (-1 != blocknum) {
+        ok = queryABCH<PAIRING>(afile, bfile, cfile, hfile, blocknum, sysfile, randfile);
+
+    } else {
+        QAP_query_ABCH<PAIRING> query(sysfile);
+        size_t count = 0;
+        if (!afile.empty() && !bfile.empty() && !cfile.empty() && !hfile.empty()) {
+            count = query.g1_exp_count(afile, bfile, cfile, hfile);
+            ok = !!query;
+        } else {
+            count = query.g2_exp_count(bfile);
+            ok = !!query;
+        }
+        if (ok) cout << count << endl;
+    }
+
+    return ok;
+}
+
 int main(int argc, char *argv[])
 {
-    Getopt cmdLine(argc, argv, "psrabchki", "n", "qe");
+    Getopt cmdLine(argc, argv, "psrabchkiw", "n", "");
     if (!cmdLine || cmdLine.empty()) printUsage(argv[0]);
 
     const auto
@@ -96,13 +151,10 @@ int main(int argc, char *argv[])
         cfile = cmdLine.getString('c'),
         hfile = cmdLine.getString('h'),
         kfile = cmdLine.getString('k'),
-        icfile = cmdLine.getString('i');
+        icfile = cmdLine.getString('i'),
+        witfile = cmdLine.getString('w');
 
     const auto blocknum = cmdLine.getNumber('n');
-
-    const auto
-        is_query = cmdLine.getFlag('q'),
-        is_exp = cmdLine.getFlag('e');
 
     if (!validPairingName(pairing)) {
         cerr << "error: elliptic curve pairing " << pairing << endl;
@@ -114,54 +166,18 @@ int main(int argc, char *argv[])
     if (pairingBN128(pairing)) {
         // Barreto-Naehrig 128 bits
         init_BN128();
-        typedef BN128_PAIRING PAIR;
-
-        if (is_query) {
-            if (!kfile.empty()) {
-                ok = queryK<PAIR>(afile, bfile, cfile, kfile, blocknum, sysfile, randfile);
-            } else if (!icfile.empty()) {
-                ok = queryIC<PAIR>(afile, icfile, sysfile, randfile);
-            } else {
-                ok = queryABCH<PAIR>(afile, bfile, cfile, hfile, blocknum, sysfile, randfile);
-            }
-        } else if (is_exp) {
-            QAP_query_ABCH<PAIR> query(0, sysfile, randfile);
-            size_t count = 0;
-            if (!afile.empty() && !bfile.empty() && !cfile.empty() && !hfile.empty()) {
-                count = query.g1_exp_count(afile, bfile, cfile, hfile);
-                ok = !!query;
-            } else {
-                count = query.g2_exp_count(bfile);
-                ok = !!query;
-            }
-            if (ok) cout << count << endl;
-        }
+        ok = cmdSwitch<BN128_PAIRING>(sysfile, randfile,
+                                      afile, bfile, cfile, hfile, kfile, icfile,
+                                      witfile,
+                                      blocknum);
 
     } else if (pairingEdwards(pairing)) {
         // Edwards 80 bits
         init_Edwards();
-        typedef EDWARDS_PAIRING PAIR;
-
-        if (is_query) {
-            if (!kfile.empty()) {
-                ok = queryK<PAIR>(afile, bfile, cfile, kfile, blocknum, sysfile, randfile);
-            } else if (!icfile.empty()) {
-                ok = queryIC<PAIR>(afile, icfile, sysfile, randfile);
-            } else {
-                ok = queryABCH<PAIR>(afile, bfile, cfile, hfile, blocknum, sysfile, randfile);
-            }
-        } else if (is_exp) {
-            QAP_query_ABCH<PAIR> query(0, sysfile, randfile);
-            size_t count = 0;
-            if (!afile.empty() && !bfile.empty() && !cfile.empty() && !hfile.empty()) {
-                count = query.g1_exp_count(afile, bfile, cfile, hfile);
-                ok = !!query;
-            } else {
-                count = query.g2_exp_count(bfile);
-                ok = !!query;
-            }
-            if (ok) cout << count << endl;
-        }
+        ok = cmdSwitch<EDWARDS_PAIRING>(sysfile, randfile,
+                                        afile, bfile, cfile, hfile, kfile, icfile,
+                                        witfile,
+                                        blocknum);
     }
 
     if (!ok) {
