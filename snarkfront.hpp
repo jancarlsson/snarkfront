@@ -22,6 +22,8 @@
 #include "InitPairing.hpp"
 
 // Merkle tree
+#include "MerkleAuthPath.hpp"
+#include "MerkleBundle.hpp"
 #include "MerkleTree.hpp"
 
 // Secure Hash Algorithms
