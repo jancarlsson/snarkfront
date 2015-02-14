@@ -13,20 +13,20 @@ using namespace std;
 void printUsage(const char* exeName) {
     cout << "usage: " << exeName
          << " -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256 [-r]" << endl
-         << endl
-         << "text from standard input:" << endl
+         << endl << "text from standard input:" << endl
          << "echo \"abc\" | " << exeName
          << " -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256" << endl
-         << endl
-         << "random data:" << endl
-         << exeName
-         << " -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256 -r" << endl;
+         << endl << "hash only, skip zero knowledge proof:" << endl
+         << "echo \"abc\" | " << exeName
+         << " -b 1|224|256|384|512|512_224|512_256" << endl
+         << endl << "random data:" << endl
+         << exeName << " -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256 -r" << endl;
 
     exit(EXIT_FAILURE);
 }
 
 template <typename ZK_SHA, typename EVAL_SHA>
-bool runTest(const bool stdInput)
+bool runTest(const bool stdInput, const bool hashOnly)
 {
     DataBufferStream buf;
 
@@ -46,9 +46,11 @@ bool runTest(const bool stdInput)
         // no padding is not SHA-2 standard (compression function only)
     }
 
-    // print buffer
-    HexDumper dump(cout);
-    dump.print(buf);
+    if (!hashOnly) {
+        // print buffer
+        HexDumper dump(cout);
+        dump.print(buf);
+    }
 
     // compute message digest (adds padding if necessary)
     const auto zk_digest = digest(ZK_SHA(), buf);
@@ -74,13 +76,14 @@ bool runTest(const bool stdInput)
     // message digest proof constraint
     assert_true(zk_digest == eval_digest);
 
-    cout << "digest " << asciiHex(eval_digest, true) << endl;
+    if (!hashOnly) cout << "digest ";
+    cout << asciiHex(eval_digest, !hashOnly) << endl;
 
     return ok;
 }
 
 template <typename PAIRING>
-bool runTest(const string& shaBits, const bool stdInput)
+bool runTest(const string& shaBits, const bool stdInput, const bool hashOnly)
 {
     reset<PAIRING>();
 
@@ -88,20 +91,23 @@ bool runTest(const string& shaBits, const bool stdInput)
     typedef typename PAIRING::Fr FR;
 
     if ("1" == shaBits) {
-        valueOK = runTest<zk::SHA1<FR>, eval::SHA1>(stdInput);
+        valueOK = runTest<zk::SHA1<FR>, eval::SHA1>(stdInput, hashOnly);
     } else if ("224" == shaBits) {
-        valueOK = runTest<zk::SHA224<FR>, eval::SHA224>(stdInput);
+        valueOK = runTest<zk::SHA224<FR>, eval::SHA224>(stdInput, hashOnly);
     } else if ("256" == shaBits) {
-        valueOK = runTest<zk::SHA256<FR>, eval::SHA256>(stdInput);
+        valueOK = runTest<zk::SHA256<FR>, eval::SHA256>(stdInput, hashOnly);
     } else if ("384" == shaBits) {
-        valueOK = runTest<zk::SHA384<FR>, eval::SHA384>(stdInput);
+        valueOK = runTest<zk::SHA384<FR>, eval::SHA384>(stdInput, hashOnly);
     } else if ("512" == shaBits) {
-        valueOK = runTest<zk::SHA512<FR>, eval::SHA512>(stdInput);
+        valueOK = runTest<zk::SHA512<FR>, eval::SHA512>(stdInput, hashOnly);
     } else if ("512_224" == shaBits) {
-        valueOK = runTest<zk::SHA512_224<FR>, eval::SHA512_224>(stdInput);
+        valueOK = runTest<zk::SHA512_224<FR>, eval::SHA512_224>(stdInput, hashOnly);
     } else if ("512_256" == shaBits) {
-        valueOK = runTest<zk::SHA512_256<FR>, eval::SHA512_256>(stdInput);
+        valueOK = runTest<zk::SHA512_256<FR>, eval::SHA512_256>(stdInput, hashOnly);
     }
+
+    // special case for hash only, skip zero knowledge proof
+    if (hashOnly) return valueOK;
 
     cout << "variable count " << variable_count<PAIRING>() << endl;
 
@@ -144,23 +150,30 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (!validPairingName(pairing) || !validSHA2Name(shaBits))
+    // special case for hash only, skip zero knowledge proof
+    const bool hashOnly = pairing.empty() && validSHA2Name(shaBits) && stdInput;
+
+    if (!hashOnly && !validPairingName(pairing) || !validSHA2Name(shaBits))
         printUsage(argv[0]);
 
     bool result;
 
+    if (hashOnly) pairing = "BN128"; // elliptic curve pairing is arbitrary
+
     if (pairingBN128(pairing)) {
         // Barreto-Naehrig 128 bits
         init_BN128();
-        result = runTest<BN128_PAIRING>(shaBits, stdInput);
+        result = runTest<BN128_PAIRING>(shaBits, stdInput, hashOnly);
 
     } else if (pairingEdwards(pairing)) {
         // Edwards 80 bits
         init_Edwards();
-        result = runTest<EDWARDS_PAIRING>(shaBits, stdInput);
+        result = runTest<EDWARDS_PAIRING>(shaBits, stdInput, hashOnly);
     }
 
-    cout << "test " << (result ? "passed" : "failed") << endl;
+    if (!hashOnly) {
+        cout << "test " << (result ? "passed" : "failed") << endl;
+    }
 
     exit(EXIT_SUCCESS);
 }
