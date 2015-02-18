@@ -201,12 +201,19 @@ The CLI is the only option for computers with less RAM. That is true for almost
 all mass market consumer laptops and desktops (as of 2015).
 The CLI trades off time to buy space.
 
-Note the API does not use OpenMP. The API is single threaded and runs on one
-core only. There is no technical reason it must work this way.
+RAM can dominate implementation choices. The zero knowledge cryptographic
+structures are large. For example, the proving key for an authentication path
+in a Merkle tree of depth 64 is 6 GB. The windowed exponentiation lookup tables
+used in calculating the proving key are over 5 GB.
 
-The CLI scales well to multi-core and distributed fleets. The directed
-acyclic graph of cryptographic arithmetic possesses natural concurrency
-and parallelism. The toolchain transformations correspond to this graph.
+Note the API does not use OpenMP. The API is single threaded and runs on one
+core only. There is no technical reason it must work this way. SMP and MT
+concurrency should be supported. The author has not had time to work on this.
+
+The CLI scales well to multi-core (concurrent running processes, not threads)
+and distributed fleets. The directed acyclic graph of cryptographic arithmetic
+possesses natural concurrency and parallelism. The toolchain transformations
+correspond to this graph.
 
 In summary:
 
@@ -323,7 +330,7 @@ This tests the "Alice and Bob" example above where:
 
 - the lock is SHA-256
 - the secret combination is message: "abc"
-- the state is unlocked if the message digest matches: ba7816bf 8f01cfea 414140de 5dae2223 b00361a3 96177a9c b410ff61 f20015ad
+- the state is "unlocked" if the message digest matches: ba7816bf 8f01cfea 414140de 5dae2223 b00361a3 96177a9c b410ff61 f20015ad
 
 Just run the shell script:
 
@@ -339,35 +346,36 @@ Just run the shell script:
     (2) ..................................................
     (1) ..................................................
 
-    real    0m37.271s
-    user    0m33.105s
-    sys     0m3.970s
-    -rw-rw-r--. 1 jcarlsson jcarlsson 169178776 Jan 21 01:13 keygen.txt
+    real    0m37.947s
+    user    0m33.792s
+    sys     0m4.097s
+    -rw-rw-r--. 1 jcarlsson jcarlsson 169178113 Feb 17 15:19 keygen.txt
 
 
-    real    0m0.006s
-    user    0m0.002s
-    sys     0m0.004s
-    -rw-rw-r--. 1 jcarlsson jcarlsson 10044 Jan 21 01:13 input.txt
+    real    0m0.004s
+    user    0m0.001s
+    sys     0m0.003s
+    -rw-rw-r--. 1 jcarlsson jcarlsson 10044 Feb 17 15:19 input.txt
 
     generate proof
+    (6) ..................................................
     (5) ..................................................
     (4) ..................................................
     (3) ..................................................
     (2) ..................................................
     (1) ..................................................
 
-    real    0m15.744s
-    user    0m15.593s
-    sys     0m0.534s
-    -rw-rw-r--. 1 jcarlsson jcarlsson 2092 Jan 21 01:13 proof.txt
+    real    0m15.636s
+    user    0m15.499s
+    sys     0m0.686s
+    -rw-rw-r--. 1 jcarlsson jcarlsson 2095 Feb 17 15:19 proof.txt
 
     verify proof ......
     proof is verified
 
-    real    0m8.566s
-    user    0m8.467s
-    sys     0m0.404s
+    real    0m8.507s
+    user    0m8.435s
+    sys     0m0.563s
 
 Equivalently:
 
@@ -434,11 +442,11 @@ Some examples:
 (SHA-256 hash of "abc" using Barreto-Naehrig elliptic curve)
 
     $ echo "abc" | ./test_sha -p BN128 -b 256
-    0       61 62 63 80 00 00 00 00  00 00 00 00 00 00 00 00  |abc.............|
+    0       61 62 63 0a 80 00 00 00  00 00 00 00 00 00 00 00  |abc.............|
     16      00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
     32      00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-    48      00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 18  |................|
-    digest ba7816bf 8f01cfea 414140de 5dae2223 b00361a3 96177a9c b410ff61 f20015ad
+    48      00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 20  |................|
+    digest edeaaff3 f1774ad2 88867377 0c6d6409 7e391bc3 62d7d6fb 34982ddf 0efd18cb
     variable count 100810
     generate key pair
     (8) ..................................................
@@ -450,6 +458,7 @@ Some examples:
     (2) ..................................................
     (1) ..................................................
     generate proof
+    (6) ..................................................
     (5) ..................................................
     (4) ..................................................
     (3) ..................................................
@@ -461,15 +470,15 @@ Some examples:
 (SHA-512 hash of random data using Edwards elliptic curve)
 
     $ ./test_sha -p Edwards -b 512 -r
-    0       f9 b2 0c a7 be 7c 4a 63  e4 2c e9 d0 73 63 6a 21  |.....|Jc.,..scj!|
-    16      97 fc 09 7f e5 e6 07 4d  09 f8 03 9b 06 7c 0a 57  |.......M.....|.W|
-    32      f5 dc 13 dc b9 86 57 14  15 6c c8 39 6d a2 81 85  |......W..l.9m...|
-    48      cb 2f c6 9e 44 d9 55 74  6b d0 e4 37 77 ea 4f 9e  |./..D.Utk..7w.O.|
-    64      2a 85 f8 b2 ab ff 65 32  f8 35 e1 2e cb b7 4d 64  |*.....e2.5....Md|
-    80      6d e1 37 0b 8e 4e d0 94  47 8f 72 8f 56 ff 99 b9  |m.7..N..G.r.V...|
-    96      f5 15 42 9d 39 4c a1 66  fb 35 7c 48 bd 7a 26 99  |..B.9L.f.5|H.z&.|
-    112     93 ad a5 2f ab bd d0 d1  77 5d b2 ce 66 f1 df 81  |.../....w]..f...|
-    digest b5116da07a8505f0 c368fbeaafd325cd fcadc90843dd73c6 2b66c252e1c624fa dcefd966e88ec168 f9d42ebea62cd76c 44e2b3df8a50695b 4f4de3202f866192
+    0       ed 63 41 a6 41 1f 90 a1  94 57 4f a2 a2 fb 56 8e  |.cA.A....WO...V.|
+    16      1b da 86 c9 4a 56 65 6e  47 09 4e aa 99 10 b3 d4  |....JVenG.N.....|
+    32      1d 81 44 1d ca 47 76 de  b1 e7 b8 b6 33 dc 50 aa  |..D..Gv.....3.P.|
+    48      60 53 57 e4 58 36 1c 59  9a c7 45 f9 8e 4b f7 10  |`SW.X6.Y..E..K..|
+    64      d0 54 11 a5 45 5a 62 56  0f e0 92 0f 5b 4a b2 a9  |.T..EZbV....[J..|
+    80      dd 46 09 af 74 3e 2b 46  15 9b 31 1a f9 3b 2f f8  |.F..t>+F..1..;/.|
+    96      06 e2 60 b5 40 20 89 cb  96 1f f5 2c 78 3c b3 60  |..`.@......,x<.`|
+    112     99 9e b5 af 04 34 86 d6  3e 71 f1 0e ce 8e c6 c2  |.....4..>q......|
+    digest d243920075e8e576 aa3fd2cfa3d6f9e5 ce020a6e81a70918 1f1d45dec43d7951 2fe82b594e800358 b05fbed726dfee6f bcc70b92231cd3c2 afaec5a8d481047a
     variable count 254367
     generate key pair
     (8) ..................................................
@@ -481,6 +490,7 @@ Some examples:
     (2) ..................................................
     (1) ..................................................
     generate proof
+    (6) ..................................................
     (5) ..................................................
     (4) ..................................................
     (3) ..................................................
@@ -543,6 +553,7 @@ Here is an example:
     (2) ....................................................................................................
     (1) ....................................................................................................
     generate proof
+    (6) ....................................................................................................
     (5) ....................................................................................................
     (4) ....................................................................................................
     (3) ....................................................................................................
