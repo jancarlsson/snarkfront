@@ -37,7 +37,7 @@ bool newTree(const string& treefile,
              const size_t depth)
 {
     if (0 == depth) return false;
-        
+
     BUNDLE bund(depth);
 
     ofstream ofs(treefile);
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
                                                        witfile);
         }
     }
-    
+
     if (!ok) {
         cerr << "ERROR" << endl;
         exit(EXIT_FAILURE);
