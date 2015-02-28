@@ -123,7 +123,7 @@ private:
 
     const std::size_t m_numBlocks;
 
-    snarklib::PPZK_KeypairRandomness<FR> m_randomness;
+    snarklib::PPZK_KeypairRandomness<FR, FR> m_randomness;
     snarklib::HugeSystem<FR> m_hugeSystem;
     bool m_error;
 };
@@ -205,7 +205,7 @@ private:
 
     const std::string m_afile, m_bfile, m_cfile;
 
-    snarklib::PPZK_KeypairRandomness<FR> m_randomness;
+    snarklib::PPZK_KeypairRandomness<FR, FR> m_randomness;
     snarklib::HugeSystem<FR> m_hugeSystem;
     bool m_error;
 };
@@ -280,7 +280,7 @@ private:
 
     const std::string m_afile;
 
-    snarklib::PPZK_KeypairRandomness<FR> m_randomness;
+    snarklib::PPZK_KeypairRandomness<FR, FR> m_randomness;
     snarklib::HugeSystem<FR> m_hugeSystem;
     bool m_error;
 };
