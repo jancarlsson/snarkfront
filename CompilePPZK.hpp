@@ -104,7 +104,7 @@ private:
     bool m_error;
     const std::string m_qapfile;
     snarklib::IndexSpace<1> m_space;
-    snarklib::PPZK_KeypairRandomness<FR> m_randomness;
+    snarklib::PPZK_KeypairRandomness<FR, FR> m_randomness;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -190,7 +190,7 @@ private:
     const std::string m_qapfile;
     snarklib::IndexSpace<1> m_space;
     const snarklib::WindowExp<G2> m_g2table, m_g2null;
-    snarklib::PPZK_KeypairRandomness<FR> m_randomness;
+    snarklib::PPZK_KeypairRandomness<FR, FR> m_randomness;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -357,7 +357,7 @@ public:
 private:
     bool m_error;
     snarklib::BlockVector<FR> m_qapIC;
-    snarklib::PPZK_KeypairRandomness<FR> m_randomness;
+    snarklib::PPZK_KeypairRandomness<FR, FR> m_randomness;
     snarklib::HugeSystem<FR> m_hugeSystem;
     snarklib::IndexSpace<1> m_space;
 };
