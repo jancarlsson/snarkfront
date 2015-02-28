@@ -25,7 +25,7 @@ void printUsage(const char* exeName) {
 template <typename PAIRING>
 void writeEntropy(ostream& os, const bool is_keypair) {
     if (is_keypair) {
-        PPZK_KeypairRandomness<typename PAIRING::Fr> entropy(0);
+        PPZK_KeypairRandomness<typename PAIRING::Fr, typename PAIRING::Fr> entropy(1);
         os << entropy;
 
     } else {
