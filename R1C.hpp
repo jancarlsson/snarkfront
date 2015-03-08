@@ -184,12 +184,11 @@ public:
     {
         swap_AB_if_beneficial();
 
-        const auto keyRand = snarklib::PPZK_Keypair<PAIRING>::randomness();
-
         return snarklib::PPZK_Keypair<PAIRING>(
             m_constraintSystem,
             m_input.sizeFR(),
-            keyRand,
+            snarklib::PPZK_LagrangePoint<typename PAIRING::Fr>(0),
+            snarklib::PPZK_BlindGreeks<typename PAIRING::Fr, typename PAIRING::Fr>(0),
             callback);
     }
 
@@ -206,14 +205,12 @@ public:
     {
         swap_AB_if_beneficial();
 
-        const auto proofRand = snarklib::PPZK_Proof<PAIRING>::randomness();
-
         return snarklib::PPZK_Proof<PAIRING>(
             m_constraintSystem,
             m_input.sizeFR(),
             key.pk(),
             m_witness_FR,
-            proofRand,
+            snarklib::PPZK_ProofRandomness<typename PAIRING::Fr>(0),
             reserveTune,
             callback);
     }
