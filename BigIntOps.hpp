@@ -31,8 +31,9 @@ snarklib::BigInt<N> operator+ (const snarklib::BigInt<N>& a,
                                const snarklib::BigInt<N>& b)
 {
     snarklib::BigInt<N> c;
+    const bool ok = addBigInt(a, b, c);
 #ifdef USE_ASSERT
-    assert(addBigInt(a, b, c));
+    assert(ok);
 #endif
     return c;
 }
@@ -59,8 +60,9 @@ snarklib::BigInt<N> operator- (const snarklib::BigInt<N>& a,
                                const snarklib::BigInt<N>& b)
 {
     snarklib::BigInt<N> c;
+    const bool ok = subBigInt(a, b, c);
 #ifdef USE_ASSERT
-    assert(subBigInt(a, b, c));
+    assert(ok);
 #endif
     return c;
 }
@@ -89,8 +91,9 @@ snarklib::BigInt<N> operator* (const snarklib::BigInt<N>& a,
                                const snarklib::BigInt<N>& b)
 {
     snarklib::BigInt<N> c;
+    const bool ok = mulBigInt(a, b, c);
 #ifdef USE_ASSERT
-    assert(mulBigInt(a, b, c));
+    assert(ok);
 #endif
     return c;
 }
