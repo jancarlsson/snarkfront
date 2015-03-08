@@ -36,7 +36,7 @@ public:
         m_space.blockPartition(std::array<std::size_t, 1>{ numWindowBlocks });
 
         std::ifstream ifs(randfile);
-        m_error = !ifs || !m_randomness.marshal_in(ifs);
+        m_error = !ifs || !m_lagrangeRand.marshal_in(ifs) || !m_blindRand.marshal_in(ifs);
     }
 
     bool operator! () const { return m_error; }
@@ -47,8 +47,8 @@ public:
         writeFiles<snarklib::PPZK_QueryA<PAIRING>>(outfile,
                                                    blocknum,
                                                    callback,
-                                                   m_randomness.rA(),
-                                                   m_randomness.alphaA());
+                                                   m_blindRand.rA(),
+                                                   m_blindRand.alphaA());
     }
 
     void C(const std::string& outfile,
@@ -57,8 +57,8 @@ public:
         writeFiles<snarklib::PPZK_QueryC<PAIRING>>(outfile,
                                                    blocknum,
                                                    callback,
-                                                   m_randomness.rC(),
-                                                   m_randomness.alphaC());
+                                                   m_blindRand.rC(),
+                                                   m_blindRand.alphaC());
     }
 
 private:
@@ -104,7 +104,8 @@ private:
     bool m_error;
     const std::string m_qapfile;
     snarklib::IndexSpace<1> m_space;
-    snarklib::PPZK_KeypairRandomness<FR, FR> m_randomness;
+    snarklib::PPZK_LagrangePoint<FR> m_lagrangeRand;
+    snarklib::PPZK_BlindGreeks<FR, FR> m_blindRand;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +136,7 @@ public:
         m_space.blockPartition(std::array<std::size_t, 1>{ numWindowBlocks });
 
         std::ifstream ifs(randfile);
-        m_error = !ifs || !m_randomness.marshal_in(ifs);
+        m_error = !ifs || !m_lagrangeRand.marshal_in(ifs) || !m_blindRand.marshal_in(ifs);
     }
 
     bool operator! () const { return m_error; }
@@ -163,7 +164,7 @@ private:
         snarklib::BlockVector<FR> v;
         if (!snarklib::read_blockvector(m_qapfile, blocknum, v)) { m_error = true; return; }
 
-        QUERY Q(v, m_randomness.rB(), m_randomness.alphaB());
+        QUERY Q(v, m_blindRand.rB(), m_blindRand.alphaB());
 
         for (std::size_t i = 0; i < N; ++i) {
             const snarklib::WindowExp<G1> g1table(m_space, i);
@@ -190,7 +191,8 @@ private:
     const std::string m_qapfile;
     snarklib::IndexSpace<1> m_space;
     const snarklib::WindowExp<G2> m_g2table, m_g2null;
-    snarklib::PPZK_KeypairRandomness<FR, FR> m_randomness;
+    snarklib::PPZK_LagrangePoint<FR> m_lagrangeRand;
+    snarklib::PPZK_BlindGreeks<FR, FR> m_blindRand;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -307,7 +309,7 @@ public:
 
         std::ifstream ifs(randfile);
         m_error =
-            !ifs || !m_randomness.marshal_in(ifs) ||
+            !ifs || !m_lagrangeRand.marshal_in(ifs) || !m_blindRand.marshal_in(ifs) ||
             !m_hugeSystem.loadIndex() ||
             !read_blockvector(qapICfile, 0, m_qapIC);
     }
@@ -326,7 +328,7 @@ public:
         const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
             qap(m_hugeSystem,
                 m_hugeSystem.numCircuitInputs(),
-                m_randomness.point());
+                m_lagrangeRand.point());
 
         snarklib::PPZK_QueryIC<PAIRING> Q(m_qapIC.vec());
 
@@ -338,13 +340,13 @@ public:
         }
 
         const snarklib::PPZK_VerificationKey<PAIRING> vk(
-            m_randomness.alphaA() * G2::one(),
-            m_randomness.alphaB() * G1::one(),
-            m_randomness.alphaC() * G2::one(),
-            m_randomness.gamma() * G2::one(),
-            (m_randomness.gamma() * m_randomness.beta()) * G1::one(),
-            (m_randomness.gamma() * m_randomness.beta()) * G2::one(),
-            (m_randomness.rC() * qap.compute_Z()) * G2::one(),
+            m_blindRand.alphaA() * G2::one(),
+            m_blindRand.alphaB() * G1::one(),
+            m_blindRand.alphaC() * G2::one(),
+            m_blindRand.gamma() * G2::one(),
+            (m_blindRand.gamma() * m_blindRand.beta()) * G1::one(),
+            (m_blindRand.gamma() * m_blindRand.beta()) * G2::one(),
+            (m_blindRand.rC() * qap.compute_Z()) * G2::one(),
             Q);
 
         std::ofstream ofs(outfile);
@@ -357,7 +359,8 @@ public:
 private:
     bool m_error;
     snarklib::BlockVector<FR> m_qapIC;
-    snarklib::PPZK_KeypairRandomness<FR, FR> m_randomness;
+    snarklib::PPZK_LagrangePoint<FR> m_lagrangeRand;
+    snarklib::PPZK_BlindGreeks<FR, FR> m_blindRand;
     snarklib::HugeSystem<FR> m_hugeSystem;
     snarklib::IndexSpace<1> m_space;
 };
