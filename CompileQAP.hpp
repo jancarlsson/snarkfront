@@ -27,7 +27,10 @@ public:
           m_hugeSystem(sysfile)
     {
         std::ifstream ifs(randfile);
-        m_error = !ifs || !m_randomness.marshal_in(ifs) || !m_hugeSystem.loadIndex();
+        m_error = !ifs ||
+            !m_lagrangeRand.marshal_in(ifs) ||
+            !m_blindRand.marshal_in(ifs) ||
+            !m_hugeSystem.loadIndex();
     }
 
     // for g1_exp_count() and g2_exp_count() only
@@ -96,7 +99,7 @@ private:
         const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
             qap(m_hugeSystem,
                 m_hugeSystem.numCircuitInputs(),
-                m_randomness.point());
+                m_lagrangeRand.point());
 
         writeFiles(outfile,
                    snarklib::QAP_QueryABC<snarklib::HugeSystem, FR>(qap, mask));
@@ -107,7 +110,7 @@ private:
         const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
             qap(m_hugeSystem,
                 m_hugeSystem.numCircuitInputs(),
-                m_randomness.point());
+                m_lagrangeRand.point());
 
         writeFiles(outfile,
                    snarklib::QAP_QueryH<snarklib::HugeSystem, FR>(qap));
@@ -123,7 +126,8 @@ private:
 
     const std::size_t m_numBlocks;
 
-    snarklib::PPZK_KeypairRandomness<FR, FR> m_randomness;
+    snarklib::PPZK_LagrangePoint<FR> m_lagrangeRand;
+    snarklib::PPZK_BlindGreeks<FR, FR> m_blindRand;
     snarklib::HugeSystem<FR> m_hugeSystem;
     bool m_error;
 };
@@ -149,7 +153,10 @@ public:
           m_hugeSystem(sysfile)
     {
         std::ifstream ifs(randfile);
-        m_error = !ifs || !m_randomness.marshal_in(ifs) || !m_hugeSystem.loadIndex();
+        m_error = !ifs ||
+            !m_lagrangeRand.marshal_in(ifs) ||
+            !m_blindRand.marshal_in(ifs) ||
+            !m_hugeSystem.loadIndex();
     }
 
     bool operator! () const { return m_error; }
@@ -166,12 +173,12 @@ private:
         const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
             qap(m_hugeSystem,
                 m_hugeSystem.numCircuitInputs(),
-                m_randomness.point());
+                m_lagrangeRand.point());
 
-        snarklib::QAP_QueryK<snarklib::HugeSystem, FR> Q(qap,
-                                                         m_randomness.rA(),
-                                                         m_randomness.rB(),
-                                                         m_randomness.beta());
+        snarklib::QAP_QueryK<FR> Q(qap,
+                                   m_blindRand.rA(),
+                                   m_blindRand.rB(),
+                                   m_blindRand.beta());
 
         std::size_t block = (-1 == blocknum) ? 0 : blocknum;
         bool b = true;
@@ -205,7 +212,8 @@ private:
 
     const std::string m_afile, m_bfile, m_cfile;
 
-    snarklib::PPZK_KeypairRandomness<FR, FR> m_randomness;
+    snarklib::PPZK_LagrangePoint<FR> m_lagrangeRand;
+    snarklib::PPZK_BlindGreeks<FR, FR> m_blindRand;
     snarklib::HugeSystem<FR> m_hugeSystem;
     bool m_error;
 };
@@ -227,7 +235,10 @@ public:
           m_hugeSystem(sysfile)
     {
         std::ifstream ifs(randfile);
-        m_error = !ifs || !m_randomness.marshal_in(ifs) || !m_hugeSystem.loadIndex();
+        m_error = !ifs ||
+            !m_lagrangeRand.marshal_in(ifs) ||
+            !m_blindRand.marshal_in(ifs) ||
+            !m_hugeSystem.loadIndex();
     }
 
     bool operator! () const { return m_error; }
@@ -241,10 +252,10 @@ private:
         const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
             qap(m_hugeSystem,
                 m_hugeSystem.numCircuitInputs(),
-                m_randomness.point());
+                m_lagrangeRand.point());
 
-        snarklib::QAP_QueryIC<snarklib::HugeSystem, FR> Q(qap,
-                                                          m_randomness.rA());
+        snarklib::QAP_QueryIC<FR> Q(qap,
+                                    m_blindRand.rA());
 
         std::size_t block = 0;
         bool b = true;
@@ -280,7 +291,8 @@ private:
 
     const std::string m_afile;
 
-    snarklib::PPZK_KeypairRandomness<FR, FR> m_randomness;
+    snarklib::PPZK_LagrangePoint<FR> m_lagrangeRand;
+    snarklib::PPZK_BlindGreeks<FR, FR> m_blindRand;
     snarklib::HugeSystem<FR> m_hugeSystem;
     bool m_error;
 };
