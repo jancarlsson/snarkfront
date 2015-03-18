@@ -8,6 +8,7 @@
 namespace snarkfront {
 
 ////////////////////////////////////////////////////////////////////////////////
+// Alg_uint8
 // Alg_uint32
 // Alg_uint64
 //
@@ -189,6 +190,12 @@ void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
 }
 
 template <typename FR>
+void evalStackOp(std::stack<Alg_uint8<FR>>& S, const BitwiseOps op)
+{
+    evalStackOp_internal<Alg_uint8<FR>, std::uint8_t>(S, op);
+}
+
+template <typename FR>
 void evalStackOp(std::stack<Alg_uint32<FR>>& S, const BitwiseOps op)
 {
     evalStackOp_internal<Alg_uint32<FR>, std::uint64_t>(S, op);
@@ -251,6 +258,12 @@ void evalStackCmp_internal(std::stack<ALG>& S, const EqualityCmp op)
 
     S.push(
         ALG(zvalue, boolTo<Fr>(zvalue), valueBits(zvalue), {z}));
+}
+
+template <typename FR>
+void evalStackCmp(std::stack<Alg_uint8<FR>>& S, const EqualityCmp op)
+{
+    evalStackCmp_internal(S, op);
 }
 
 template <typename FR>
