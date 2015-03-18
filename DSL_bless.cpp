@@ -8,6 +8,11 @@ namespace snarkfront {
 // blessing (initialize variables)
 //
 
+// 8-bit value from data buffer stream (useful for templates)
+void bless(uint8_t& a, DataBufferStream& ss) {
+    a = ss.getWord<uint8_t>();
+}
+
 // 32-bit value from data buffer stream (useful for templates)
 void bless(uint32_t& a, DataBufferStream& ss) {
     a = ss.getWord<uint32_t>();
