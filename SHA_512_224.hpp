@@ -16,13 +16,16 @@ namespace snarkfront {
 // SHA-512/224
 //
 
-template <typename H, typename T, typename MSG, typename F>
-class SHA_512_224 : public SHA_512<T, MSG, F>
+template <typename H, typename T, typename MSG, typename U, typename F>
+class SHA_512_224 : public SHA_512<T, MSG, U, F>
 {
 public:
     typedef T WordType;
+    typedef U ByteType;
+
     typedef std::array<T, 16> MsgType;
     typedef std::array<H, 7> DigType;
+    typedef std::array<U, 16 * 8> PreType;
 
     SHA_512_224()
         : m_setDigest(false)
@@ -91,6 +94,7 @@ namespace zk {
     SHA512_224 = SHA_512_224<AST_Var<Alg_uint32<FR>>,
                              AST_Var<Alg_uint64<FR>>,
                              Lazy<AST_Var<Alg_uint64<FR>>, std::uint64_t>,
+                             AST_Var<Alg_uint8<FR>>,
                              SHA_Functions<AST_Node<Alg_uint64<FR>>,
                                            AST_Op<Alg_uint64<FR>>,
                                            BitwiseAST<Alg_uint64<FR>, Alg_uint32<FR>>>>;
@@ -100,6 +104,7 @@ namespace eval {
     typedef SHA_512_224<std::uint32_t,
                         std::uint64_t,
                         std::uint64_t,
+                        std::uint8_t,
                         SHA_Functions<std::uint64_t,
                                       std::uint64_t,
                                       BitwiseINT<std::uint64_t, std::uint32_t>>>
