@@ -74,6 +74,7 @@ T boolTo(const bool a) {
 
 // size of type in bits
 std::size_t sizeBits(const bool& dummy);
+std::size_t sizeBits(const std::uint8_t& dummy);
 std::size_t sizeBits(const std::uint32_t& dummy);
 std::size_t sizeBits(const std::uint64_t& dummy);
 
@@ -100,6 +101,7 @@ int matchMSB(const std::vector<BIT>& a,
 
 // convert value to bits
 std::vector<int> valueBits(const bool& a);
+std::vector<int> valueBits(const std::uint8_t& a);
 std::vector<int> valueBits(const std::uint32_t& a);
 std::vector<int> valueBits(const std::uint64_t& a);
 
@@ -138,7 +140,7 @@ std::vector<int> bitsValue(UINT_N& a, const std::vector<int>& b)
 // count number of set bits
 std::size_t countBits(const std::vector<int>& v);
 
-// overflow addition (uint32_t and uint64_t)
+// overflow addition (uint8_t, uint32_t and uint64_t)
 template <typename UINT_N>
 void addover(UINT_N& a1, UINT_N& a0, const UINT_N& b) 
 {
