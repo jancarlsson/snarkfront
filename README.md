@@ -34,10 +34,11 @@ possible by the libsnark source code release.
 Language summary
 --------------------------------------------------------------------------------
 
-Four types:
+Five types:
 
 - Boolean
 - 128-bit unsigned integer scalars
+- 8-bit unsigned integer octets
 - 32-bit unsigned integer words
 - 64-bit unsigned integer words
 
@@ -48,12 +49,13 @@ The usual operators:
 - shift and rotate
 - comparisons: == != < <= > >=
 - ternary conditional
-- type conversion between Boolean, 32-bit, 64-bit, and 128-bit
+- type conversion between Boolean, 8-bit, 32-bit, 64-bit, and 128-bit
 
 Cryptographic one-wayness:
 
 - FIPS PUB 180-4: SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256
-- binary Merkle tree
+- binary Merkle tree using SHA-256 or SHA-512
+- key pair generation with cleartext (done) or blinded (work in progress) entropy
 
 Elliptic curve pairings:
 
@@ -574,7 +576,7 @@ test_cli.sh
 An example script exercises the command line toolchain end-to-end.
 
     $ ./test_cli.sh
-    usage: ./test_cli.sh BN128|Edwards 256|512 <tree_depth> <vector_blocks> <window_blocks>
+    usage: ./test_cli.sh BN128|Edwards 256|512 <tree_depth> <vector_blocks> <window_blocks> [clearonly]
 
 It uses test_bundle to generate a Merkle tree, add a commitment leaf, then
 write the constraint system, input, and witness to files.
@@ -605,6 +607,7 @@ a single partition for the query vectors and windowed exponentiation table.
     generate proof inputs
     generate proof witness
     key randomness ***destroy tmp_test_cli.keyrand after use***
+    key randomness (mostly blinded)
     qap query A
     qap query B
     qap query C
@@ -617,34 +620,49 @@ a single partition for the query vectors and windowed exponentiation table.
     ***** PROVING KEY *****
 
     ppzk query A
-
     tmp_test_cli.pkqueryA0
     (1) ..................................................
 
-    ppzk query B
+    ppzk query A (mostly blinded)
+    tmp_test_cli.pkqueryA.blind0
+    (1) ..................................................
 
+    ppzk query B
     tmp_test_cli.pkqueryB0
     (1) ..................................................
 
-    ppzk query C
+    ppzk query B (mostly blinded)
+    tmp_test_cli.pkqueryB.blind0
+    (1) ..................................................
 
+    ppzk query C
     tmp_test_cli.pkqueryC0
     (1) ..................................................
 
-    ppzk query H
+    ppzk query C (mostly blinded)
+    tmp_test_cli.pkqueryC.blind0
+    (1) ..................................................
 
+    ppzk query H
     tmp_test_cli.pkqueryH0
     (1) ..................................................
 
     ppzk query K
-
     tmp_test_cli.pkqueryK0
+    (1) ..................................................
+
+    ppzk query K (mostly blinded)
+    tmp_test_cli.pkqueryK.blind0
+    (3) ..................................................
+    (2) ..................................................
     (1) ..................................................
 
     ***** VERIFICATION KEY *****
 
     ppzk query IC
+    (1) ..................................................
 
+    ppzk query IC (mostly blinded)
     (1) ..................................................
 
     ***tmp_test_cli.keyrand no longer needed***
@@ -656,56 +674,80 @@ a single partition for the query vectors and windowed exponentiation table.
     qap witness
 
     ppzk witness A
-
     tmp_test_cli.pkqueryA0
     (1) ..................................................
 
-    ppzk witness B
+    ppzk witness A (mostly blinded)
+    tmp_test_cli.pkqueryA.blind0
+    (1) ..................................................
 
+    ppzk witness B
     tmp_test_cli.pkqueryB0
     (1) ..................................................
 
-    ppzk witness C
+    ppzk witness B (mostly blinded)
+    tmp_test_cli.pkqueryB.blind0
+    (1) ..................................................
 
+    ppzk witness C
     tmp_test_cli.pkqueryC0
     (1) ..................................................
 
-    ppzk witness H
+    ppzk witness C (mostly blinded)
+    tmp_test_cli.pkqueryC.blind0
+    (1) ..................................................
 
+    ppzk witness H
     tmp_test_cli.pkqueryH0
     (1) ..................................................
 
     ppzk witness K
-
     tmp_test_cli.pkqueryK0
+    (1) ..................................................
+
+    ppzk witness K (mostly blinded)
+    tmp_test_cli.pkqueryK.blind0
     (1) ..................................................
 
     ***tmp_test_cli.proofrand no longer needed***
 
     ***** VERIFY *****
 
-    PASS
+    PASS key pair entropy in clear
+    PASS mostly blinded key pair entropy
 
 Many files are left behind by the script.
 
     $ du -k -c tmp_test_cli.*
     8       tmp_test_cli.input
     4       tmp_test_cli.keyrand
+    12      tmp_test_cli.keyrand.blind
     4       tmp_test_cli.merkle
     32204   tmp_test_cli.pkqueryA0
-    42108   tmp_test_cli.pkqueryB0
+    32204   tmp_test_cli.pkqueryA.blind0
+    42104   tmp_test_cli.pkqueryB0
+    42104   tmp_test_cli.pkqueryB.blind0
     17360   tmp_test_cli.pkqueryC0
+    17360   tmp_test_cli.pkqueryC.blind0
     21436   tmp_test_cli.pkqueryH0
     48      tmp_test_cli.pkqueryIC
+    48      tmp_test_cli.pkqueryIC.blind
     16884   tmp_test_cli.pkqueryK0
+    16884   tmp_test_cli.pkqueryK.blind0
     4       tmp_test_cli.pkwitnessA
+    4       tmp_test_cli.pkwitnessA.blind
     4       tmp_test_cli.pkwitnessB
+    4       tmp_test_cli.pkwitnessB.blind
     4       tmp_test_cli.pkwitnessC
+    4       tmp_test_cli.pkwitnessC.blind
     4       tmp_test_cli.pkwitnessH
     4       tmp_test_cli.pkwitnessK
+    4       tmp_test_cli.pkwitnessK.blind
     4       tmp_test_cli.proofrand
     4       tmp_test_cli.qapqueryA
-    5216    tmp_test_cli.qapqueryA0
+    5232    tmp_test_cli.qapqueryA0
+    4       tmp_test_cli.qapqueryA.afterIC
+    5216    tmp_test_cli.qapqueryA.afterIC0
     4       tmp_test_cli.qapqueryB
     4144    tmp_test_cli.qapqueryB0
     4       tmp_test_cli.qapqueryC
@@ -720,14 +762,14 @@ Many files are left behind by the script.
     4       tmp_test_cli.system
     26752   tmp_test_cli.system0
     2172    tmp_test_cli.witness
-    191044  total
+    304904  total
 
 A more realistic example is a Merkle tree of depth 64 using the 128 bit
 Barreto-Naehrig curve. As before, the SHA-256 compression function is used.
 Query vectors are partitioned into 16 blocks. The windowed exponentiation
 table is partitioned into 8 blocks.
 
-    $ ./test_cli.sh BN128 256 64 16 8
+    $ ./test_cli.sh BN128 256 64 16 8 clearonly
 
 Note this may take hours to run and writes 16 GB of files to disk. However,
 RAM use remains between 500 MB and 2 GB. A laptop with 4 GB RAM and a slow
