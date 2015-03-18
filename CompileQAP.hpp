@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <fstream>
+#include <functional>
 #include <string>
 #include "snarkfront.hpp"
 
@@ -17,7 +18,9 @@ template <typename PAIRING>
 class QAP_query_ABCH
 {
     typedef typename PAIRING::Fr FR;
-    typedef typename snarklib::QAP_QueryABC<snarklib::HugeSystem, FR> ABC;
+    typedef typename snarklib::QAP_QueryABC<snarklib::HugeSystem, FR> Q_ABC;
+    typedef typename snarklib::QAP_QueryH<snarklib::HugeSystem, FR> Q_H;
+    typedef typename snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR> SYSPT;
 
 public:
     QAP_query_ABCH(const std::size_t numBlocks,
@@ -28,8 +31,7 @@ public:
     {
         std::ifstream ifs(randfile);
         m_error = !ifs ||
-            !m_lagrangeRand.marshal_in(ifs) ||
-            !m_blindRand.marshal_in(ifs) ||
+            !m_lagrangePoint.marshal_in(ifs) ||
             !m_hugeSystem.loadIndex();
     }
 
@@ -44,15 +46,15 @@ public:
     bool operator! () const { return m_error; }
 
     void A(const std::string& outfile) {
-        writeFilesABC(outfile, ABC::VecSelect::A);
+        writeFilesABC(outfile, Q_ABC::VecSelect::A);
     }
 
     void B(const std::string& outfile) {
-        writeFilesABC(outfile, ABC::VecSelect::B);
+        writeFilesABC(outfile, Q_ABC::VecSelect::B);
     }
 
     void C(const std::string& outfile) {
-        writeFilesABC(outfile, ABC::VecSelect::C);
+        writeFilesABC(outfile, Q_ABC::VecSelect::C);
     }
 
     void H(const std::string& outfile) {
@@ -80,8 +82,14 @@ public:
 private:
     template <typename QUERY>
     void writeFiles(const std::string& outfile,
-                    const QUERY& Q)
+                    std::function<QUERY (const SYSPT&)> func)
     {
+        const SYSPT qap(m_hugeSystem,
+                        m_hugeSystem.numCircuitInputs(),
+                        m_lagrangePoint.point());
+
+        const auto Q = func(qap);
+
         auto space = snarklib::BlockVector<FR>::space(Q.vec());
         space.blockPartition(std::array<size_t, 1>{m_numBlocks});
         space.param(Q.nonzeroCount());
@@ -94,26 +102,16 @@ private:
     }
 
     void writeFilesABC(const std::string& outfile,
-                       const unsigned int mask)
-    {
-        const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
-            qap(m_hugeSystem,
-                m_hugeSystem.numCircuitInputs(),
-                m_lagrangeRand.point());
-
-        writeFiles(outfile,
-                   snarklib::QAP_QueryABC<snarklib::HugeSystem, FR>(qap, mask));
+                       const unsigned int mask) {
+        writeFiles<Q_ABC>(
+            outfile,
+            [&mask] (const SYSPT& qap) { return Q_ABC(qap, mask); });
     }
 
-    void writeFilesH(const std::string& outfile)
-    {
-        const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
-            qap(m_hugeSystem,
-                m_hugeSystem.numCircuitInputs(),
-                m_lagrangeRand.point());
-
-        writeFiles(outfile,
-                   snarklib::QAP_QueryH<snarklib::HugeSystem, FR>(qap));
+    void writeFilesH(const std::string& outfile) {
+        writeFiles<Q_H>(
+            outfile,
+            [] (const SYSPT& qap) { return Q_H(qap); });
     }
 
     std::size_t nonzeroCount(const std::string& abchfile) {
@@ -126,8 +124,7 @@ private:
 
     const std::size_t m_numBlocks;
 
-    snarklib::PPZK_LagrangePoint<FR> m_lagrangeRand;
-    snarklib::PPZK_BlindGreeks<FR, FR> m_blindRand;
+    snarklib::PPZK_LagrangePoint<FR> m_lagrangePoint;
     snarklib::HugeSystem<FR> m_hugeSystem;
     bool m_error;
 };
@@ -140,6 +137,7 @@ template <typename PAIRING>
 class QAP_query_K
 {
     typedef typename PAIRING::Fr FR;
+    typedef typename snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR> SYSPT;
 
 public:
     QAP_query_K(const std::string& afile,
@@ -154,8 +152,8 @@ public:
     {
         std::ifstream ifs(randfile);
         m_error = !ifs ||
-            !m_lagrangeRand.marshal_in(ifs) ||
-            !m_blindRand.marshal_in(ifs) ||
+            !m_lagrangePoint.marshal_in(ifs) ||
+            !m_clearGreeks.marshal_in(ifs) ||
             !m_hugeSystem.loadIndex();
     }
 
@@ -170,34 +168,38 @@ private:
     void writeFiles(const std::string& outfile,
                     const std::size_t blocknum)
     {
-        const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
-            qap(m_hugeSystem,
-                m_hugeSystem.numCircuitInputs(),
-                m_lagrangeRand.point());
+        const SYSPT qap(m_hugeSystem,
+                        m_hugeSystem.numCircuitInputs(),
+                        m_lagrangePoint.point());
 
         snarklib::QAP_QueryK<FR> Q(qap,
-                                   m_blindRand.rA(),
-                                   m_blindRand.rB(),
-                                   m_blindRand.beta());
+                                   m_clearGreeks.beta_rA(),
+                                   m_clearGreeks.beta_rB(),
+                                   m_clearGreeks.beta_rC());
 
         std::size_t block = (-1 == blocknum) ? 0 : blocknum;
         bool b = true;
         while (b) {
             snarklib::BlockVector<FR> A, B, C;
 
-            if (!snarklib::read_blockvector(m_afile, block, A)) { m_error = true; return; }
-            if (!snarklib::read_blockvector(m_bfile, block, B)) { m_error = true; return; }
-            if (!snarklib::read_blockvector(m_cfile, block, C)) { m_error = true; return; }
+            if (!snarklib::read_blockvector(m_afile, block, A) ||
+                !snarklib::read_blockvector(m_bfile, block, B) ||
+                !snarklib::read_blockvector(m_cfile, block, C)) {
+                m_error = true;
+                return;
+            }
+
+            const auto& space = A.space();
 
             Q.accumVector(A, B, C);
 
-            if (!snarklib::write_blockvector(outfile, block, A.space(), Q.vec())) {
+            if (!snarklib::write_blockvector(outfile, block, space, Q.vec())) {
                 m_error = true;
                 return;
             }
 
             b = (-1 == blocknum)
-                ? ++block < A.space().blockID()[0]
+                ? ++block < space.blockID()[0]
                 : false;
 
             if (!b) {
@@ -205,15 +207,15 @@ private:
                 if (!ofs)
                     m_error = true;
                 else
-                    A.space().marshal_out(ofs);
+                    space.marshal_out(ofs);
             }
         }
     }
 
     const std::string m_afile, m_bfile, m_cfile;
 
-    snarklib::PPZK_LagrangePoint<FR> m_lagrangeRand;
-    snarklib::PPZK_BlindGreeks<FR, FR> m_blindRand;
+    snarklib::PPZK_LagrangePoint<FR> m_lagrangePoint;
+    snarklib::PPZK_BlindGreeks<FR, FR> m_clearGreeks;
     snarklib::HugeSystem<FR> m_hugeSystem;
     bool m_error;
 };
@@ -226,9 +228,12 @@ template <typename PAIRING>
 class QAP_query_IC
 {
     typedef typename PAIRING::Fr FR;
+    typedef typename PAIRING::G1 G1;
+    typedef typename PAIRING::G2 G2;
+    typedef typename snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR> SYSPT;
 
 public:
-    QAP_query_IC(const std::string& afile,
+    QAP_query_IC(const std::string& afile, // side-effect: file is modified
                  const std::string& sysfile,
                  const std::string& randfile)
         : m_afile(afile),
@@ -236,8 +241,7 @@ public:
     {
         std::ifstream ifs(randfile);
         m_error = !ifs ||
-            !m_lagrangeRand.marshal_in(ifs) ||
-            !m_blindRand.marshal_in(ifs) ||
+            !m_lagrangePoint.marshal_in(ifs) ||
             !m_hugeSystem.loadIndex();
     }
 
@@ -249,13 +253,11 @@ public:
 
 private:
     void writeFiles(const std::string& outfile) {
-        const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
-            qap(m_hugeSystem,
-                m_hugeSystem.numCircuitInputs(),
-                m_lagrangeRand.point());
+        const SYSPT qap(m_hugeSystem,
+                        m_hugeSystem.numCircuitInputs(),
+                        m_lagrangePoint.point());
 
-        snarklib::QAP_QueryIC<FR> Q(qap,
-                                    m_blindRand.rA());
+        snarklib::QAP_QueryIC<FR> Q(qap);
 
         std::size_t block = 0;
         bool b = true;
@@ -276,7 +278,7 @@ private:
             if (!ofs)
                 m_error = true;
             else
-                A.marshal_out(ofs);
+                A.marshal_out(ofs); // side-effect: write back to file
 
             b = ++block < A.space().blockID()[0];
         }
@@ -291,8 +293,7 @@ private:
 
     const std::string m_afile;
 
-    snarklib::PPZK_LagrangePoint<FR> m_lagrangeRand;
-    snarklib::PPZK_BlindGreeks<FR, FR> m_blindRand;
+    snarklib::PPZK_LagrangePoint<FR> m_lagrangePoint;
     snarklib::HugeSystem<FR> m_hugeSystem;
     bool m_error;
 };
@@ -305,6 +306,7 @@ template <typename PAIRING>
 class QAP_witness_ABCH
 {
     typedef typename PAIRING::Fr FR;
+    typedef typename snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR> SYSPT;
 
 public:
     QAP_witness_ABCH(const std::size_t numBlocks,
@@ -325,9 +327,8 @@ public:
 
     void writeFiles(const std::string& outfile)
     {
-        const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
-            qap(m_hugeSystem,
-                m_hugeSystem.numCircuitInputs());
+        const SYSPT qap(m_hugeSystem,
+                        m_hugeSystem.numCircuitInputs());
 
         const snarklib::QAP_WitnessABCH<snarklib::HugeSystem, FR>
             ABCH(qap,
