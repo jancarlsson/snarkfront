@@ -3,8 +3,10 @@
 #include <fstream>
 #include <functional>
 #include <memory>
+#include <sstream>
 #include <string>
-#include "CompilePPZK.hpp"
+#include "CompilePPZK_query.hpp"
+#include "CompilePPZK_witness.hpp"
 #include "Getopt.hpp"
 #include "snarkfront.hpp"
 
@@ -31,22 +33,29 @@ void printUsage(const char* exeName) {
         IC = " -i file",
         Q = " -q qap_witness_file",
         WIT = " -w witness_file",
-        V = " [-v]";
+        V = " [-v]",
+        optBLIND = " [-B]",
+        BLIND = " -B";
+
+    std::stringstream ss;
+    ss << exeName << PAIR << OUT;
+    const auto& PRE = ss.str();
 
     cout << endl << "PPZK query generation (proving key):" << endl
-         << "  A: " << exeName << PAIR << R << G1 << E << OUT << A << M << N << V << endl
-         << "  B: " << exeName << PAIR << R << G1 << E << G2 << OUT << B << M << N << V << endl
-         << "  C: " << exeName << PAIR << R << G1 << E << OUT << C << M << N << V << endl
-         << "  H: " << exeName << PAIR << G1 << E << OUT << H << M << N << V << endl
-         << "  K: " << exeName << PAIR << G1 << E << OUT << K << M << N << V << endl
+         << "  A: " << PRE << G1 << E << A << M << N << R << optBLIND << V << endl
+         << "  B: " << PRE << G1 << E << G2 << B << M << N << R << optBLIND << V << endl
+         << "  C: " << PRE << G1 << E << C << M << N << R << optBLIND << V << endl
+         << "  H: " << PRE << G1 << E << H << M << N << V << endl
+         << "  K: " << PRE << G1 << E << K << M << N << V << endl
+         << "  K: " << PRE << G1 << E << A << B << C << M << N << R << BLIND << V << endl
          << endl << "PPZK input consistency (verification key):" << endl
-         << "  key: " << exeName << PAIR << SYS << R << G1 << E << OUT << IC << V << endl
+         << "  key: " << PRE << SYS << G1 << E << IC << R << optBLIND << V << endl
          << endl << "PPZK witness generation (proof):" << endl
-         << "  A: " << exeName << PAIR << SYS << R << WIT << OUT << A << M << N << V << endl
-         << "  B: " << exeName << PAIR << SYS << R << WIT << OUT << B << M << N << V << endl
-         << "  C: " << exeName << PAIR << SYS << R << WIT << OUT << C << M << N << V << endl
-         << "  H: " << exeName << PAIR << OUT << H << Q << M << N << V << endl
-         << "  K: " << exeName << PAIR << R << WIT << OUT << K << M << N << V << endl;
+         << "  A: " << PRE << SYS << R << WIT << A << M << N << V << endl
+         << "  B: " << PRE << SYS << R << WIT << B << M << N << V << endl
+         << "  C: " << PRE << SYS << R << WIT << C << M << N << V << endl
+         << "  H: " << PRE << H << Q << M << N << V << endl
+         << "  K: " << PRE << R << WIT << K << M << N << V << endl;
 
     exit(EXIT_FAILURE);
 }
@@ -65,6 +74,7 @@ void ppzkLoop(function<void (const string&, size_t, ProgressCallback*)> func,
         if (verbose) {
             cerr << endl << fileprefix << block;
             func(fileprefix, block, std::addressof(progress));
+
         } else {
             func(fileprefix, block, nullptr);
         }
@@ -78,23 +88,24 @@ bool queryA(const size_t g1_exp,
             const size_t g1_blks,
             const string& afile,
             const string& randfile,
+            const bool blind,
             const string& outfile,
             const size_t startblock,
             const size_t blockcnt,
             const bool verbose)
 {
-    PPZK_query_AC<PAIRING> query(g1_exp, g1_blks, afile, randfile);
+    PPZK_query_AC<PAIRING> Q(g1_exp, g1_blks, afile, randfile, blind);
 
     ppzkLoop(
-        [&query] (const string& outfile, size_t block, ProgressCallback* callback) {
-            query.A(outfile, block, callback);
+        [&Q] (const string& outfile, size_t block, ProgressCallback* callback) {
+            Q.A(outfile, block, callback);
         },
         outfile,
         startblock,
         blockcnt,
         verbose);
 
-    return !!query;
+    return !!Q;
 }
 
 template <typename PAIRING>
@@ -103,23 +114,24 @@ bool queryB(const size_t g1_exp,
             const size_t g2_exp,
             const string& bfile,
             const string& randfile,
+            const bool blind,
             const string& outfile,
             const size_t startblock,
             const size_t blockcnt,
             const bool verbose)
 {
-    PPZK_query_B<PAIRING> query(g1_exp, g1_blks, g2_exp, bfile, randfile);
+    PPZK_query_B<PAIRING> Q(g1_exp, g1_blks, g2_exp, bfile, randfile, blind);
 
     ppzkLoop(
-        [&query] (const string& outfile, size_t block, ProgressCallback* callback) {
-            query.B(outfile, block, callback);
+        [&Q] (const string& outfile, size_t block, ProgressCallback* callback) {
+            Q.B(outfile, block, callback);
         },
         outfile,
         startblock,
         blockcnt,
         verbose);
 
-    return !!query;
+    return !!Q;
 }
 
 template <typename PAIRING>
@@ -127,23 +139,24 @@ bool queryC(const size_t g1_exp,
             const size_t g1_blks,
             const string& cfile,
             const string& randfile,
+            const bool blind,
             const string& outfile,
             const size_t startblock,
             const size_t blockcnt,
             const bool verbose)
 {
-    PPZK_query_AC<PAIRING> query(g1_exp, g1_blks, cfile, randfile);
+    PPZK_query_AC<PAIRING> Q(g1_exp, g1_blks, cfile, randfile, blind);
 
     ppzkLoop(
-        [&query] (const string& outfile, size_t block, ProgressCallback* callback) {
-            query.C(outfile, block, callback);
+        [&Q] (const string& outfile, size_t block, ProgressCallback* callback) {
+            Q.C(outfile, block, callback);
         },
         outfile,
         startblock,
         blockcnt,
         verbose);
 
-    return !!query;
+    return !!Q;
 }
 
 template <typename PAIRING>
@@ -155,41 +168,62 @@ bool queryH(const size_t g1_exp,
             const size_t blockcnt,
             const bool verbose)
 {
-    PPZK_query_HK<PAIRING> query(g1_exp, g1_blks, hfile);
+    PPZK_query_HK<PAIRING> Q(g1_exp, g1_blks, hfile);
 
     ppzkLoop(
-        [&query] (const string& outfile, size_t block, ProgressCallback* callback) {
-            query.H(outfile, block, callback);
+        [&Q] (const string& outfile, size_t block, ProgressCallback* callback) {
+            Q.H(outfile, block, callback);
         },
         outfile,
         startblock,
         blockcnt,
         verbose);
 
-    return !!query;
+    return !!Q;
 }
 
 template <typename PAIRING>
 bool queryK(const size_t g1_exp,
             const size_t g1_blks,
+            const string& afile,
+            const string& bfile,
+            const string& cfile,
             const string& kfile,
+            const string& randfile,
+            const bool blind,
             const string& outfile,
             const size_t startblock,
             const size_t blockcnt,
             const bool verbose)
 {
-    PPZK_query_HK<PAIRING> query(g1_exp, g1_blks, kfile);
+    if (blind) {
+        PPZK_query_K<PAIRING> Q(g1_exp, g1_blks, afile, bfile, cfile, randfile);
 
-    ppzkLoop(
-        [&query] (const string& outfile, size_t block, ProgressCallback* callback) {
-            query.K(outfile, block, callback);
-        },
-        outfile,
-        startblock,
-        blockcnt,
-        verbose);
+        ppzkLoop(
+            [&Q] (const string& outfile, size_t block, ProgressCallback* callback) {
+                Q.K(outfile, block, callback);
+            },
+            outfile,
+            startblock,
+            blockcnt,
+            verbose);
 
-    return !!query;
+        return !!Q;
+
+    } else {
+        PPZK_query_HK<PAIRING> Q(g1_exp, g1_blks, kfile);
+
+        ppzkLoop(
+            [&Q] (const string& outfile, size_t block, ProgressCallback* callback) {
+                Q.K(outfile, block, callback);
+            },
+            outfile,
+            startblock,
+            blockcnt,
+            verbose);
+
+        return !!Q;
+    }
 }
 
 template <typename PAIRING>
@@ -198,21 +232,24 @@ bool queryIC(const size_t g1_exp,
              const string& icfile,
              const string& sysfile,
              const string& randfile,
+             const bool blind,
              const string& outfile,
              const bool verbose)
 {
-    PPZK_verification_key<PAIRING> query(g1_exp, g1_blks, icfile, sysfile, randfile);
+    PPZK_verification_key<PAIRING> Q(g1_exp, g1_blks, icfile, sysfile, randfile, blind);
 
     GenericProgressBar progress(cerr, 50);
     progress.majorSteps(g1_blks);
 
-    query.writeFiles(outfile, verbose ? std::addressof(progress) : nullptr);
+    Q.writeFiles(
+        outfile,
+        verbose ? std::addressof(progress) : nullptr);
 
-    return !!query;
+    return !!Q;
 }
 
 template <typename WIT>
-bool witnessVal(WIT& wit,
+bool witnessVal(const WIT& wit,
                 const std::string& outfile)
 {
     if (!wit) return false;
@@ -237,19 +274,19 @@ bool witnessA(const string& afile,
               const size_t blockcnt,
               const bool verbose)
 {
-    PPZK_witness_ABC<PPZK_WitnessA<PAIRING>, PAIRING> wit(sysfile, randfile, witfile);
-    wit.initA();
+    PPZK_witness_ABC<PPZK_WitnessA<PAIRING>, PAIRING> W(sysfile, randfile, witfile);
+    W.initA();
 
     ppzkLoop(
-        [&wit] (const string& infile, size_t block, ProgressCallback* callback) {
-            wit.accumQuery(infile, block, callback);
+        [&W] (const string& infile, size_t block, ProgressCallback* callback) {
+            W.accumQuery(infile, block, callback);
         },
         afile,
         startblock,
         blockcnt,
         verbose);
 
-    return witnessVal(wit, outfile);
+    return witnessVal(W, outfile);
 }
 
 template <typename PAIRING>
@@ -262,19 +299,19 @@ bool witnessB(const string& bfile,
               const size_t blockcnt,
               const bool verbose)
 {
-    PPZK_witness_ABC<PPZK_WitnessB<PAIRING>, PAIRING> wit(sysfile, randfile, witfile);
-    wit.initB();
+    PPZK_witness_ABC<PPZK_WitnessB<PAIRING>, PAIRING> W(sysfile, randfile, witfile);
+    W.initB();
 
     ppzkLoop(
-        [&wit] (const string& infile, size_t block, ProgressCallback* callback) {
-            wit.accumQuery(infile, block, callback);
+        [&W] (const string& infile, size_t block, ProgressCallback* callback) {
+            W.accumQuery(infile, block, callback);
         },
         bfile,
         startblock,
         blockcnt,
         verbose);
 
-    return witnessVal(wit, outfile);
+    return witnessVal(W, outfile);
 }
 
 template <typename PAIRING>
@@ -287,19 +324,19 @@ bool witnessC(const string& cfile,
               const size_t blockcnt,
               const bool verbose)
 {
-    PPZK_witness_ABC<PPZK_WitnessC<PAIRING>, PAIRING> wit(sysfile, randfile, witfile);
-    wit.initC();
+    PPZK_witness_ABC<PPZK_WitnessC<PAIRING>, PAIRING> W(sysfile, randfile, witfile);
+    W.initC();
 
     ppzkLoop(
-        [&wit] (const string& infile, size_t block, ProgressCallback* callback) {
-            wit.accumQuery(infile, block, callback);
+        [&W] (const string& infile, size_t block, ProgressCallback* callback) {
+            W.accumQuery(infile, block, callback);
         },
         cfile,
         startblock,
         blockcnt,
         verbose);
 
-    return witnessVal(wit, outfile);
+    return witnessVal(W, outfile);
 }
 
 template <typename PAIRING>
@@ -310,18 +347,18 @@ bool witnessH(const string& hfile,
               const size_t blockcnt,
               const bool verbose)
 {
-    PPZK_witness_H<PAIRING> wit(qapABCH);
+    PPZK_witness_H<PAIRING> W(qapABCH);
 
     ppzkLoop(
-        [&wit] (const string& infile, size_t block, ProgressCallback* callback) {
-            wit.accumQuery(infile, block, callback);
+        [&W] (const string& infile, size_t block, ProgressCallback* callback) {
+            W.accumQuery(infile, block, callback);
         },
         hfile,
         startblock,
         blockcnt,
         verbose);
 
-    return witnessVal(wit, outfile);
+    return witnessVal(W, outfile);
 }
 
 template <typename PAIRING>
@@ -333,23 +370,24 @@ bool witnessK(const string& kfile,
               const size_t blockcnt,
               const bool verbose)
 {
-    PPZK_witness_K<PAIRING> wit(randfile, witfile);
+    PPZK_witness_K<PAIRING> W(randfile, witfile);
 
     ppzkLoop(
-        [&wit] (const string& infile, size_t block, ProgressCallback* callback) {
-            wit.accumQuery(infile, block, callback);
+        [&W] (const string& infile, size_t block, ProgressCallback* callback) {
+            W.accumQuery(infile, block, callback);
         },
         kfile,
         startblock,
         blockcnt,
         verbose);
 
-    return witnessVal(wit, outfile);
+    return witnessVal(W, outfile);
 }
 
 template <typename PAIRING>
 bool cmdSwitch(const string& sysfile,
                const string& randfile,
+               const bool blind,
                const string& outfile,
                const string& afile,
                const string& bfile,
@@ -366,50 +404,87 @@ bool cmdSwitch(const string& sysfile,
                const size_t g1_blks,
                const bool verb)
 {
-    bool ok = false;
-
     if (!qfile.empty()) {
-        ok = witnessH<PAIRING>(hfile, qfile, outfile, start, cnt, verb);
+        return witnessH<PAIRING>(
+            hfile, qfile, outfile,
+            start, cnt, verb);
 
     } else if (!witfile.empty()) {
-        if (!afile.empty())
-            ok = witnessA<PAIRING>(afile, sysfile, randfile, witfile, outfile, start, cnt, verb);
+        if (!afile.empty()) {
+            return witnessA<PAIRING>(
+                afile, sysfile, randfile, witfile, outfile,
+                start, cnt, verb);
+        }
 
-        if (!bfile.empty())
-            ok = witnessB<PAIRING>(bfile, sysfile, randfile, witfile, outfile, start, cnt, verb);
+        if (!bfile.empty()) {
+            return witnessB<PAIRING>(
+                bfile, sysfile, randfile, witfile, outfile,
+                start, cnt, verb);
+        }
 
-        if (!cfile.empty())
-            ok = witnessC<PAIRING>(cfile, sysfile, randfile, witfile, outfile, start, cnt, verb);
+        if (!cfile.empty()) {
+            return witnessC<PAIRING>(
+                cfile, sysfile, randfile, witfile, outfile,
+                start, cnt, verb);
+        }
 
-        if (!kfile.empty())
-            ok = witnessK<PAIRING>(kfile, randfile, witfile, outfile, start, cnt, verb);
+        if (!kfile.empty()) {
+            return witnessK<PAIRING>(
+                kfile, randfile, witfile, outfile,
+                start, cnt, verb);
+        }
 
     } else {
-        if (!afile.empty())
-            ok = queryA<PAIRING>(g1_exp, g1_blks, afile, randfile, outfile, start, cnt, verb);
+        if (!kfile.empty() ||
+            (kfile.empty() && !afile.empty() && !bfile.empty() && !cfile.empty())) {
+            return queryK<PAIRING>(
+                g1_exp, g1_blks,
+                afile, bfile, cfile, kfile, randfile, blind, outfile,
+                start, cnt, verb);
+        }
 
-        if (!bfile.empty())
-            ok = queryB<PAIRING>(g1_exp, g1_blks, g2_exp, bfile, randfile, outfile, start, cnt, verb);
+        if (!afile.empty()) {
+            return queryA<PAIRING>(
+                g1_exp, g1_blks,
+                afile, randfile, blind, outfile,
+                start, cnt, verb);
+        }
 
-        if (!cfile.empty())
-            ok = queryC<PAIRING>(g1_exp, g1_blks, cfile, randfile, outfile, start, cnt, verb);
+        if (!bfile.empty()) {
+            return queryB<PAIRING>(
+                g1_exp, g1_blks, g2_exp,
+                bfile, randfile, blind, outfile,
+                start, cnt, verb);
+        }
 
-        if (!hfile.empty())
-            ok = queryH<PAIRING>(g1_exp, g1_blks, hfile, outfile, start, cnt, verb);
+        if (!cfile.empty()) {
+            return queryC<PAIRING>(
+                g1_exp, g1_blks,
+                cfile, randfile, blind, outfile,
+                start, cnt, verb);
+        }
 
-        if (!kfile.empty())
-            ok = queryK<PAIRING>(g1_exp, g1_blks, kfile, outfile, start, cnt, verb);
+        if (!hfile.empty()) {
+            return queryH<PAIRING>(
+                g1_exp, g1_blks,
+                hfile, outfile,
+                start, cnt, verb);
+        }
 
-        if (!icfile.empty())
-            ok = queryIC<PAIRING>(g1_exp, g1_blks, icfile, sysfile, randfile, outfile, verb);
+        if (!icfile.empty()) {
+            return queryIC<PAIRING>(
+                g1_exp, g1_blks,
+                icfile, sysfile, randfile, blind, outfile,
+                verb);
+        }
     }
 
-    return ok;
+    return false;
 }
 
 int main(int argc, char *argv[])
 {
-    Getopt cmdLine(argc, argv, "psroabchkiqw", "mn12e", "v");
+    Getopt cmdLine(argc, argv, "psroabchkiqw", "mn12e", "vB");
     if (!cmdLine || cmdLine.empty()) printUsage(argv[0]);
 
     const auto
@@ -433,7 +508,9 @@ int main(int argc, char *argv[])
         g2_exp = cmdLine.getNumber('2'),
         g1_blks = cmdLine.getNumber('e');
 
-    const auto verb = cmdLine.getFlag('v');
+    const auto
+        verb = cmdLine.getFlag('v'),
+        blind = cmdLine.getFlag('B');
 
     if (!validPairingName(pairing)) {
         cerr << "error: elliptic curve pairing " << pairing << endl;
@@ -445,7 +522,7 @@ int main(int argc, char *argv[])
     if (pairingBN128(pairing)) {
         // Barreto-Naehrig 128 bits
         init_BN128();
-        ok = cmdSwitch<BN128_PAIRING>(sysfile, randfile, outfile,
+        ok = cmdSwitch<BN128_PAIRING>(sysfile, randfile, blind, outfile,
                                       afile, bfile, cfile, hfile, kfile, icfile,
                                       qfile,
                                       witfile,
@@ -456,7 +533,7 @@ int main(int argc, char *argv[])
     } else if (pairingEdwards(pairing)) {
         // Edwards 80 bits
         init_Edwards();
-        ok = cmdSwitch<EDWARDS_PAIRING>(sysfile, randfile, outfile,
+        ok = cmdSwitch<EDWARDS_PAIRING>(sysfile, randfile, blind, outfile,
                                         afile, bfile, cfile, hfile, kfile, icfile,
                                         qfile,
                                         witfile,
