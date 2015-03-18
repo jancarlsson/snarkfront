@@ -410,11 +410,19 @@ public:
     // z = AND(x[0], x[1],... , x[N-1])
     // general AND gate with arbitrary number of inputs
     //
-    // caution: zbit == 0 case incorporates witness in constraint
-    //          system and leaks knowledge!
+    // A few notes:
     //
-    //          zbit == 1 case is zero knowledge which means this is a
-    //          test of all x[i] == 1
+    // Proving a bit is true generates a different circuit from
+    // proving a bit is false. For that reason, the value of zbit
+    // must be known to both prover and verifier. All parties must
+    // agree on the same arithmetic circuit.
+    //
+    // The declarative snarkfront EDSL makes this possible. Prover
+    // and verifier agree on the same language which defines the
+    // problem (constraint system) and what passes as a valid
+    // solution (witness).
+    //
+    // This function is called from safeAND() with zbit = true.
     //
     R1T multiAND(const std::vector<R1T>& x,
                  const FR& xsum_witness,
@@ -453,11 +461,19 @@ public:
     // z = OR(x[0], x[1],... , x[N-1])
     // general OR gate with arbitrary number of inputs
     //
-    // caution: zbit == 1 case incorporates witness in constraint
-    //          system and leaks knowledge!
+    // A few notes:
     //
-    //          zbit == 0 case is zero knowledge which means this is a
-    //          test of all x[i] == 0
+    // Proving a bit is true generates a different circuit from
+    // proving a bit is false. For that reason, the value of zbit
+    // must be known to both prover and verifier. All parties must
+    // agree on the same arithmetic circuit.
+    //
+    // The declarative snarkfront EDSL makes this possible. Prover
+    // and verifier agree on the same language which defines the
+    // problem (constraint system) and what passes as a valid
+    // solution (witness).
+    //
+    // This function is called from safeNOR() with zbit = false.
     //
     R1T multiOR(const std::vector<R1T>& x,
                 const FR& xsum_witness,
