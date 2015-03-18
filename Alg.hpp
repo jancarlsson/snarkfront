@@ -22,6 +22,7 @@ namespace snarkfront {
 //
 // - Alg_bool for predicate
 // - Alg_BigInt for scalar field of GMP big numbers
+// - Alg_uint8 for 8-bit octets (char)
 // - Alg_uint32 for 32-bit words
 // - Alg_uint64 for 64-bit words
 //
@@ -44,6 +45,12 @@ Alg_BigInt = Alg<snarklib::BigInt<2>, // 128 bits on x86-64
                  ScalarCmp>;
 
 template <typename FR> using
+Alg_uint8 = Alg<std::uint8_t,
+                FR,
+                BitwiseOps,
+                EqualityCmp>;
+
+template <typename FR> using
 Alg_uint32 = Alg<std::uint32_t,
                  FR,
                  BitwiseOps,
@@ -58,6 +65,12 @@ Alg_uint64 = Alg<std::uint64_t,
 ////////////////////////////////////////////////////////////////////////////////
 // algebra parameter
 //
+
+std::string valueToString(const bool& a);
+std::string valueToString(const snarklib::BigInt<2>& a);
+std::string valueToString(const std::uint8_t& a);
+std::string valueToString(const std::uint32_t& a);
+std::string valueToString(const std::uint64_t& a);
 
 template <typename VAL, // value for application code
           typename FR,  // finite field witness (elliptic curve Fr)
@@ -149,9 +162,7 @@ public:
 
     // field constructors accept strings
     static std::string valueToString(const VAL& a) {
-        std::stringstream ss;
-        ss << a;
-        return ss.str();
+        return snarkfront::valueToString(a);
     }
 
     // called from AST Variable overloaded assignment operator
@@ -248,6 +259,10 @@ private:
             m_r1Terms.emplace_back(
                 RS->createTerm(boolTo<FR>(b), blessed));
         }
+
+#ifdef USE_ASSERT
+        assert(m_splitBits.size() == m_r1Terms.size());
+#endif
 
         if (blessed) {
             // associate bits with variable value
