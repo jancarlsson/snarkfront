@@ -20,12 +20,14 @@ namespace snarkfront {
 // constants
 template <typename FR> using c_bool = AST_Const<Alg_bool<FR>>;
 template <typename FR> using c_bigint = AST_Const<Alg_BigInt<FR>>;
+template <typename FR> using c_uint8 = AST_Const<Alg_uint8<FR>>;
 template <typename FR> using c_uint32 = AST_Const<Alg_uint32<FR>>;
 template <typename FR> using c_uint64 = AST_Const<Alg_uint64<FR>>;
 
 // variables
 template <typename FR> using bool_x = AST_Var<Alg_bool<FR>>;
 template <typename FR> using bigint_x = AST_Var<Alg_BigInt<FR>>;
+template <typename FR> using uint8_x = AST_Var<Alg_uint8<FR>>;
 template <typename FR> using uint32_x = AST_Var<Alg_uint32<FR>>;
 template <typename FR> using uint64_x = AST_Var<Alg_uint64<FR>>;
 
@@ -96,6 +98,7 @@ typename T::DigType digest(T hashAlgo, const Args... parameterPack)
     }
 
     DEFN_CMPLMNT(bool, !)
+    DEFN_CMPLMNT(uint8, ~)
     DEFN_CMPLMNT(uint32, ~)
     DEFN_CMPLMNT(uint64, ~)
 
@@ -138,13 +141,16 @@ typename T::DigType digest(T hashAlgo, const Args... parameterPack)
     }
 
     DEFN_OP(bool, &&, AND)
+    DEFN_OP(uint8, &, AND)
     DEFN_OP(uint32, &, AND)
     DEFN_OP(uint64, &, AND)
 
     DEFN_OP(bool, ||, OR)
+    DEFN_OP(uint8, |, OR)
     DEFN_OP(uint32, |, OR)
     DEFN_OP(uint64, |, OR)
 
+    DEFN_OP(uint8, ^, XOR)
     DEFN_OP(uint32, ^, XOR)
     DEFN_OP(uint64, ^, XOR)
 
@@ -152,6 +158,7 @@ typename T::DigType digest(T hashAlgo, const Args... parameterPack)
     DEFN_OP(BigInt, -, SUB)
     DEFN_OP(BigInt, *, MUL)
 
+    DEFN_OP(uint8, +, ADDMOD)
     DEFN_OP(uint32, +, ADDMOD)
     DEFN_OP(uint64, +, ADDMOD)
 
@@ -173,15 +180,19 @@ typename T::DigType digest(T hashAlgo, const Args... parameterPack)
                                        new AST_Const<Alg_ ## ALG<FR>>(n)); \
     }
 
+    DEFN_PERMUTE(uint8, operator<<, SHL)
     DEFN_PERMUTE(uint32, operator<<, SHL)
     DEFN_PERMUTE(uint64, operator<<, SHL)
 
+    DEFN_PERMUTE(uint8, operator>>, SHR)
     DEFN_PERMUTE(uint32, operator>>, SHR)
     DEFN_PERMUTE(uint64, operator>>, SHR)
 
+    DEFN_PERMUTE(uint8, ROTL, ROTL)
     DEFN_PERMUTE(uint32, ROTL, ROTL)
     DEFN_PERMUTE(uint64, ROTL, ROTL)
 
+    DEFN_PERMUTE(uint8, ROTR, ROTR)
     DEFN_PERMUTE(uint32, ROTR, ROTR)
     DEFN_PERMUTE(uint64, ROTR, ROTR)
 
@@ -232,6 +243,9 @@ typename T::DigType digest(T hashAlgo, const Args... parameterPack)
     DEFN_CMP(BigInt, <=, LE)
     DEFN_CMP(BigInt, >, GT)
     DEFN_CMP(BigInt, >=, GE)
+
+    DEFN_CMP(uint8, ==, EQ)
+    DEFN_CMP(uint8, !=, EQ)
 
     DEFN_CMP(uint32, ==, EQ)
     DEFN_CMP(uint32, !=, EQ)
@@ -308,6 +322,10 @@ AST_X<Alg_bool<FR>> operator!= (const std::array< T , N>& x,    \
     return ArrayCmp<FR, T , U , N>::notEqual(x, y);             \
 }
 
+DEFN_CMP_ARRAY(uint8_x<FR>, uint8_x<FR>)
+DEFN_CMP_ARRAY(uint8_x<FR>, std::uint8_t)
+DEFN_CMP_ARRAY(std::uint8_t, uint8_x<FR>)
+
 DEFN_CMP_ARRAY(uint32_x<FR>, uint32_x<FR>)
 DEFN_CMP_ARRAY(uint32_x<FR>, std::uint32_t)
 DEFN_CMP_ARRAY(std::uint32_t, uint32_x<FR>)
@@ -333,6 +351,12 @@ AST_X<Alg_uint64<FR>> xword(const AST_Node<Alg_uint32<FR>>& x) {
 }
 
 template <typename FR>
+AST_X<Alg_uint8<FR>> xword(const AST_Node<Alg_bool<FR>>& x,
+                           const AST_Node<Alg_uint8<FR>>& dummy) {
+    return AST_X<Alg_uint8<FR>>(x);
+}
+
+template <typename FR>
 AST_X<Alg_uint32<FR>> xword(const AST_Node<Alg_bool<FR>>& x,
                             const AST_Node<Alg_uint32<FR>>& dummy) {
     return AST_X<Alg_uint32<FR>>(x);
@@ -347,6 +371,31 @@ AST_X<Alg_uint64<FR>> xword(const AST_Node<Alg_bool<FR>>& x,
 ////////////////////////////////////////////////////////////////////////////////
 // conditional operator (ternary)
 //
+
+template <typename FR>
+AST_Op<Alg_uint8<FR>> ternary(const AST_Node<Alg_bool<FR>>& b,
+                              const AST_Node<Alg_uint8<FR>>& x,
+                              const AST_Node<Alg_uint8<FR>>& y)
+{
+    return
+        // (x & xword(b)) | (y & ~xword(b))
+        AST_Op<Alg_uint8<FR>>(
+            Alg_uint8<FR>::OpType::OR,
+
+            // x & xword(b)
+            new AST_Op<Alg_uint8<FR>>(
+                Alg_uint8<FR>::OpType::AND,
+                x,
+                new AST_X<Alg_uint8<FR>>(b)),
+
+            // y & ~xword(b)
+            new AST_Op<Alg_uint8<FR>>(
+                Alg_uint8<FR>::OpType::AND,
+                y,
+                new AST_Op<Alg_uint8<FR>>(
+                    Alg_uint8<FR>::OpType::CMPLMNT,
+                    new AST_X<Alg_uint8<FR>>(b))));
+}
 
 template <typename FR>
 AST_Op<Alg_uint32<FR>> ternary(const AST_Node<Alg_bool<FR>>& b,
@@ -399,6 +448,21 @@ AST_Op<Alg_uint64<FR>> ternary(const AST_Node<Alg_bool<FR>>& b,
 }
 
 template <typename FR, std::size_t N>
+std::array<AST_Var<Alg_uint8<FR>>, N>
+ternary(const AST_Node<Alg_bool<FR>>& b,
+        const std::array<AST_Var<Alg_uint8<FR>>, N>& x,
+        const std::array<AST_Var<Alg_uint8<FR>>, N>& y)
+{
+    std::array<AST_Var<Alg_uint8<FR>>, N> result;
+
+    for (std::size_t i = 0; i < N; ++i) {
+        result[i] = ternary(b, x[i], y[i]);
+    }
+
+    return result;
+}
+
+template <typename FR, std::size_t N>
 std::array<AST_Var<Alg_uint32<FR>>, N>
 ternary(const AST_Node<Alg_bool<FR>>& b,
         const std::array<AST_Var<Alg_uint32<FR>>, N>& x,
@@ -428,6 +492,10 @@ ternary(const AST_Node<Alg_bool<FR>>& b,
     return result;
 }
 
+std::uint8_t ternary(const bool b,
+                     const std::uint8_t x,
+                     const std::uint8_t y);
+
 std::uint32_t ternary(const bool b,
                       const std::uint32_t x,
                       const std::uint32_t y);
@@ -435,6 +503,20 @@ std::uint32_t ternary(const bool b,
 std::uint64_t ternary(const bool b,
                       const std::uint64_t x,
                       const std::uint64_t y);
+
+template <std::size_t N>
+std::array<std::uint8_t, N> ternary(const bool b,
+                                    const std::array<std::uint8_t, N>& x,
+                                    const std::array<std::uint8_t, N>& y)
+{
+    std::array<std::uint8_t, N> result;
+
+    for (std::size_t i = 0; i < N; ++i) {
+        result[i] = ternary(b, x[i], y[i]);
+    }
+
+    return result;
+}
 
 template <std::size_t N>
 std::array<std::uint32_t, N> ternary(const bool b,
