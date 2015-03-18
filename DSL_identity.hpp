@@ -67,6 +67,30 @@ std::array<c_bigint<FR>, N> zero(const std::array<bigint_x<FR>, N>& dummy) {
     return a;
 }
 
+// 8-bit octet
+std::uint8_t zero(const std::uint8_t& dummy);
+std::uint8_t one(const std::uint8_t& dummy);
+
+template <typename FR>
+c_uint8<FR> zero(const uint8_x<FR>& dummy) {
+    return c_uint8<FR>(0);
+}
+
+template <typename FR>
+c_uint8<FR> one(const uint8_x<FR>& dummy) {
+    return c_uint8<FR>(1);
+}
+
+template <typename FR, std::size_t N>
+std::array<c_uint8<FR>, N> zero(const std::array<uint8_x<FR>, N>& dummy) {
+    std::array<c_uint8<FR>, N> a;
+
+    for (std::size_t i = 0; i < N; ++i)
+        a[i] = zero(dummy[i]);
+
+    return a;
+}
+
 // 32-bit word
 std::uint32_t zero(const std::uint32_t& dummy);
 std::uint32_t one(const std::uint32_t& dummy);
