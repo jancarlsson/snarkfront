@@ -12,7 +12,8 @@ LIBRARY_HPP = \
 	AST.hpp \
 	BigIntOps.hpp \
 	BitwiseOps.hpp \
-	CompilePPZK.hpp \
+	CompilePPZK_query.hpp \
+	CompilePPZK_witness.hpp \
 	CompileQAP.hpp \
 	Counter.hpp \
 	DataBuffer.hpp \
@@ -150,12 +151,13 @@ SO_FLAGS = $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) -fPIC
 AR_FLAGS = $(CXXFLAGS) $(CXXFLAGS_SNARKLIB)
 
 LIBRARY_CPP = \
-	EnumOps.cpp \
+	Alg.cpp \
 	DataBuffer.cpp \
 	DSL_base.cpp \
 	DSL_bless.cpp \
 	DSL_identity.cpp \
 	DSL_utility.cpp \
+	EnumOps.cpp \
 	GenericProgressBar.cpp \
 	Getopt.cpp \
 	HexUtil.cpp \
@@ -163,12 +165,13 @@ LIBRARY_CPP = \
 	PowersOf2.cpp
 
 libsnarkfront.so : $(LIBRARY_HPP) $(LIBRARY_CPP)
-	$(CXX) -c $(SO_FLAGS) -o EnumOps.o EnumOps.cpp
+	$(CXX) -c $(SO_FLAGS) -o Alg.o Alg.cpp
 	$(CXX) -c $(SO_FLAGS) -o DataBuffer.o DataBuffer.cpp
 	$(CXX) -c $(SO_FLAGS) -o DSL_base.o DSL_base.cpp
 	$(CXX) -c $(SO_FLAGS) -o DSL_bless.o DSL_bless.cpp
 	$(CXX) -c $(SO_FLAGS) -o DSL_identity.o DSL_identity.cpp
 	$(CXX) -c $(SO_FLAGS) -o DSL_utility.o DSL_utility.cpp
+	$(CXX) -c $(SO_FLAGS) -o EnumOps.o EnumOps.cpp
 	$(CXX) -c $(SO_FLAGS) -o GenericProgressBar.o GenericProgressBar.cpp
 	$(CXX) -c $(SO_FLAGS) -o Getopt.o Getopt.cpp
 	$(CXX) -c $(SO_FLAGS) -o HexUtil.o HexUtil.cpp
@@ -177,12 +180,13 @@ libsnarkfront.so : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(CXX) -o libsnarkfront.so -shared $(LIBRARY_CPP:.cpp=.o)
 
 libsnarkfront.a : $(LIBRARY_HPP) $(LIBRARY_CPP)
-	$(CXX) -c $(AR_FLAGS) -o EnumOps.o EnumOps.cpp
+	$(CXX) -c $(AR_FLAGS) -o Alg.o Alg.cpp
 	$(CXX) -c $(AR_FLAGS) -o DataBuffer.o DataBuffer.cpp
 	$(CXX) -c $(AR_FLAGS) -o DSL_base.o DSL_base.cpp
 	$(CXX) -c $(AR_FLAGS) -o DSL_bless.o DSL_bless.cpp
 	$(CXX) -c $(AR_FLAGS) -o DSL_identity.o DSL_identity.cpp
 	$(CXX) -c $(AR_FLAGS) -o DSL_utility.o DSL_utility.cpp
+	$(CXX) -c $(AR_FLAGS) -o EnumOps.o EnumOps.cpp
 	$(CXX) -c $(AR_FLAGS) -o GenericProgressBar.o GenericProgressBar.cpp
 	$(CXX) -c $(AR_FLAGS) -o Getopt.o Getopt.cpp
 	$(CXX) -c $(AR_FLAGS) -o HexUtil.o HexUtil.cpp
