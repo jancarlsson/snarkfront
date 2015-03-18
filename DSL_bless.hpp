@@ -22,6 +22,7 @@ namespace snarkfront {
 // variable with value
 template <typename FR> void bless(bool_x<FR>& x, const bool a) { x.bless(a); }
 template <typename FR> void bless(bigint_x<FR>& x, const std::string& a) { x.bless(a); }
+template <typename FR> void bless(uint8_x<FR>& x, const std::uint8_t a) { x.bless(a); }
 template <typename FR> void bless(uint32_x<FR>& x, const std::uint32_t a) { x.bless(a); }
 template <typename FR> void bless(uint64_x<FR>& x, const std::uint64_t a) { x.bless(a); }
 
@@ -34,6 +35,7 @@ template <typename FR> void bless(bigint_x<FR>& x, const std::uint64_t a) {
 // initialize variable
 template <typename FR> void bless(bool_x<FR>& x) { bless(x, false); }
 template <typename FR> void bless(bigint_x<FR>& x) { bless(x, "0"); }
+template <typename FR> void bless(uint8_x<FR>& x) { bless(x, 0); }
 template <typename FR> void bless(uint32_x<FR>& x) { bless(x, 0); }
 template <typename FR> void bless(uint64_x<FR>& x) { bless(x, 0); }
 
@@ -52,12 +54,14 @@ void bless(std::array<T, N>& a) {
 }
 
 // conversion of:
+// - 32-bit word to four 8-bit octets
+// - 64-bit word to eight 8-bit octets
 // - 64-bit word to two 32-bit words
+// - 128-bit big integer to 16 8-bit octets
 // - 128-bit big integer to four 32-bit words
 // - 128 bit big integer to two 64-bit words
 template <typename T, std::size_t N, typename U>
-void bless(std::array<T, N>& x, const U& a)
-{
+void bless_internal(std::array<T, N>& x, const U& a) {
     const std::size_t
         sizeT = sizeBits(x[0]),
         sizeU = sizeBits(a);
@@ -90,6 +94,41 @@ void bless(std::array<T, N>& x, const U& a)
     }
 }
 
+template <typename T, std::size_t N, typename FR>
+void bless(std::array<T, N>& x, const bigint_x<FR>& a) { bless_internal(x, a); }
+
+template <typename T, std::size_t N, typename FR>
+void bless(std::array<T, N>& x, const uint8_x<FR>& a) { bless_internal(x, a); }
+
+template <typename T, std::size_t N, typename FR>
+void bless(std::array<T, N>& x, const uint32_x<FR>& a) { bless_internal(x, a); }
+
+template <typename T, std::size_t N, typename FR>
+void bless(std::array<T, N>& x, const uint64_x<FR>& a) { bless_internal(x, a); }
+
+template <typename T, std::size_t N, typename U, std::size_t M>
+void bless(std::array<T, N>& x, const std::array<U, M>& a) {
+    const std::size_t
+        sizeT = sizeBits(x[0]),
+        sizeU = sizeBits(a[0]);
+
+#ifdef USE_ASSERT
+    assert(sizeT * N == sizeU * M);
+#endif
+
+    for (std::size_t i = 0; i < M; ++i) {
+        std::array<T, N / M> xtmp;
+
+        for (std::size_t j = 0; j < N / M; ++j)
+            xtmp[j] = x[i * (N / M) + j];
+
+        bless(xtmp, a[i]);
+
+        for (std::size_t j = 0; j < N / M; ++j)
+            x[i * (N / M) + j] = xtmp[j];
+    }
+}
+
 // variable from proof inputs
 template <typename T, typename FR>
 void bless(T& x, const R1Cowitness<FR>& input) {
@@ -103,6 +142,12 @@ void bless(std::array<T, N>& a, const R1Cowitness<FR>& input) {
         bless(x, input);
 }
 
+// 8-bit octet variable from data buffer stream
+template <typename FR>
+void bless(uint8_x<FR>& x, DataBufferStream& ss) {
+    bless(x, ss.getWord<std::uint8_t>());
+}
+
 // 32-bit word variable from data buffer stream
 template <typename FR>
 void bless(uint32_x<FR>& x, DataBufferStream& ss) {
@@ -114,6 +159,9 @@ template <typename FR>
 void bless(uint64_x<FR>& x, DataBufferStream& ss) {
     bless(x, ss.getWord<std::uint64_t>());
 }
+
+// 8-bit value from data buffer stream (useful for templates)
+void bless(std::uint8_t& a, DataBufferStream& ss);
 
 // 32-bit value from data buffer stream (useful for templates)
 void bless(std::uint32_t& a, DataBufferStream& ss);
