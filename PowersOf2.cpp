@@ -5,6 +5,7 @@ using namespace std;
 namespace snarkfront {
 
 size_t sizeBits(const bool& dummy) { return 1; }
+size_t sizeBits(const uint8_t& dummy) { return 8; }
 size_t sizeBits(const uint32_t& dummy) { return 32; }
 size_t sizeBits(const uint64_t& dummy) { return 64; }
 
@@ -24,6 +25,7 @@ vector<int> valueBits_internal(const UINT_N& a) {
     return v;
 }
 
+vector<int> valueBits(const uint8_t& a) { return valueBits_internal(a); }
 vector<int> valueBits(const uint32_t& a) { return valueBits_internal(a); }
 vector<int> valueBits(const uint64_t& a) { return valueBits_internal(a); }
 
