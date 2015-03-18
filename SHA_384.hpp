@@ -16,13 +16,16 @@ namespace snarkfront {
 // SHA-384
 //
 
-template <typename T, typename MSG, typename F>
-class SHA_384 : public SHA_512<T, MSG, F>
+template <typename T, typename MSG, typename U, typename F>
+class SHA_384 : public SHA_512<T, MSG, U, F>
 {
 public:
     typedef T WordType;
+    typedef U ByteType;
+
     typedef std::array<T, 16> MsgType;
     typedef std::array<T, 6> DigType;
+    typedef std::array<U, 16 * 8> PreType;
 
     SHA_384()
         : m_setDigest(false)
@@ -75,6 +78,7 @@ namespace zk {
     template <typename FR> using
     SHA384 = SHA_384<AST_Var<Alg_uint64<FR>>,
                      Lazy<AST_Var<Alg_uint64<FR>>, std::uint64_t>,
+                     AST_Var<Alg_uint8<FR>>,
                      SHA_Functions<AST_Node<Alg_uint64<FR>>,
                                    AST_Op<Alg_uint64<FR>>,
                                    BitwiseAST<Alg_uint64<FR>, Alg_uint64<FR>>>>;
@@ -83,6 +87,7 @@ namespace zk {
 namespace eval {
 typedef SHA_384<std::uint64_t,
                 std::uint64_t,
+                std::uint8_t,
                 SHA_Functions<std::uint64_t,
                               std::uint64_t,
                               BitwiseINT<std::uint64_t, std::uint64_t>>>
