@@ -61,7 +61,7 @@ void bless(std::array<T, N>& a) {
 // - 128-bit big integer to four 32-bit words
 // - 128 bit big integer to two 64-bit words
 template <typename T, std::size_t N, typename U>
-void bless_internal(std::array<T, N>& x, const U& a) {
+void bless_internal(std::array<T, N>& x, const U& a, const bool bigEndian) {
     const std::size_t
         sizeT = sizeBits(x[0]),
         sizeU = sizeBits(a);
@@ -87,7 +87,8 @@ void bless_internal(std::array<T, N>& x, const U& a) {
         typename T::ValueType value;
         bitsValue(value, split_vec);
 
-        x[i].bless(value,
+        x[bigEndian ? N - 1 - i : i]
+            .bless(value,
                    TL<PowersOf2<FR>>::singleton()->getNumber(split_vec),
                    split_vec,
                    term_vec);
@@ -95,25 +96,39 @@ void bless_internal(std::array<T, N>& x, const U& a) {
 }
 
 template <typename T, std::size_t N, typename FR>
-void bless(std::array<T, N>& x, const bigint_x<FR>& a) { bless_internal(x, a); }
+void bless(std::array<T, N>& x,
+           const bigint_x<FR>& a,
+           const bool bigEndian = false) {
+    bless_internal(x, a, bigEndian);
+}
 
 template <typename T, std::size_t N, typename FR>
-void bless(std::array<T, N>& x, const uint8_x<FR>& a) { bless_internal(x, a); }
+void bless(std::array<T, N>& x,
+           const uint8_x<FR>& a,
+           const bool bigEndian = false) {
+    bless_internal(x, a, bigEndian);
+}
 
 template <typename T, std::size_t N, typename FR>
-void bless(std::array<T, N>& x, const uint32_x<FR>& a) { bless_internal(x, a); }
+void bless(std::array<T, N>& x,
+           const uint32_x<FR>& a,
+           const bool bigEndian = false) {
+    bless_internal(x, a, bigEndian);
+}
 
 template <typename T, std::size_t N, typename FR>
-void bless(std::array<T, N>& x, const uint64_x<FR>& a) { bless_internal(x, a); }
+void bless(std::array<T, N>& x,
+           const uint64_x<FR>& a,
+           const bool bigEndian = false) {
+    bless_internal(x, a, bigEndian);
+}
 
 template <typename T, std::size_t N, typename U, std::size_t M>
-void bless(std::array<T, N>& x, const std::array<U, M>& a) {
-    const std::size_t
-        sizeT = sizeBits(x[0]),
-        sizeU = sizeBits(a[0]);
-
+void bless(std::array<T, N>& x,
+           const std::array<U, M>& a,
+           const bool bigEndian = true) { // SHA message buffer is big-endian
 #ifdef USE_ASSERT
-    assert(sizeT * N == sizeU * M);
+    assert(0 == N % M);
 #endif
 
     for (std::size_t i = 0; i < M; ++i) {
@@ -122,7 +137,7 @@ void bless(std::array<T, N>& x, const std::array<U, M>& a) {
         for (std::size_t j = 0; j < N / M; ++j)
             xtmp[j] = x[i * (N / M) + j];
 
-        bless(xtmp, a[i]);
+        bless(xtmp, a[i], bigEndian);
 
         for (std::size_t j = 0; j < N / M; ++j)
             x[i * (N / M) + j] = xtmp[j];
