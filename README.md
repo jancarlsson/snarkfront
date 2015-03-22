@@ -415,10 +415,13 @@ test_sha (zero knowledge SHA-2)
 The usage message explains how to run this.
 
     $ ./test_sha 
-    usage: ./test_sha -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256 [-r]
+    usage: ./test_sha -b 1|224|256|384|512|512_224|512_256 [-p BN128|Edwards] [-r] [-d hex_digest] [-e equal_pattern] [-n not_equal_pattern]
 
     text from standard input:
     echo "abc" | ./test_sha -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256
+
+    pre-image pattern and hash:
+    echo "abc" | ./test_sha -p BN128|Edwards -b 1|224|256|384|512|512_224|512_256 -d digest -e pattern -n pattern
 
     hash only, skip zero knowledge proof:
     echo "abc" | ./test_sha -b 1|224|256|384|512|512_224|512_256
@@ -438,6 +441,10 @@ The "-r" switch fills the message with random bytes drawn from /dev/urandom.
 Otherwise, the message input is read from standard input. Note the random data
 fills the entire message block and is intentionally not padded. It is often useful
 to use the SHA-2 compression function without padding in zero knowledge proofs.
+
+The "-d hex_digest" option sets the message digest hash value.
+The "-e equal_pattern" and "-n not_equal_pattern" apply constraints on the preimage.
+See the example below for details.
 
 Some examples:
 
@@ -500,6 +507,53 @@ Some examples:
     (1) ..................................................
     verify proof ......
     test passed
+
+(SHA-1 hash with specified digest and preimage constraints)
+
+    1. calculate message digest
+    $ echo "hello" | ./test_sha -b 1
+    f572d396fae9206628714fb2ce00f72e94f2258f
+
+    2. zero knowledge proof with satisfied constraints (should pass)
+    $ echo "hello" | ./test_sha -b 1 -p BN128 -d f572d396fae9206628714fb2ce00f72e94f2258f -e ??ll -n a?a
+    0       68 65 6c 6c 6f 0a 80 00  00 00 00 00 00 00 00 00  |hello...........|
+    16      00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+    32      00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+    48      00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 30  |...............0|
+    constrain preimage[0] != 61
+    constrain preimage[2] == 6c
+    constrain preimage[2] != 61
+    constrain preimage[3] == 6c
+    digest f572d396 fae92066 28714fb2 ce00f72e 94f2258f
+    variable count 25644
+    generate key pair
+    (8) ..................................................
+    (7) ..................................................
+    (6) ..................................................
+    (5) ..................................................
+    (4) ..................................................
+    (3) ..................................................
+    (2) ..................................................
+    (1) ..................................................
+    generate proof
+    (6) ..................................................
+    (5) ..................................................
+    (4) ..................................................
+    (3) ..................................................
+    (2) ..................................................
+    (1) ..................................................
+    verify proof ......
+    test passed
+
+    3. zero knowledge proof with violated constraints (should fail)
+    $ echo "hello" | ./test_sha -b 1 -p BN128 -d f572d396fae9206628714fb2ce00f72e94f2258f -e ??ll -n h?a
+    ...
+    constrain preimage[0] != 68
+    constrain preimage[2] == 6c
+    constrain preimage[2] != 61
+    constrain preimage[3] == 6c
+    ...
+    test failed
 
 Note the "variable count" is shown. This is not the same as the number of gates
 in the circuit. There are always more variables than gates. For instance, a
