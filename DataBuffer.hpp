@@ -122,6 +122,7 @@ public:
     T getWord(std::size_t& index) const {
         T a = 0;
 
+        // big-endian
         for (std::size_t i = 0; i < sizeof(T); ++i) {
             a = (a << CHAR_BIT) | m_data[index++];
         }
