@@ -238,20 +238,20 @@ typename T::DigType digest(T hashAlgo, const Args... parameterPack)
     DEFN_CMP(bool, !=, NEQ)
 
     DEFN_CMP(BigInt, ==, EQ)
-    DEFN_CMP(BigInt, !=, EQ)
+    DEFN_CMP(BigInt, !=, NEQ)
     DEFN_CMP(BigInt, <, LT)
     DEFN_CMP(BigInt, <=, LE)
     DEFN_CMP(BigInt, >, GT)
     DEFN_CMP(BigInt, >=, GE)
 
     DEFN_CMP(uint8, ==, EQ)
-    DEFN_CMP(uint8, !=, EQ)
+    DEFN_CMP(uint8, !=, NEQ)
 
     DEFN_CMP(uint32, ==, EQ)
-    DEFN_CMP(uint32, !=, EQ)
+    DEFN_CMP(uint32, !=, NEQ)
 
     DEFN_CMP(uint64, ==, EQ)
-    DEFN_CMP(uint64, !=, EQ)
+    DEFN_CMP(uint64, !=, NEQ)
 
 #undef DEFN_CMP
 
