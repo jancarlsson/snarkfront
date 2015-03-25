@@ -54,7 +54,7 @@ T evalOp(const ScalarOps op, const T& x, const T& y)
 template <typename T>
 T evalOp(const BitwiseOps op, const T& x, const T& y)
 {
-    typedef BitwiseINT<T, T> B;
+    typedef BitwiseINT<T> B;
 
     switch (op) {
     case (BitwiseOps::AND) : return B::AND(x, y);
