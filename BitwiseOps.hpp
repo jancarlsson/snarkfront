@@ -8,13 +8,12 @@ namespace snarkfront {
 
 ////////////////////////////////////////////////////////////////////////////////
 // operations on built-in integer types
-// (templated hash algorithm parameter)
+// (templated algorithm parameter)
 //
-// (T, U) is (uint32_t, uint64_t)
-//        or (uint64_t, uint32_t)
+// T is: uint8_t, uint32_t, uint64_t
 //
 
-template <typename T, typename U>
+template <typename T>
 class BitwiseINT
 {
 public:
@@ -56,24 +55,39 @@ public:
     static T constant(const T x) { return x; }
     static T _constant(const T x) { return constant(x); }
 
-    // converting between 32-bit and 64-bit
-    static U xword(const T x) { return x; }
-    static U _xword(const T x) { return xword(x); }
+    // type conversion
+    template <typename U>
+    static U xword(const T x, const U& dummy) {
+        return x;
+    }
+    template <typename U>
+    static U _xword(const T x, const U& dummy) {
+        return xword(x, dummy);
+    }
+
+    // ternary
+    static T ternary(const bool b, const T x, const T y) {
+        return b ? x : y;
+    }
+    static T _ternary(const bool b, const T x, const T y) {
+        return ternary(b, x, y);
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
 // operations on AST nodes
-// (templated hash algorithm parameter)
+// (templated algorithm parameter)
 //
-// (T, U) is (Alg_uint32, Alg_uint64)
-//        or (Alg_uint64, Alg_uint32)
+// T is: Alg_uint8, Alg_uint32, Alg_uint64
 //
 
-template <typename T, typename U>
+template <typename T>
 class BitwiseAST
 {
     // Note: Every member function is templated to accept both
     // reference and pointer arguments.
+
+    typedef typename T::ValueType VAL;
 
 public:
     // bitwise complement
@@ -129,12 +143,31 @@ public:
     template <typename X>
     static AST_Const<T>* _constant(const X& x) { return new AST_Const<T>(x); }
 
-    // converting between 32-bit and 64-bit
-    template <typename X>
-    static AST_X<U> xword(const X& x) { return AST_X<U>(x); }
+    // type conversion
+    template <typename X, typename U>
+    static AST_X<U> xword(const X& x, const U& dummy) {
+        return AST_X<U>(x);
+    }
+    template <typename X, typename U>
+    static AST_X<U> _xword(const X& x, const U& dummy) {
+        return new AST_X<U>(x);
+    }
 
-    template <typename X>
-    static AST_X<U> _xword(const X& x) { return new AST_X<U>(x); }
+    // ternary
+    template <typename B, typename X, typename Y>
+    static AST_Op<T> ternary(const B& b, const X& x, const Y& y) {
+        // (x & xword(b)) | (y & ~xword(b))
+        return OR(
+            _AND(x, new AST_X<T>(b)),
+            _AND(y, _CMPLMNT(new AST_X<T>(b))));
+    }
+    template <typename B, typename X, typename Y>
+    static AST_Op<T>* _ternary(const B& b, const X& x, const Y& y) {
+        // (x & xword(b)) | (y & ~xword(b))
+        return _OR(
+            _AND(x, new AST_X<T>(b)),
+            _AND(y, _CMPLMNT(new AST_X<T>(b))));
+    }
 
 private:
     // AST nodes at statement scope are on stack
