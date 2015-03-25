@@ -197,7 +197,7 @@ void rank1_rotateright(std::vector<snarklib::R1Term<FR>>& x,
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// convert between bitwise word types
+// bitwise conversion between unsigned integers and bool
 //
 
 template <typename FR>
@@ -209,14 +209,14 @@ rank1_xword(
     std::vector<snarklib::R1Term<FR>> v(returnSize, FR::zero());
 
     if (1 == x.size()) {
-        // convert bool to word
+        // convert bool to 8-bit, 32-bit, or 64-bit
         for (std::size_t i = 0; i < returnSize; ++i)
             v[i] = x[0];
 
     } else {
-        // convert between 32-bit and 64-bit words
+        // if destination type is bool, returnSize is 1 so takes 0th bit
+        // otherwise, bitwise slices between unsigned integer types
         const auto N = std::min(returnSize, x.size());
-
         for (std::size_t i = 0; i < N; ++i)
             v[i] = x[i];
     }
