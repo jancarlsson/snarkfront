@@ -13,7 +13,7 @@ namespace snarkfront {
 // Alg_uint64
 //
 
-template <typename ALG, typename U>
+template <typename ALG>
 void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
 {
     typedef typename ALG::ValueType Value;
@@ -21,7 +21,7 @@ void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
     typedef typename ALG::R1T R1T;
     auto& RS = TL<R1C<Fr>>::singleton();
 
-    typedef BitwiseINT<Value, U> BitOps;
+    typedef BitwiseINT<Value> BitOps;
 
     // y is right argument
     const auto R = S.top();
@@ -192,19 +192,19 @@ void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
 template <typename FR>
 void evalStackOp(std::stack<Alg_uint8<FR>>& S, const BitwiseOps op)
 {
-    evalStackOp_internal<Alg_uint8<FR>, std::uint8_t>(S, op);
+    evalStackOp_internal<Alg_uint8<FR>>(S, op);
 }
 
 template <typename FR>
 void evalStackOp(std::stack<Alg_uint32<FR>>& S, const BitwiseOps op)
 {
-    evalStackOp_internal<Alg_uint32<FR>, std::uint64_t>(S, op);
+    evalStackOp_internal<Alg_uint32<FR>>(S, op);
 }
 
 template <typename FR>
 void evalStackOp(std::stack<Alg_uint64<FR>>& S, const BitwiseOps op)
 {
-    evalStackOp_internal<Alg_uint64<FR>, std::uint32_t>(S, op);
+    evalStackOp_internal<Alg_uint64<FR>>(S, op);
 }
 
 template <typename ALG>
