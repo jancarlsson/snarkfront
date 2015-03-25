@@ -203,7 +203,7 @@ public:
                             C.result().r1Terms());
     }
 
-    // type conversion to and between 32-bit and 64-bit words
+    // bitwise type conversion between unsigned integers and bool
     template <typename U>
     static U xwordOp(const AST_Node<Alg>& src, const U& dummy)
     {
@@ -221,7 +221,7 @@ public:
                 : 0; // all bits clear
 
         } else {
-            // source is 32-bit or 64-bit word
+            // source is 8-bit octet, 32-bit or 64-bit word
             uvalue = E.result().value();
         }
 
