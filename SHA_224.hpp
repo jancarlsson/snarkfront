@@ -78,7 +78,7 @@ namespace zk {
                      AST_Var<Alg_uint8<FR>>,
                      SHA_Functions<AST_Node<Alg_uint32<FR>>,
                                    AST_Op<Alg_uint32<FR>>,
-                                   BitwiseAST<Alg_uint32<FR>, Alg_uint32<FR>>>>;
+                                   BitwiseAST<Alg_uint32<FR>>>>;
 } // namespace zk
 
 namespace eval {
@@ -87,7 +87,7 @@ namespace eval {
                     std::uint8_t,
                     SHA_Functions<std::uint32_t,
                                   std::uint32_t,
-                                  BitwiseINT<std::uint32_t, std::uint32_t>>>
+                                  BitwiseINT<std::uint32_t>>>
         SHA224;
 } // namespace eval
 
