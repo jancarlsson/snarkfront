@@ -16,7 +16,7 @@ namespace snarkfront {
 // SHA-512/256
 //
 
-template <typename H, typename T, typename MSG, typename U, typename F>
+template <typename H, typename T, typename MSG, typename U, typename F, typename X>
 class SHA_512_256 : public SHA_512<T, MSG, U, F>
 {
 public:
@@ -38,14 +38,16 @@ public:
                 // high 32 bits
                 m_Hleft256[2*i] = F::xword(F::SHR(
                                                this->m_H[i],
-                                               32));
+                                               32),
+                                           X());
 
                 // low 32 bits
                 m_Hleft256[2*i + 1] = F::xword(F::SHR(
                                                    F::SHL(
                                                        this->m_H[i],
                                                        32),
-                                                   32));
+                                                   32),
+                                               X());
             }
 
             m_setDigest = false;
@@ -92,7 +94,8 @@ namespace zk {
                              AST_Var<Alg_uint8<FR>>,
                              SHA_Functions<AST_Node<Alg_uint64<FR>>,
                                            AST_Op<Alg_uint64<FR>>,
-                                           BitwiseAST<Alg_uint64<FR>, Alg_uint32<FR>>>>;
+                                           BitwiseAST<Alg_uint64<FR>>>,
+                             Alg_uint32<FR>>;
 } // namespace zk
 
 namespace eval {
@@ -102,7 +105,8 @@ namespace eval {
                         std::uint8_t,
                         SHA_Functions<std::uint64_t,
                                       std::uint64_t,
-                                      BitwiseINT<std::uint64_t, std::uint32_t>>>
+                                      BitwiseINT<std::uint64_t>>,
+                        std::uint32_t>
         SHA512_256;
 } // namespace eval
 
