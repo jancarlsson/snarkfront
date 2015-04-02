@@ -2,7 +2,7 @@
 #define _SNARKFRONT_ENUM_OPS_HPP_
 
 #include <cstdint>
-#include "BitwiseOps.hpp"
+#include "BitwiseINT.hpp"
 #include "PowersOf2.hpp"
 
 namespace snarkfront {
