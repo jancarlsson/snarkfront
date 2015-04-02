@@ -95,6 +95,18 @@ public:
         return true;
     }
 
+    void clear() {
+        m_isFull = true;
+        m_authPath.clear();
+    }
+
+    bool empty() const 
+    {
+        return
+            isFull() ||
+            authPath().empty();
+    }
+
 private:
     bool m_isFull;
     MerkleAuthPath<HASH, int> m_authPath;
@@ -108,7 +120,7 @@ std::ostream& operator<< (std::ostream& os, const MerkleTree<HASH>& a) {
 
 template <typename HASH>
 std::istream& operator>> (std::istream& is, MerkleTree<HASH>& a) {
-    a.marshal_in(is);
+    if (! a.marshal_in(is)) a.clear();
     return is;
 }
 
