@@ -4,7 +4,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <unistd.h>
 #include <vector>
 #include "snarkfront.hpp"
 
@@ -238,33 +237,15 @@ void readLoop(const size_t shaBits, const size_t testCase, const bool zkProof)
 
 int main(int argc, char *argv[])
 {
-    // command line switches
-    string pairing;
-    std::size_t shaBits = 0, testCase = -1;
-    bool zkProof = false;
-    int opt;
-    while (-1 != (opt = getopt(argc, argv, "p:b:i:z"))) {
-        switch (opt) {
-        case ('p') :
-            pairing = optarg;
-            break;
-        case ('b') : {
-                stringstream ss(optarg);
-                ss >> shaBits;
-                if (!ss) printUsage(argv[0]);
-            }
-            break;
-        case ('i') : {
-                stringstream ss(optarg);
-                ss >> testCase;
-                if (!ss) printUsage(argv[0]);
-            }
-            break;
-        case ('z') :
-            zkProof = true;
-            break;
-        }
-    }
+    Getopt cmdLine(argc, argv, "p", "bi", "z");
+    if (!cmdLine || cmdLine.empty()) printUsage(argv[0]);
+
+    const auto pairing = cmdLine.getString('p');
+
+    const auto shaBits = cmdLine.getNumber('b');
+    const auto testCase = cmdLine.getNumber('i');
+
+    const auto zkProof = cmdLine.getFlag('z');
 
     if (!validPairingName(pairing) || !validSHA2Name(shaBits))
         printUsage(argv[0]);
