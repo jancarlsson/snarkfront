@@ -5,13 +5,19 @@ AR = ar
 RANLIB = ranlib
 
 LIBRARY_HPP = \
+	AES_Cipher.hpp \
+	AES_InvCipher.hpp \
+	AES_InvSBox.hpp \
+	AES_KeyExpansion.hpp \
+	AES_SBox.hpp \
 	Alg_BigInt.hpp \
 	Alg_bool.hpp \
 	Alg.hpp \
 	Alg_uint.hpp \
 	AST.hpp \
 	BigIntOps.hpp \
-	BitwiseOps.hpp \
+	BitwiseAST.hpp \
+	BitwiseINT.hpp \
 	CompilePPZK_query.hpp \
 	CompilePPZK_witness.hpp \
 	CompileQAP.hpp \
@@ -54,6 +60,7 @@ LIBRARY_BIN = \
 	verify
 
 LIBRARY_TESTS = \
+	test_aes \
 	test_bundle \
 	test_merkle \
 	test_proof \
@@ -119,6 +126,9 @@ qap :
 
 randomness :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make randomness SNARKLIB_PREFIX=/usr/local)
+
+test_aes :
+	$(error Please provide SNARKLIB_PREFIX, e.g. make test_aes SNARKLIB_PREFIX=/usr/local)
 
 test_bundle :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make test_bundle SNARKLIB_PREFIX=/usr/local)
@@ -210,6 +220,10 @@ qap : qap.cpp libsnarkfront.a
 randomness : randomness.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o randomness.o
 	$(CXX) -o $@ randomness.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+
+test_aes : test_aes.cpp libsnarkfront.a
+	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_aes.o
+	$(CXX) -o $@ test_aes.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
 
 test_bundle : test_bundle.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_bundle.o
