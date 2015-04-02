@@ -1,8 +1,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include "CompileQAP.hpp"
-#include "Getopt.hpp"
 #include "snarkfront.hpp"
 
 using namespace snarkfront;
