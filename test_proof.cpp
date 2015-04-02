@@ -2,7 +2,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <unistd.h>
 #include "snarkfront.hpp"
 
 using namespace snarkfront;
@@ -18,16 +17,10 @@ void printUsage(const char* exeName) {
 
 int main(int argc, char *argv[])
 {
-    // command line switches
-    string mode;
-    int opt;
-    while (-1 != (opt = getopt(argc, argv, "m:"))) {
-        switch (opt) {
-        case ('m') :
-            mode = optarg;
-            break;
-        }
-    }
+    Getopt cmdLine(argc, argv, "m", "", "");
+    if (!cmdLine || cmdLine.empty()) printUsage(argv[0]);
+
+    const auto mode = cmdLine.getString('m');
 
     // Barreto-Naehrig 128 bits
     init_BN128();
