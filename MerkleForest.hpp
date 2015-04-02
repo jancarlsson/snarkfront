@@ -73,6 +73,17 @@ public:
         m_forest = keepForest;
     }
 
+    // add copy of entire forest with one more leaf
+    void forkTrees(const DigType& cm) {
+        const auto N = treeCount();
+
+        for (std::size_t i = 0; i < N; ++i) {
+            auto b = m_forest[i];
+            b.addLeaf(cm);
+            m_forest.emplace_back(b);
+        }
+    }
+
     // grow forest by one new tree
     // apply lambda to new copy of bundle with matching Merkle tree root digest
     // (collision resistance implies multiple matching trees do not occur)
@@ -122,10 +133,32 @@ public:
         return true;
     }
 
+    void clear() {
+        m_forest.clear();
+    }
+
+    bool empty() const {
+        return m_forest.empty();
+    }
+
 private:
     // forest of Merkle trees with associated authentication path histories
     std::vector<BUNDLE<COUNT>> m_forest;
 };
+
+template <template <typename> class BUNDLE, typename COUNT>
+std::ostream& operator<< (std::ostream& os,
+                          const MerkleForest<BUNDLE, COUNT>& a) {
+    a.marshal_out(os);
+    return os;
+}
+
+template <template <typename> class BUNDLE, typename COUNT>
+std::istream& operator>> (std::istream& is,
+                          MerkleForest<BUNDLE, COUNT>& a) {
+    if (! a.marshal_in(is)) a.clear();
+    return is;
+}
 
 } // namespace snarkfront
 
