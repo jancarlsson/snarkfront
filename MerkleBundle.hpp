@@ -105,6 +105,22 @@ public:
         return true;
     }
 
+    void clear() {
+        m_tree.clear();
+        m_treeSize = 0;
+        m_authLeaf.clear();
+        m_authPath.clear();
+    }
+
+    bool empty() const {
+        return
+            m_tree.empty() ||
+            0 == m_treeSize ||
+            m_authLeaf.empty() ||
+            m_authPath.empty();
+    }
+    
+
 private:
     TREE m_tree;
     COUNT m_treeSize;
@@ -123,7 +139,7 @@ std::ostream& operator<< (std::ostream& os,
 template <typename TREE, typename PATH, typename COUNT>
 std::istream& operator>> (std::istream& is,
                           MerkleBundle<TREE, PATH, COUNT>& a) {
-    a.marshal_in(is);
+    if (! a.marshal_in(is)) a.clear();
     return is;
 }
 
