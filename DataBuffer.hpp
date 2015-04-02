@@ -162,6 +162,8 @@ public:
         push(parameterPack...);
     }
 
+    void reset();
+
     bool empty() const;
 
     const std::vector<std::uint8_t>& data() const;
