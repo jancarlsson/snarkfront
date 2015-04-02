@@ -3,7 +3,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <unistd.h>
 #include <vector>
 #include "snarkfront.hpp"
 
@@ -123,32 +122,16 @@ bool runTest(const string& shaBits,
 
 int main(int argc, char *argv[])
 {
-    // command line switches
-    string pairing, shaBits;
-    size_t treeDepth = -1, leafNumber = -1;
-    int opt;
-    while (-1 != (opt = getopt(argc, argv, "p:b:d:i:"))) {
-        switch (opt) {
-        case ('p') :
-            pairing = optarg;
-            break;
-        case ('b') :
-            shaBits = optarg;
-            break;
-        case('d') : {
-                stringstream ss(optarg);
-                ss >> treeDepth;
-                if (!ss) printUsage(argv[0]);
-            }
-            break;
-        case('i') : {
-                stringstream ss(optarg);
-                ss >> leafNumber;
-                if (!ss) printUsage(argv[0]);
-            }
-            break;
-        }
-    }
+    Getopt cmdLine(argc, argv, "pb", "di", "");
+    if (!cmdLine || cmdLine.empty()) printUsage(argv[0]);
+
+    const auto
+        pairing = cmdLine.getString('p'),
+        shaBits = cmdLine.getString('b');
+
+    const auto
+        treeDepth = cmdLine.getNumber('d'),
+        leafNumber = cmdLine.getNumber('i');
 
     if (!validPairingName(pairing) ||
         !(nameSHA256(shaBits) || nameSHA512(shaBits)) ||
