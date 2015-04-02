@@ -253,8 +253,8 @@ void evalStackCmp_internal(std::stack<ALG>& S, const EqualityCmp op)
     // z is result
     const Value zvalue = evalOp(op, xvalue, yvalue);
     const R1T z = EqualityCmp::EQ == op
-        ? RS->safeAND(zvec) // all must be same
-        : RS->safeOR(zvec, zwitness); // one must be different
+        ? RS->declarative_AND(zvec) // all must be same
+        : RS->imperative_OR(zvec, zwitness); // one must be different
 
     S.push(
         ALG(zvalue, boolTo<Fr>(zvalue), valueBits(zvalue), {z}));
