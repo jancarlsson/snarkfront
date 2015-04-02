@@ -5,9 +5,6 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include "CompilePPZK_query.hpp"
-#include "CompilePPZK_witness.hpp"
-#include "Getopt.hpp"
 #include "snarkfront.hpp"
 
 using namespace snarkfront;
