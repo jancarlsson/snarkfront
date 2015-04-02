@@ -3,7 +3,6 @@
 #include <iostream>
 #include <ostream>
 #include <string>
-#include "Getopt.hpp"
 #include "snarkfront.hpp"
 
 using namespace snarkfront;
