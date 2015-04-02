@@ -52,4 +52,12 @@ bool nameSHA512(const string& shaBits) {
     return "512" == shaBits;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// AES
+//
+
+bool validAESName(const size_t aesBits) {
+    return 128 == aesBits || 192 == aesBits || 256 == aesBits;
+}
+
 } // namespace snarkfront
