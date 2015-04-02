@@ -4,7 +4,6 @@
 #include <random>
 #include <sstream>
 #include <string>
-#include <unistd.h>
 #include <vector>
 #include "snarkfront.hpp"
 
@@ -139,7 +138,7 @@ bool runTest(const bool stdInput,
             ok = false;
             cout << "digest[" << i << "] error zk: ";
             hexpr.push(zk_digest[i]->value());
-            cout << " test: ";
+            cout << " eval: ";
             hexpr.push(eval_digest[i]);
             cout << endl;
         }
@@ -166,8 +165,7 @@ bool runTest(const bool stdInput,
                      << endl;
 
             } else {
-                DataBufferStream digBuf;
-                for (const auto c : v) digBuf.push(c);
+                DataBufferStream digBuf(v);
 
                 typename ZK_SHA::DigType dig;
                 bless(dig, digBuf);
@@ -245,40 +243,25 @@ bool runTest(const string& shaBits,
 
 int main(int argc, char *argv[])
 {
-    // command line switches
-    string pairing, shaBits, hashDig, eqPattern, neqPattern;
-    bool stdInput = true;
-    int opt;
-    while (-1 != (opt = getopt(argc, argv, "p:b:rd:e:n:"))) {
-        switch (opt) {
-        case ('p') :
-            pairing = optarg;
-            break;
-        case ('b') :
-            shaBits = optarg;
-            break;
-        case ('r') :
-            stdInput = false; // use random data
-            break;
-        case ('d') :
-            hashDig = optarg;
-            break;
-        case ('e') :
-            eqPattern = optarg;
-            break;
-        case ('n') :
-            neqPattern = optarg;
-            break;
-        }
-    }
+    Getopt cmdLine(argc, argv, "pbden", "", "r");
+    if (!cmdLine || cmdLine.empty()) printUsage(argv[0]);
+
+    auto pairing = cmdLine.getString('p');
+
+    const auto
+        shaBits = cmdLine.getString('b'),
+        hashDig = cmdLine.getString('d'),
+        eqPattern = cmdLine.getString('e'),
+        neqPattern = cmdLine.getString('n');
+
+    const auto stdInput = !cmdLine.getFlag('r');
 
     // special case for hash only, skip zero knowledge proof
     const bool hashOnly = pairing.empty() && validSHA2Name(shaBits) && stdInput;
-
-    if (!hashOnly && !validPairingName(pairing) || !validSHA2Name(shaBits))
-        printUsage(argv[0]);
-
     if (hashOnly) pairing = "BN128"; // elliptic curve pairing is arbitrary
+
+    if (!validPairingName(pairing) || !validSHA2Name(shaBits))
+        printUsage(argv[0]);
 
     bool result;
 
