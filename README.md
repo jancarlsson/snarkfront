@@ -49,11 +49,13 @@ The usual operators:
 - shift and rotate
 - comparisons: == != < <= > >=
 - ternary conditional
+- array subscript (look up tables)
 - type conversion between Boolean, 8-bit, 32-bit, 64-bit, and 128-bit
 
-Cryptographic one-wayness:
+Cryptographic algorithms:
 
 - FIPS PUB 180-4: SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256
+- FIPS PUB 197: AES-128, AES-192, AES-256
 - binary Merkle tree using SHA-256 or SHA-512
 - key pair generation with cleartext (done) or blinded (work in progress) entropy
 
@@ -267,6 +269,7 @@ This generates:
 3. test_sha    - play with zero knowledge SHA-2
 4. test_merkle - play with zero knowledge Merkle trees
 5. test_bundle - CLI testing with Merkle trees
+6. test_aes    - play with zero knowledge AES
 
 --------------------------------------------------------------------------------
 test_SHAVS (Secure Hash Algorithm and Verification System)
@@ -407,6 +410,98 @@ beginning and then is reused forever by all parties.
 This test is realistic in the sense that each stage is properly blinded to
 inadvertant knowledge which it can not know. Each of the four stages only
 has the information it should possess.
+
+--------------------------------------------------------------------------------
+test_aes (zero knowledge AES)
+--------------------------------------------------------------------------------
+
+This tests the zero knowledge implementation of AES included in snarkfront.
+The snarkfront implementation is derived directly from the NIST standards
+document [FIPS PUB 197].
+
+The usage message explains how to run this.
+
+    $ ./test_aes 
+    encrypt: ./test_aes -p BN128|Edwards -b 128|192|256 -k key_in_hex -e -i hex_text
+    decrypt: ./test_aes -p BN128|Edwards -b 128|192|256 -k key_in_hex -d -i hex_text
+
+Examples from the NIST standards document:
+
+(AES-128 encrypt with Edwards curve)
+
+    $ ./test_aes -p Edwards -b 128 -e -k 2b7e151628aed2a6abf7158809cf4f3c -i 3243f6a8885a308d313198a2e0370734
+    output: 3925841d02dc09fbdc118597196a0b32
+    variable count 1609976
+    generate key pair
+    (8) ..................................................
+    (7) ..................................................
+    (6) ..................................................
+    (5) ..................................................
+    (4) ..................................................
+    (3) ..................................................
+    (2) ..................................................
+    (1) ..................................................
+    generate proof
+    (6) ..................................................
+    (5) ..................................................
+    (4) ..................................................
+    (3) ..................................................
+    (2) ..................................................
+    (1) ..................................................
+    verify proof ......
+    test passed
+
+(AES-128 encrypt with Barreto-Naehrig curve)
+
+    $ ./test_aes -p BN128 -b 128 -e -k 000102030405060708090a0b0c0d0e0f -i 00112233445566778899aabbccddeeff
+    output: 69c4e0d86a7b0430d8cdb78070b4c55a
+    variable count 1609976
+    ...
+    test passed
+
+(AES-128 decrypt with Edwards curve)
+
+    $ ./test_aes -p Edwards -b 128 -d -k 000102030405060708090a0b0c0d0e0f -i 69c4e0d86a7b0430d8cdb78070b4c55a
+    output: 00112233445566778899aabbccddeeff
+    variable count 1610264
+    ...
+    test passed
+
+(AES-192 encrypt with Barreto-Naehrig curve)
+
+    $ ./test_aes -p BN128 -b 192 -e -k 000102030405060708090a0b0c0d0e0f1011121314151617 -i 00112233445566778899aabbccddeeff
+    output: dda97ca4864cdfe06eaf70a0ec0d7191
+    variable count 1804760
+    ...
+    test passed
+
+(AES-192 decrypt with Barreto-Naehrig curve)
+
+    $ ./test_aes -p BN128 -b 192 -d -k 000102030405060708090a0b0c0d0e0f1011121314151617 -i dda97ca4864cdfe06eaf70a0ec0d7191
+    output: 00112233445566778899aabbccddeeff
+    variable count 1805112
+    ...
+    test passed
+
+(AES-256 encrypt with Edwards curve)
+
+    $ ./test_aes -p Edwards -b 256 -e -k 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f -i 00112233445566778899aabbccddeeff
+    output: 8ea2b7ca516745bfeafc49904b496089
+    variable count 2222515
+    ...
+    test passed
+
+(AES-256 decrypt with Barreto-Naehrig curve)
+
+    $ ./test_aes -p BN128 -b 256 -d -k 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f -i 8ea2b7ca516745bfeafc49904b496089
+    output: 00112233445566778899aabbccddeeff
+    variable count 2222931
+    ...
+    test passed
+
+The test_aes process uses about 5.5 GB for the AES-256 examples during key pair
+generation. Memory requirements could be lower if the CLI were used instead of
+the API (which holds all cryptographic structures in RAM).
 
 --------------------------------------------------------------------------------
 test_sha (zero knowledge SHA-2)
@@ -849,6 +944,8 @@ References
 [GNU Multiple Precision Arithmetic Library]: https://gmplib.org/
 
 [FIPS PUB 180-4]: http://csrc.nist.gov/publications/fips/fips180-4/fips-180-4.pdf
+
+[FIPS PUB 197]: https://csrc.nist.gov/publications/fips/fips197/fips-197.pdf
 
 [SHAVS]: http://csrc.nist.gov/groups/STM/cavp/documents/shs/SHAVS.pdf
 
