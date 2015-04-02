@@ -6,7 +6,17 @@
 #include <fstream>
 #include <functional>
 #include <string>
-#include "snarkfront.hpp"
+
+// snarklib
+#include <AuxSTL.hpp>
+#include <HugeSystem.hpp>
+#include <IndexSpace.hpp>
+#include <PPZK_randomness.hpp>
+#include <QAP_query.hpp>
+#include <QAP_system.hpp>
+#include <QAP_witness.hpp>
+#include <Rank1DSL.hpp>
+#include <Util.hpp>
 
 namespace snarkfront {
 
