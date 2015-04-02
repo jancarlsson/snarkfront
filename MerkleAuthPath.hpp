@@ -211,6 +211,21 @@ public:
         return true;
     }
 
+    void clear() {
+        m_depth = 0;
+        m_rootPath.clear();
+        m_siblings.clear();
+        m_childBits.clear();
+    }
+
+    bool empty() const {
+        return
+            0 == m_depth ||
+            m_rootPath.empty() ||
+            m_siblings.empty() ||
+            m_childBits.empty();
+    }
+
 private:
     // note: not called by proof generation
     static DigType zero() {
@@ -234,7 +249,7 @@ std::ostream& operator<< (std::ostream& os, const MerkleAuthPath<HASH, BIT>& a) 
 
 template <typename HASH, typename BIT>
 std::istream& operator>> (std::istream& is, MerkleAuthPath<HASH, BIT>& a) {
-    a.marshal_in(is);
+    if (! a.marshal_in(is)) a.clear();
     return is;
 }
 
