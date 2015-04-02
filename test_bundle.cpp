@@ -4,7 +4,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "Getopt.hpp"
 #include "snarkfront.hpp"
 
 using namespace snarkfront;
