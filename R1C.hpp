@@ -422,11 +422,11 @@ public:
     // problem (constraint system) and what passes as a valid
     // solution (witness).
     //
-    // This function is called from safeAND() with zbit = true.
+    // This function is called from declarative_AND() with zbit = true.
     //
-    R1T multiAND(const std::vector<R1T>& x,
-                 const FR& xsum_witness,
-                 const bool zbit)
+    R1T declarative_multiAND(const std::vector<R1T>& x,
+                             const FR& xsum_witness,
+                             const bool zbit)
     {
         // sum of input wires
         snarklib::R1Combination<FR> inputs;
@@ -451,8 +451,8 @@ public:
         return z;
     }
 
-    R1T safeAND(const std::vector<R1T>& x) {
-        return multiAND(
+    R1T declarative_AND(const std::vector<R1T>& x) {
+        return declarative_multiAND(
             x,
             FR::zero(), // dummy value is not used
             true);      // validity requires all bits to be 1
@@ -473,11 +473,11 @@ public:
     // problem (constraint system) and what passes as a valid
     // solution (witness).
     //
-    // This function is called from safeNOR() with zbit = false.
+    // This function is called from declarative_NOR() with zbit = false.
     //
-    R1T multiOR(const std::vector<R1T>& x,
-                const FR& xsum_witness,
-                const bool zbit)
+    R1T declarative_multiOR(const std::vector<R1T>& x,
+                            const FR& xsum_witness,
+                            const bool zbit)
     {
         // sum of input wires
         snarklib::R1Combination<FR> inputs;
@@ -499,17 +499,42 @@ public:
         return z;
     }
 
-    R1T safeNOR(const std::vector<R1T>& x) {
-        return multiOR(
+    R1T declarative_NOR(const std::vector<R1T>& x) {
+        return declarative_multiOR(
             x,
             FR::zero(), // dummy value is not used
             false);     // validity requires all bits to be 0
     }
 
+    // z = AND(x[0],... , x[x^N - 1])
+    // zero knowledge AND gate with power of 2 number of inputs
+    R1T imperative_AND(const std::vector<R1T>& x,
+                       const std::vector<int>& witness)
+    {
+        return imperative_GATE(LogicalOps::AND, x, witness);
+    }
+
     // z = OR(x[0],... , x[2^N - 1])
     // zero knowledge OR gate with power of 2 number of inputs
-    R1T safeOR(const std::vector<R1T>& x,
-               const std::vector<int>& witness) 
+    R1T imperative_OR(const std::vector<R1T>& x,
+                      const std::vector<int>& witness) 
+    {
+        return imperative_GATE(LogicalOps::OR, x, witness);
+    }
+
+    // z = XOR(x[0],... , x[x^N - 1])
+    // zero knowledge XOR gate with power of 2 number of inputs
+    R1T imperative_XOR(const std::vector<R1T>& x,
+                       const std::vector<int>& witness)
+    {
+        return imperative_GATE(LogicalOps::XOR, x, witness);
+    }
+
+private:
+    template <typename ENUM>
+    R1T imperative_GATE(const ENUM op,
+                        const std::vector<R1T>& x,
+                        const std::vector<int>& witness) 
     {
         const std::size_t N = x.size();
         const std::size_t halfN = N / 2;
@@ -519,12 +544,10 @@ public:
 #endif
 
         if (2 == N) {
-            return createResult(
-                LogicalOps::OR,
-                x[0],
-                x[1],
-                boolTo<FR>(
-                    evalOp(LogicalOps::OR, witness[0], witness[1])));
+            return createResult(op,
+                                x[0],
+                                x[1],
+                                boolTo<FR>(evalOp(op, witness[0], witness[1])));
 
         } else {
             std::vector<R1T> x2;
@@ -534,24 +557,23 @@ public:
             witness2.reserve(halfN);
 
             for (std::size_t i = 0; i < halfN; ++i) {
-                const bool b = evalOp(LogicalOps::OR,
+                const bool b = evalOp(op,
                                       witness[i],
                                       witness[i + halfN]);
 
                 witness2.push_back(b);
 
                 x2.emplace_back(
-                    createResult(LogicalOps::OR,
+                    createResult(op,
                                  x[i],
                                  x[i + halfN],
                                  boolTo<FR>(b)));
             }
 
-            return safeOR(x2, witness2);
+            return imperative_GATE(op, x2, witness2);
         }
     }
 
-private:
     R1T createVariable(const FR& a) {
         return createTerm(a, true);
     }
