@@ -45,6 +45,10 @@ DataBufferStream::DataBufferStream()
     : m_index(0)
 {}
 
+void DataBufferStream::reset() {
+    m_index = 0;
+}
+
 bool DataBufferStream::empty() const {
     return m_index == m_buf->size();
 }
