@@ -8,7 +8,7 @@
 #include "Alg_BigInt.hpp"
 #include "Alg_bool.hpp"
 #include "Alg_uint.hpp"
-#include "BitwiseOps.hpp"
+#include "BitwiseAST.hpp"
 #include "DataBuffer.hpp"
 #include "PowersOf2.hpp"
 
@@ -233,9 +233,11 @@ typename T::DigType digest(T hashAlgo, const Args... parameterPack)
                                    y);                                  \
     }
 
+    // imperative tests
     DEFN_CMP(bool, ==, EQ)
     DEFN_CMP(bool, !=, NEQ)
 
+    // declarative equality test, imperative inequality and ordering tests
     DEFN_CMP(BigInt, ==, EQ)
     DEFN_CMP(BigInt, !=, NEQ)
     DEFN_CMP(BigInt, <, LT)
@@ -243,12 +245,15 @@ typename T::DigType digest(T hashAlgo, const Args... parameterPack)
     DEFN_CMP(BigInt, >, GT)
     DEFN_CMP(BigInt, >=, GE)
 
+    // declarative equality test, imperative inequality test
     DEFN_CMP(uint8, ==, EQ)
     DEFN_CMP(uint8, !=, NEQ)
 
+    // declarative equality test, imperative inequality test
     DEFN_CMP(uint32, ==, EQ)
     DEFN_CMP(uint32, !=, NEQ)
 
+    // declarative equality test, imperative inequality test
     DEFN_CMP(uint64, ==, EQ)
     DEFN_CMP(uint64, !=, NEQ)
 
