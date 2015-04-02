@@ -9,7 +9,18 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include "snarkfront.hpp"
+
+// snarklib
+#include <AuxSTL.hpp>
+#include <HugeSystem.hpp>
+#include <IndexSpace.hpp>
+#include <PPZK_keystruct.hpp>
+#include <PPZK_query.hpp>
+#include <PPZK_randomness.hpp>
+#include <ProgressCallback.hpp>
+#include <QAP_system.hpp>
+#include <Util.hpp>
+#include <WindowExp.hpp>
 
 namespace snarkfront {
 
