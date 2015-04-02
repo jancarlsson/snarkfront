@@ -128,7 +128,7 @@ void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op)
                                  boolTo<FR>(b)));
 
             // all bits must be clear
-            z = RS->safeNOR(bits);
+            z = RS->declarative_NOR(bits);
         }
         break;
 
@@ -156,7 +156,7 @@ void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op)
                                  high_bit,
                                  boolTo<FR>(b)));
 
-            z = RS->safeOR(bits, witness);
+            z = RS->imperative_OR(bits, witness);
         }
         break;
 
@@ -182,7 +182,7 @@ void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op)
             low_witness.push_back(low_witness[0]);
             low_bits.emplace_back(low_bits[0]);
 
-            const R1T low_bit_set = RS->safeOR(low_bits, low_witness);
+            const R1T low_bit_set = RS->imperative_OR(low_bits, low_witness);
             z = RS->createResult(LogicalOps::AND, high_bit, low_bit_set, zwitness);
         }
         break;
