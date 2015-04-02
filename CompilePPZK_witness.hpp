@@ -5,7 +5,15 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include "snarkfront.hpp"
+
+// snarklib
+#include <AuxSTL.hpp>
+#include <HugeSystem.hpp>
+#include <PPZK_witness.hpp>
+#include <PPZK_randomness.hpp>
+#include <ProgressCallback.hpp>
+#include <Rank1DSL.hpp>
+#include <Util.hpp>
 
 namespace snarkfront {
 
@@ -64,7 +72,7 @@ public:
 
     void accumQuery(const std::string& queryfile,
                     const std::size_t blocknum,
-                    ProgressCallback* callback = nullptr)
+                    snarklib::ProgressCallback* callback = nullptr)
     {
 
         typename WITNESS::SparseVec query;
@@ -117,7 +125,7 @@ public:
 
     void accumQuery(const std::string& queryfile,
                     const std::size_t blocknum,
-                    ProgressCallback* callback = nullptr)
+                    snarklib::ProgressCallback* callback = nullptr)
     {
         snarklib::BlockVector<G1> query;
         snarklib::BlockVector<FR> scalar;
@@ -180,7 +188,7 @@ public:
 
     void accumQuery(const std::string& queryfile,
                     const std::size_t blocknum,
-                    ProgressCallback* callback = nullptr)
+                    snarklib::ProgressCallback* callback = nullptr)
     {
         snarklib::BlockVector<G1> query;
         if (!snarklib::read_blockvector(queryfile, blocknum, query)) {
