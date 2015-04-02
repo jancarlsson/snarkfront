@@ -6,7 +6,8 @@
 #include "Alg.hpp"
 #include "Alg_uint.hpp"
 #include "AST.hpp"
-#include "BitwiseOps.hpp"
+#include "BitwiseAST.hpp"
+#include "BitwiseINT.hpp"
 #include "Lazy.hpp"
 #include "SHA_256.hpp"
 
