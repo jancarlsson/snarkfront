@@ -102,7 +102,6 @@ bool runTest(const vector<uint8_t>& keyOctets,
                     evalOut);
     }
 
-    
     assert_true(zkOut == evalOut);
 
     DataBuffer<PrintHex> hexpr(cout, false);
