@@ -1,6 +1,7 @@
 CXX = g++
 CXXFLAGS = -O2 -g3 -std=c++11
 
+RM = rm
 AR = ar
 RANLIB = ranlib
 
@@ -37,7 +38,6 @@ LIBRARY_HPP = \
 	Lazy.hpp \
 	MerkleAuthPath.hpp \
 	MerkleBundle.hpp \
-	MerkleForest.hpp \
 	MerkleTree.hpp \
 	PowersOf2.hpp \
 	R1C.hpp \
@@ -54,6 +54,7 @@ LIBRARY_HPP = \
 	TLsingleton.hpp
 
 LIBRARY_BIN = \
+	hodur \
 	randomness \
 	qap \
 	ppzk \
@@ -117,6 +118,9 @@ lib :
 
 archive :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make archive SNARKLIB_PREFIX=/usr/local)
+
+hodur :
+	$(error Please provide SNARKLIB_PREFIX, e.g. make hodur SNARKLIB_PREFIX=/usr/local)
 
 ppzk :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make ppzk SNARKLIB_PREFIX=/usr/local)
@@ -187,6 +191,7 @@ libsnarkfront.so : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(CXX) -c $(SO_FLAGS) -o HexUtil.o HexUtil.cpp
 	$(CXX) -c $(SO_FLAGS) -o InitPairing.o InitPairing.cpp
 	$(CXX) -c $(SO_FLAGS) -o PowersOf2.o PowersOf2.cpp
+	$(RM) -f libsnarkfront.so
 	$(CXX) -o libsnarkfront.so -shared $(LIBRARY_CPP:.cpp=.o)
 
 libsnarkfront.a : $(LIBRARY_HPP) $(LIBRARY_CPP)
@@ -202,12 +207,17 @@ libsnarkfront.a : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(CXX) -c $(AR_FLAGS) -o HexUtil.o HexUtil.cpp
 	$(CXX) -c $(AR_FLAGS) -o InitPairing.o InitPairing.cpp
 	$(CXX) -c $(AR_FLAGS) -o PowersOf2.o PowersOf2.cpp
+	$(RM) -f libsnarkfront.a
 	$(AR) qc libsnarkfront.a $(LIBRARY_CPP:.cpp=.o)
 	$(RANLIB) libsnarkfront.a
 
 lib : libsnarkfront.so
 
 archive : libsnarkfront.a
+
+hodur : hodur.cpp libsnarkfront.a
+	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o hodur.o
+	$(CXX) -o $@ hodur.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
 
 ppzk : ppzk.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o ppzk.o
