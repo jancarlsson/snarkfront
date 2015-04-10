@@ -18,19 +18,50 @@ Getopt::Getopt(int argc, char *argv[],
 {
     stringstream ss;
 
+    // string options
     for (const auto& c : string_opts) {
         m_string_opts.insert(c);
         ss << c << ":";
     }
 
+    // number options
     for (const auto& c : number_opts) {
         m_number_opts.insert(c);
         ss << c << ":";
     }
 
+    // boolean flags
     for (const auto& c : flag_opts) {
         m_flag_opts.insert(c);
         ss << c;
+    }
+
+    // pick out arguments unrelated to options and switches
+    size_t i = 1;
+    while (i < argc) {
+        const size_t N = string(argv[i]).size();
+
+        if (N >= 2 && '-' == argv[i][0]) {
+            const char c = argv[i][1];
+
+            if (m_string_opts.count(c) || m_number_opts.count(c)) {
+                if (N > 2)
+                    ++i; // no space between option switch and argument
+                else
+                    i += 2; // space between option switch and argument
+
+            } else if (m_flag_opts.count(c)) {
+                ++i;
+
+            } else {
+                m_args.push_back(argv[i]);
+                ++i;
+            }
+
+        } else {
+            m_args.push_back(argv[i]);
+            ++i;
+        }
     }
 
     int opt;
@@ -98,6 +129,10 @@ size_t Getopt::getNumber(const char c) {
 
 bool Getopt::getFlag(const char c) {
     return m_flag.count(c);
+}
+
+const std::vector<std::string>& Getopt::getArgs() const {
+    return m_args;
 }
 
 } // namespace snarkfront
