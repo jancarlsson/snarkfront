@@ -52,6 +52,30 @@ public:
         }
     }
 
+    PPZK_witness_ABC(const std::string& sysfile,
+                     const snarklib::PPZK_ProofRandomness<FR>& proofRand,
+                     const std::string& witfile)
+        : m_error(false),
+          m_numVariables(0),
+          m_reserveTune(0),
+          m_hugeSystem(sysfile),
+          m_randomness(proofRand)
+    {
+        std::ifstream ifs(witfile);
+        if (!ifs || !m_witness.marshal_in(ifs) || !m_hugeSystem.loadIndex())
+        {
+            m_error = true;
+        }
+        else
+        {
+            const snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR>
+                qap(m_hugeSystem,
+                    m_hugeSystem.numCircuitInputs());
+
+            m_numVariables = qap.numVariables();
+        }
+    }
+
     bool operator! () const { return m_error; }
 
     void initA() {
@@ -170,6 +194,24 @@ public:
         std::ifstream ifsR(randfile), ifsW(witfile);
         if (!ifsR || !m_randomness.marshal_in(ifsR) ||
             !ifsW || !m_witness.marshal_in(ifsW)) {
+            m_error = true;
+
+        } else {
+            m_sum = snarklib::PPZK_WitnessK<PAIRING>(m_witness,
+                                                     m_randomness.d1(),
+                                                     m_randomness.d2(),
+                                                     m_randomness.d3());
+        }
+    }
+
+    PPZK_witness_K(const snarklib::PPZK_ProofRandomness<FR>& proofRand,
+                   const std::string& witfile)
+        : m_error(false),
+          m_reserveTune(0),
+          m_randomness(proofRand)
+    {
+        std::ifstream ifs(witfile);
+        if (!ifs || !m_witness.marshal_in(ifs)) {
             m_error = true;
 
         } else {
