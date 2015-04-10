@@ -65,6 +65,29 @@ public:
         }
     }
 
+    // (eval) return initial path from leaf of specified depth
+    MerkleAuthPath leafPath(const std::size_t leaf_depth) const {
+        MerkleAuthPath subPath(leaf_depth);
+        for (std::size_t i = 0; i < leaf_depth; ++i) {
+            subPath.m_rootPath[i] = m_rootPath[i];
+            subPath.m_siblings[i] = m_siblings[i];
+            subPath.m_childPath[i] = m_childBits[i];
+        }
+        return subPath;
+    }
+
+    // (eval) return subsequent path to root of specified depth
+    MerkleAuthPath rootPath(const std::size_t root_depth) const {
+        MerkleAuthPath subPath(root_depth);
+        const std::size_t leaf_depth = m_depth - root_depth;
+        for (std::size_t i = 0; i < root_depth; ++i) {
+            subPath.m_rootPath[i] = m_rootPath[i + leaf_depth];
+            subPath.m_siblings[i] = m_siblings[i + leaf_depth];
+            subPath.m_childPath[i] = m_childBits[i + leaf_depth];
+        }
+        return subPath;
+    }
+
     std::size_t depth() const {
         return m_depth;
     }
