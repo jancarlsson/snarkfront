@@ -45,6 +45,16 @@ public:
             !m_hugeSystem.loadIndex();
     }
 
+    QAP_query_ABCH(const std::size_t numBlocks,
+                   const std::string& sysfile,
+                   const snarklib::PPZK_LagrangePoint<FR>& lagrangeRand)
+        : m_numBlocks(numBlocks),
+          m_hugeSystem(sysfile),
+          m_lagrangePoint(lagrangeRand)
+    {
+        m_error = !m_hugeSystem.loadIndex();
+    }
+
     // for g1_exp_count() and g2_exp_count() only
     QAP_query_ABCH(const std::string& sysfile)
         : m_numBlocks(0),
@@ -167,6 +177,22 @@ public:
             !m_hugeSystem.loadIndex();
     }
 
+    QAP_query_K(const std::string& afile,
+                const std::string& bfile,
+                const std::string& cfile,
+                const std::string& sysfile,
+                const snarklib::PPZK_LagrangePoint<FR>& lagrangeRand,
+                const snarklib::PPZK_BlindGreeks<FR, FR>& greeksRand)
+        : m_afile(afile),
+          m_bfile(bfile),
+          m_cfile(cfile),
+          m_hugeSystem(sysfile),
+          m_lagrangePoint(lagrangeRand),
+          m_clearGreeks(greeksRand)
+    {
+        m_error = !m_hugeSystem.loadIndex();
+    }
+
     bool operator! () const { return m_error; }
 
     void K(const std::string& outfile,
@@ -255,6 +281,16 @@ public:
             !m_hugeSystem.loadIndex();
     }
 
+    QAP_query_IC(const std::string& afile, // side-effect: file is modified
+                 const std::string& sysfile,
+                 const snarklib::PPZK_LagrangePoint<FR>& lagrangeRand)
+        : m_afile(afile),
+          m_hugeSystem(sysfile),
+          m_lagrangePoint(lagrangeRand)
+    {
+        m_error = !m_hugeSystem.loadIndex();
+    }
+
     bool operator! () const { return m_error; }
 
     void IC(const std::string& outfile) {
@@ -330,6 +366,20 @@ public:
         m_error =
             !ifsR || !m_randomness.marshal_in(ifsR) ||
             !ifsW || !m_witness.marshal_in(ifsW) ||
+            !m_hugeSystem.loadIndex();
+    }
+
+    QAP_witness_ABCH(const std::size_t numBlocks,
+                     const std::string& sysfile,
+                     const snarklib::PPZK_ProofRandomness<FR>& proofRand,
+                     const std::string& witfile)
+        : m_numBlocks(numBlocks),
+          m_hugeSystem(sysfile),
+          m_randomness(proofRand)
+    {
+        std::ifstream ifs(witfile);
+        m_error =
+            !ifs || !m_witness.marshal_in(ifs) ||
             !m_hugeSystem.loadIndex();
     }
 
