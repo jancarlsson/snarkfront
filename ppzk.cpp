@@ -236,7 +236,6 @@ bool queryIC(const size_t g1_exp,
     PPZK_verification_key<PAIRING> Q(g1_exp, g1_blks, icfile, sysfile, randfile, blind);
 
     GenericProgressBar progress(cerr, 50);
-    progress.majorSteps(g1_blks);
 
     Q.writeFiles(
         outfile,
