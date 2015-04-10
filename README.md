@@ -234,6 +234,72 @@ In summary:
     }
 
 --------------------------------------------------------------------------------
+EDSL with CLI (how to use hodur)
+--------------------------------------------------------------------------------
+
+For realistic ZKP problems, the cryptographic structures will be too large to
+comfortably fit in RAM. The workflow then involves both EDSL API and the CLI.
+
+Trusted setup:
+
+1. Constraint system in C++ EDSL and written to files
+2. Generate proving/verification key pair on command line
+3. Distribute key pair to everyone
+
+Someone generates a proof:
+
+1. Witness to constraint system in C++ EDSL written to file
+2. Generate proof from proving key and witness on command line
+3. Distribute proof and public inputs to everyone
+
+Everyone verifies a proof:
+
+1. Public inputs to constraint system in C++ EDSL written to file
+2. Verify proof and public inputs on command line
+3. Update local state if verified ok
+
+Here is an example using test_bundle, test_sha and hodur.
+
+Constraint system for a non-empty Merkle tree of depth 3:
+
+    $ ./test_bundle -p BN128 -b 256 -t merkletree -d 3
+    $ ./test_bundle -p BN128 -b 256 -t merkletree -c `echo some secret text | ./test_sha -b 256` -k
+    $ ./test_bundle -p BN128 -b 256 -t merkletree -s constraintsys -n 250000
+
+Generate proving/verification key pair:
+
+    $ ./hodur -o zkkey constraintsys
+
+Generate proof for authentication path:
+
+    $ ./test_bundle -p BN128 -b 256 -t merkletree -w zkwitness
+    $ ./hodur -o zkproof zkkey zkwitness
+
+Verify the proof:
+
+    $ ./test_bundle -p BN128 -b 256 -t merkletree -i zkinput
+    $ ./hodur -v zkproof zkkey zkinput
+
+The hodur executable encapsulates much ZKP intricacy.
+
+    $ ./hodur 
+    Usage: ./hodur [options] file...
+    Options:
+      -e <number>       Partition G1 exponentiation table into <number> windows
+      -n <number>       Partition query vectors into <number> blocks
+      -o <file_prefix>  Place the output into <file_prefix>
+      -v <file>         Verify zero knowledge proof in <file>
+
+    Generate proving/verification key pair from constraint system:
+     ./hodur -o keypair_prefix [-e num] [-n num] r1cs_index_file
+
+    Generate proof from key pair and witness:
+     ./hodur -o proof_file keypair_prefix witness_file
+
+    Verify proof with key pair and input:
+     ./hodur -v proof_file keypair_prefix input_file
+
+--------------------------------------------------------------------------------
 Build instructions
 --------------------------------------------------------------------------------
 
