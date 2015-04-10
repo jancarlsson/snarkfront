@@ -5,6 +5,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 
 namespace snarkfront {
 
@@ -31,10 +32,13 @@ public:
     std::size_t getNumber(const char c);
     bool getFlag(const char c);
 
+    const std::vector<std::string>& getArgs() const;
+
 private:
     std::map<int, std::string> m_string;
     std::map<int, std::size_t> m_number;
     std::set<int> m_flag, m_string_opts, m_number_opts, m_flag_opts;
+    std::vector<std::string> m_args;
 
     bool m_error;
 };
