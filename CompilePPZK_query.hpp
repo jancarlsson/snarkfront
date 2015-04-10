@@ -57,6 +57,23 @@ public:
              : !m_clearGreeks.marshal_in(ifs));
     }
 
+    PPZK_query_AC(const std::size_t g1_exp_count,
+                  const std::size_t numWindowBlocks,
+                  const std::string& qapfile,
+                  const snarklib::PPZK_LagrangePoint<FR>& lagrangeRand,
+                  const snarklib::PPZK_BlindGreeks<FR, FR>& greeksRand)
+        : m_qapfile(qapfile),
+          m_space(snarklib::WindowExp<G1>::space(g1_exp_count)),
+          m_lagrangePoint(lagrangeRand),
+          m_clearGreeks(greeksRand),
+          m_error(false)
+    {
+#ifdef USE_ASSERT
+        assert(numWindowBlocks <= m_space.globalID()[0]);
+#endif
+        m_space.blockPartition(std::array<std::size_t, 1>{ numWindowBlocks });
+    }
+
     bool operator! () const { return m_error; }
 
     void A(const std::string& outfile,
@@ -234,6 +251,25 @@ public:
             (is_blind_entropy
              ? !m_blindGreeks.marshal_in(ifs)
              : !m_clearGreeks.marshal_in(ifs));
+    }
+
+    PPZK_query_B(const std::size_t g1_exp_count,
+                 const std::size_t numWindowBlocks,
+                 const std::size_t g2_exp_count,
+                 const std::string& qapfile,
+                 const snarklib::PPZK_LagrangePoint<FR>& lagrangeRand,
+                 const snarklib::PPZK_BlindGreeks<FR, FR>& greeksRand)
+        : m_qapfile(qapfile),
+          m_g2_exp_count(g2_exp_count),
+          m_space(snarklib::WindowExp<G1>::space(g1_exp_count)),
+          m_lagrangePoint(lagrangeRand),
+          m_clearGreeks(greeksRand),
+          m_error(false)
+    {
+#ifdef USE_ASSERT
+        assert(numWindowBlocks <= m_space.globalID()[0]);
+#endif
+        m_space.blockPartition(std::array<std::size_t, 1>{ numWindowBlocks });
     }
 
     bool operator! () const { return m_error; }
@@ -609,6 +645,27 @@ public:
             (is_blind_entropy
              ? !m_blindGreeks.marshal_in(ifs)
              : !m_clearGreeks.marshal_in(ifs)) ||
+            !m_hugeSystem.loadIndex() ||
+            !read_blockvector(qapICfile, 0, m_qapIC);
+    }
+
+    PPZK_verification_key(const std::size_t g1_exp_count,
+                          const std::size_t numWindowBlocks,
+                          const std::string& qapICfile,
+                          const std::string& sysfile,
+                          const snarklib::PPZK_LagrangePoint<FR>& lagrangeRand,
+                          const snarklib::PPZK_BlindGreeks<FR, FR>& greeksRand)
+        : m_hugeSystem(sysfile),
+          m_space(snarklib::WindowExp<G1>::space(g1_exp_count)),
+          m_lagrangePoint(lagrangeRand),
+          m_clearGreeks(greeksRand)
+    {
+#ifdef USE_ASSERT
+        assert(numWindowBlocks <= m_space.globalID()[0]);
+#endif
+        m_space.blockPartition(std::array<std::size_t, 1>{ numWindowBlocks });
+
+        m_error =
             !m_hugeSystem.loadIndex() ||
             !read_blockvector(qapICfile, 0, m_qapIC);
     }
