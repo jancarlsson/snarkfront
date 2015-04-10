@@ -30,7 +30,6 @@
 // Merkle tree
 #include "MerkleAuthPath.hpp"
 #include "MerkleBundle.hpp"
-#include "MerkleForest.hpp"
 #include "MerkleTree.hpp"
 
 // Secure Hash Algorithms
