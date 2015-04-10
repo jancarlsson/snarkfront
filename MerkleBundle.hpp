@@ -119,7 +119,6 @@ public:
             m_authLeaf.empty() ||
             m_authPath.empty();
     }
-    
 
 private:
     TREE m_tree;
