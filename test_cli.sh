@@ -77,7 +77,7 @@ case $OPT in
 esac
 
 ################################################################################
-# quadratic arithmetric program ABCH query vectors
+# quadratic arithmetic program ABCH query vectors
 #
 
 echo qap query A
