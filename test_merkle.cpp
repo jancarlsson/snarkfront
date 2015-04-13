@@ -101,7 +101,7 @@ bool runTest(const string& shaBits,
             leafNumber);
     }
 
-    GenericProgressBar progress1(cerr), progress2(cerr, 100);
+    GenericProgressBar progress1(cerr), progress2(cerr, 50);
 
     cerr << "generate key pair";
     const auto key = keypair<PAIRING>(progress2);
