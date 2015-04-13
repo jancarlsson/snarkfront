@@ -115,7 +115,7 @@ private:
         space.param(Q.nonzeroCount());
 
         std::ofstream ofs(outfile);
-        if (!ofs || !write_blockvector(outfile, space, Q.vec()))
+        if (!ofs || !write_blockvector_raw(outfile, space, Q.vec()))
             m_error = true;
         else
             space.marshal_out(ofs);
@@ -218,9 +218,9 @@ private:
         while (b) {
             snarklib::BlockVector<FR> A, B, C;
 
-            if (!snarklib::read_blockvector(m_afile, block, A) ||
-                !snarklib::read_blockvector(m_bfile, block, B) ||
-                !snarklib::read_blockvector(m_cfile, block, C)) {
+            if (!snarklib::read_blockvector_raw(m_afile, block, A) ||
+                !snarklib::read_blockvector_raw(m_bfile, block, B) ||
+                !snarklib::read_blockvector_raw(m_cfile, block, C)) {
                 m_error = true;
                 return;
             }
@@ -229,7 +229,7 @@ private:
 
             Q.accumVector(A, B, C);
 
-            if (!snarklib::write_blockvector(outfile, block, space, Q.vec())) {
+            if (!snarklib::write_blockvector_raw(outfile, block, space, Q.vec())) {
                 m_error = true;
                 return;
             }
@@ -310,7 +310,7 @@ private:
         while (b) {
             snarklib::BlockVector<FR> A;
 
-            if (!snarklib::read_blockvector(m_afile, block, A)) {
+            if (!snarklib::read_blockvector_raw(m_afile, block, A)) {
                 m_error = true;
                 return;
             }
@@ -324,14 +324,18 @@ private:
             if (!ofs)
                 m_error = true;
             else
-                A.marshal_out(ofs); // side-effect: write back to file
+                A.marshal_out( // side-effect: write back to file
+                    ofs,
+                    [] (std::ostream& o, const FR& a) {
+                        a.marshal_out_raw(o);
+                    });
 
             b = ++block < A.space().blockID()[0];
         }
 
         std::ofstream ofs(outfile);
         const auto space = snarklib::BlockVector<FR>::space(Q.vec());
-        if (!ofs || !snarklib::write_blockvector(outfile, space, Q.vec()))
+        if (!ofs || !snarklib::write_blockvector_raw(outfile, space, Q.vec()))
             m_error = true;
         else
             space.marshal_out(ofs);
@@ -400,7 +404,7 @@ public:
         auto space = snarklib::BlockVector<FR>::space(ABCH.vec());
         space.blockPartition(std::array<size_t, 1>{m_numBlocks});
 
-        if (! write_blockvector(outfile, space, ABCH.vec()))
+        if (! write_blockvector_raw(outfile, space, ABCH.vec()))
             m_error = true;
     }
 
