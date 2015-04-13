@@ -401,7 +401,7 @@ This tests the "Alice and Bob" example above where:
 
 - the lock is SHA-256
 - the secret combination is message: "abc"
-- the state is "unlocked" if the message digest matches: ba7816bf 8f01cfea 414140de 5dae2223 b00361a3 96177a9c b410ff61 f20015ad
+- the state is "unlocked" if the message digest matches: edeaaff3 f1774ad2 88867377 0c6d6409 7e391bc3 62d7d6fb 34982ddf 0efd18cb
 
 Just run the shell script:
 
@@ -417,16 +417,16 @@ Just run the shell script:
     (2) ..................................................
     (1) ..................................................
 
-    real    0m37.947s
-    user    0m33.792s
-    sys     0m4.097s
-    -rw-rw-r--. 1 jcarlsson jcarlsson 169178113 Feb 17 15:19 keygen.txt
+    real    0m30.992s
+    user    0m30.487s
+    sys     0m0.490s
+    -rw-rw-r--. 1 jcarlsson jcarlsson 49747688 Apr 12 17:23 keygen.txt
 
 
-    real    0m0.004s
+    real    0m0.003s
     user    0m0.001s
-    sys     0m0.003s
-    -rw-rw-r--. 1 jcarlsson jcarlsson 10044 Feb 17 15:19 input.txt
+    sys     0m0.002s
+    -rw-rw-r--. 1 jcarlsson jcarlsson 10124 Apr 12 17:23 input.txt
 
     generate proof
     (6) ..................................................
@@ -436,17 +436,17 @@ Just run the shell script:
     (2) ..................................................
     (1) ..................................................
 
-    real    0m15.636s
-    user    0m15.499s
-    sys     0m0.686s
-    -rw-rw-r--. 1 jcarlsson jcarlsson 2095 Feb 17 15:19 proof.txt
+    real    0m7.535s
+    user    0m7.433s
+    sys     0m0.141s
+    -rw-rw-r--. 1 jcarlsson jcarlsson 2089 Apr 12 17:23 proof.txt
 
     verify proof ......
     proof is verified
 
-    real    0m8.507s
-    user    0m8.435s
-    sys     0m0.563s
+    real    0m0.360s
+    user    0m0.318s
+    sys     0m0.092s
 
 Equivalently:
 
@@ -761,21 +761,21 @@ Here is an example:
     [0] 0000007a 00000000 00000000 00000000 00000000 00000000 00000000 00000000
     variable count 821581
     generate key pair
-    (8) ....................................................................................................
-    (7) ....................................................................................................
-    (6) ....................................................................................................
-    (5) ....................................................................................................
-    (4) ....................................................................................................
-    (3) ....................................................................................................
-    (2) ....................................................................................................
-    (1) ....................................................................................................
+    (8) ..................................................
+    (7) ..................................................
+    (6) ..................................................
+    (5) ..................................................
+    (4) ..................................................
+    (3) ..................................................
+    (2) ..................................................
+    (1) ..................................................
     generate proof
-    (6) ....................................................................................................
-    (5) ....................................................................................................
-    (4) ....................................................................................................
-    (3) ....................................................................................................
-    (2) ....................................................................................................
-    (1) ....................................................................................................
+    (6) ..................................................
+    (5) ..................................................
+    (4) ..................................................
+    (3) ..................................................
+    (2) ..................................................
+    (1) ..................................................
     verify proof ......
     proof verification OK
 
@@ -938,17 +938,17 @@ Many files are left behind by the script.
     4       tmp_test_cli.keyrand
     12      tmp_test_cli.keyrand.blind
     4       tmp_test_cli.merkle
-    32204   tmp_test_cli.pkqueryA0
-    32204   tmp_test_cli.pkqueryA.blind0
-    42104   tmp_test_cli.pkqueryB0
-    42104   tmp_test_cli.pkqueryB.blind0
-    17360   tmp_test_cli.pkqueryC0
-    17360   tmp_test_cli.pkqueryC.blind0
-    21436   tmp_test_cli.pkqueryH0
-    48      tmp_test_cli.pkqueryIC
-    48      tmp_test_cli.pkqueryIC.blind
-    16884   tmp_test_cli.pkqueryK0
-    16884   tmp_test_cli.pkqueryK.blind0
+    9780    tmp_test_cli.pkqueryA0
+    9780    tmp_test_cli.pkqueryA.blind0
+    14784   tmp_test_cli.pkqueryB0
+    14784   tmp_test_cli.pkqueryB.blind0
+    5272    tmp_test_cli.pkqueryC0
+    5272    tmp_test_cli.pkqueryC.blind0
+    6276    tmp_test_cli.pkqueryH0
+    20      tmp_test_cli.pkqueryIC
+    20      tmp_test_cli.pkqueryIC.blind
+    4936    tmp_test_cli.pkqueryK0
+    4936    tmp_test_cli.pkqueryK.blind0
     4       tmp_test_cli.pkwitnessA
     4       tmp_test_cli.pkwitnessA.blind
     4       tmp_test_cli.pkwitnessB
@@ -960,24 +960,24 @@ Many files are left behind by the script.
     4       tmp_test_cli.pkwitnessK.blind
     4       tmp_test_cli.proofrand
     4       tmp_test_cli.qapqueryA
-    5232    tmp_test_cli.qapqueryA0
+    2420    tmp_test_cli.qapqueryA0
     4       tmp_test_cli.qapqueryA.afterIC
-    5216    tmp_test_cli.qapqueryA.afterIC0
+    2420    tmp_test_cli.qapqueryA.afterIC0
     4       tmp_test_cli.qapqueryB
-    4144    tmp_test_cli.qapqueryB0
+    2420    tmp_test_cli.qapqueryB0
     4       tmp_test_cli.qapqueryC
-    2908    tmp_test_cli.qapqueryC0
+    2420    tmp_test_cli.qapqueryC0
     4       tmp_test_cli.qapqueryH
-    7080    tmp_test_cli.qapqueryH0
+    3076    tmp_test_cli.qapqueryH0
     4       tmp_test_cli.qapqueryIC
-    16      tmp_test_cli.qapqueryIC0
+    8       tmp_test_cli.qapqueryIC0
     4       tmp_test_cli.qapqueryK
-    5568    tmp_test_cli.qapqueryK0
-    7080    tmp_test_cli.qapwitness0
+    2420    tmp_test_cli.qapqueryK0
+    3076    tmp_test_cli.qapwitness0
     4       tmp_test_cli.system
-    26752   tmp_test_cli.system0
-    2172    tmp_test_cli.witness
-    304904  total
+    15352   tmp_test_cli.system0
+    2420    tmp_test_cli.witness
+    111992  total
 
 A more realistic example is a Merkle tree of depth 64 using the 128 bit
 Barreto-Naehrig curve. As before, the SHA-256 compression function is used.
@@ -986,7 +986,7 @@ table is partitioned into 8 blocks.
 
     $ ./test_cli.sh BN128 256 64 16 8 clearonly
 
-Note this may take hours to run and writes 16 GB of files to disk. However,
+Note this may take hours to run and writes 6 GB of files to disk. However,
 RAM use remains between 500 MB and 2 GB. A laptop with 4 GB RAM and a slow
 x86-64 bit CPU running at 1 GHz can generate the key pair in under eight hours
 using a single core without stressing itself (getting hot or thrashing disk).
