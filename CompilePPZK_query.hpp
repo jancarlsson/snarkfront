@@ -135,7 +135,7 @@ private:
         dummy->majorSteps(N);
 
         snarklib::BlockVector<FR> v;
-        if (!snarklib::read_blockvector(m_qapfile, blocknum, v)) {
+        if (!snarklib::read_blockvector_raw(m_qapfile, blocknum, v)) {
             m_error = true;
             return;
         }
@@ -155,7 +155,19 @@ private:
         if (!ofs)
             m_error = true;
         else
-            Q.vec().marshal_out(ofs);
+#ifdef USE_ADD_SPECIAL
+            Q.vec().marshal_out(
+                ofs,
+                [] (std::ostream& o, const typename QUERY::Val& a) {
+                    a.marshal_out_rawspecial(o);
+                });
+#else
+            Q.vec().marshal_out(
+                ofs,
+                [] (std::ostream& o, const typename QUERY::Val& a) {
+                    a.marshal_out_raw(o);
+                });
+#endif
     }
 
     // entropy in clear
@@ -313,7 +325,7 @@ private:
         dummy->majorSteps(N);
 
         snarklib::BlockVector<FR> v;
-        if (!snarklib::read_blockvector(m_qapfile, blocknum, v)) {
+        if (!snarklib::read_blockvector_raw(m_qapfile, blocknum, v)) {
             m_error = true;
             return;
         }
@@ -333,7 +345,19 @@ private:
         if (!ofs)
             m_error = true;
         else
-            Q.vec().marshal_out(ofs);
+#ifdef USE_ADD_SPECIAL
+            Q.vec().marshal_out(
+                ofs,
+                [] (std::ostream& o, const typename QUERY::Val& a) {
+                    a.marshal_out_rawspecial(o);
+                });
+#else
+            Q.vec().marshal_out(
+                ofs,
+                [] (std::ostream& o, const typename QUERY::Val& a) {
+                    a.marshal_out_raw(o);
+                });
+#endif
     }
 
     // entropy in clear
@@ -440,20 +464,19 @@ public:
     void H(const std::string& outfile,
            const std::size_t blocknum,
            snarklib::ProgressCallback* callback = nullptr) {
-        writeFiles(outfile, blocknum, callback, false);
+        writeFiles(outfile, blocknum, callback);
     }
 
     void K(const std::string& outfile,
            const std::size_t blocknum,
            snarklib::ProgressCallback* callback = nullptr) {
-        writeFiles(outfile, blocknum, callback, true);
+        writeFiles(outfile, blocknum, callback);
     }
 
 private:
     void writeFiles(const std::string& outfile,
                     const std::size_t blocknum,
-                    snarklib::ProgressCallback* callback,
-                    const bool special) // only true for K
+                    snarklib::ProgressCallback* callback)
     {
         snarklib::ProgressCallback_NOP<PAIRING> dummyNOP;
         snarklib::ProgressCallback* dummy = callback
@@ -464,7 +487,7 @@ private:
         dummy->majorSteps(N);
 
         snarklib::BlockVector<FR> v;
-        if (!snarklib::read_blockvector(m_qapfile, blocknum, v)) {
+        if (!snarklib::read_blockvector_raw(m_qapfile, blocknum, v)) {
             m_error = true;
             return;
         }
@@ -478,7 +501,7 @@ private:
         }
 
 #ifdef USE_ADD_SPECIAL
-        if (special) Q.batchSpecial();
+        Q.batchSpecial();
 #endif
 
         std::stringstream ss;
@@ -488,7 +511,19 @@ private:
         if (!ofs)
             m_error = true;
         else
-            Q.vec().marshal_out(ofs);
+#ifdef USE_ADD_SPECIAL
+            Q.vec().marshal_out(
+                ofs,
+                [] (std::ostream& o, const G1& a) {
+                    a.marshal_out_rawspecial(o);
+                });
+#else
+            Q.vec().marshal_out(
+                ofs,
+                [] (std::ostream& o, const G1& a) {
+                    a.marshal_out_raw(o);
+                });
+#endif
     }
 
     bool m_error;
@@ -554,9 +589,9 @@ public:
         while (b) {
             snarklib::BlockVector<FR> A, B, C;
 
-            if (!snarklib::read_blockvector(m_afile, block, A) ||
-                !snarklib::read_blockvector(m_bfile, block, B) ||
-                !snarklib::read_blockvector(m_cfile, block, C)) {
+            if (!snarklib::read_blockvector_raw(m_afile, block, A) ||
+                !snarklib::read_blockvector_raw(m_bfile, block, B) ||
+                !snarklib::read_blockvector_raw(m_cfile, block, C)) {
                 m_error = true;
                 return;
             }
@@ -596,7 +631,19 @@ public:
             if (!ofs)
                 m_error = true;
             else
-                Q.vec().marshal_out(ofs);
+#ifdef USE_ADD_SPECIAL
+            Q.vec().marshal_out(
+                ofs,
+                [] (std::ostream& o, const G1& a) {
+                    a.marshal_out_rawspecial(o);
+                });
+#else
+            Q.vec().marshal_out(
+                ofs,
+                [] (std::ostream& o, const G1& a) {
+                    a.marshal_out_raw(o);
+                });
+#endif
 
             b = (-1 == blocknum)
                 ? ++block < space.blockID()[0]
@@ -646,7 +693,7 @@ public:
              ? !m_blindGreeks.marshal_in(ifs)
              : !m_clearGreeks.marshal_in(ifs)) ||
             !m_hugeSystem.loadIndex() ||
-            !read_blockvector(qapICfile, 0, m_qapIC);
+            !read_blockvector_raw(qapICfile, 0, m_qapIC);
     }
 
     PPZK_verification_key(const std::size_t g1_exp_count,
@@ -667,7 +714,7 @@ public:
 
         m_error =
             !m_hugeSystem.loadIndex() ||
-            !read_blockvector(qapICfile, 0, m_qapIC);
+            !read_blockvector_raw(qapICfile, 0, m_qapIC);
     }
 
     bool operator! () const { return m_error; }
@@ -718,7 +765,7 @@ public:
         if (!ofs)
             m_error = true;
         else
-            vk.marshal_out(ofs);
+            vk.marshal_out_raw(ofs);
     }
 
 private:
