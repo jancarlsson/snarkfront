@@ -105,7 +105,23 @@ public:
         ss << queryfile << blocknum;
 
         std::ifstream ifs(ss.str());
-        if (!ifs || !query.marshal_in(ifs)) {
+#ifdef USE_ADD_SPECIAL
+        if (!ifs ||
+            !query.marshal_in(
+                ifs,
+                [] (std::istream& i, typename WITNESS::Val& a) {
+                    return a.marshal_in_rawspecial(i);
+                }))
+        {
+#else
+        if (!ifs ||
+            !query.marshal_in(
+                ifs,
+                [] (std::istream& i, typename WITNESS:Val& a) {
+                    return a.marshal_in_raw(i);
+                }))
+        {
+#endif
             m_error = true;
 
         } else {
@@ -153,8 +169,13 @@ public:
     {
         snarklib::BlockVector<G1> query;
         snarklib::BlockVector<FR> scalar;
-        if (!snarklib::read_blockvector(queryfile, blocknum, query) ||
-            !snarklib::read_blockvector(m_qapABCH, blocknum, scalar)) {
+#ifdef USE_ADD_SPECIAL
+        if (!snarklib::read_blockvector_rawspecial(queryfile, blocknum, query) ||
+            !snarklib::read_blockvector_raw(m_qapABCH, blocknum, scalar)) {
+#else
+        if (!snarklib::read_blockvector_raw(queryfile, blocknum, query) ||
+            !snarklib::read_blockvector_raw(m_qapABCH, blocknum, scalar)) {
+#endif
             m_error = true;
 
         } else {
@@ -233,7 +254,7 @@ public:
                     snarklib::ProgressCallback* callback = nullptr)
     {
         snarklib::BlockVector<G1> query;
-        if (!snarklib::read_blockvector(queryfile, blocknum, query)) {
+        if (!snarklib::read_blockvector_rawspecial(queryfile, blocknum, query)) {
             m_error = true;
 
         } else {
