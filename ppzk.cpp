@@ -254,7 +254,7 @@ bool witnessVal(const WIT& wit,
     if (!ofs) {
         return false;
     } else {
-        wit.val().marshal_out(ofs);
+        wit.val().marshal_out_raw(ofs);
     }
 
     return true;
