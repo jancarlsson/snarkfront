@@ -31,6 +31,12 @@ bool marshal_in(T& a, const string& filename) {
     return !!ifs && a.marshal_in(ifs);
 }
 
+template <typename T>
+bool marshal_in_raw(T& a, const string& filename) {
+    ifstream ifs(filename);
+    return !!ifs && a.marshal_in_raw(ifs);
+}
+
 template <typename PAIRING>
 bool verifyProof(const string& keyfile,
                  const string& pinfile,
@@ -48,13 +54,13 @@ bool verifyProof(const string& keyfile,
     typename PAIRING::G1 pH, pK;
 
     return
-        marshal_in(vk, keyfile) &&
+        marshal_in_raw(vk, keyfile) &&
         marshal_in(input, pinfile) &&
-        marshal_in(pA, afile) &&
-        marshal_in(pB, bfile) &&
-        marshal_in(pC, cfile) &&
-        marshal_in(pH, hfile) &&
-        marshal_in(pK, kfile) &&
+        marshal_in_raw(pA, afile) &&
+        marshal_in_raw(pB, bfile) &&
+        marshal_in_raw(pC, cfile) &&
+        marshal_in_raw(pH, hfile) &&
+        marshal_in_raw(pK, kfile) &&
         strongVerify(vk, input, PPZK_Proof<PAIRING>(pA, pB, pC, pH, pK));
 }
 
