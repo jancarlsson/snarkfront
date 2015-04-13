@@ -208,7 +208,7 @@ void witnessVal(const T& obj, ostream& os) {
         cerr << "ERROR" << endl;
         exit(EXIT_FAILURE);
     } else {
-        obj.val().marshal_out(os);
+        obj.val().marshal_out_raw(os);
     }
 }
 
@@ -304,8 +304,14 @@ bool marshal_in(T& obj, const string& filename) {
 }
 
 template <typename T>
-bool marshal_in(T& obj, std::istream& is) {
-    return !!is && obj.marshal_in(is);
+bool marshal_in_raw(T& obj, const string& filename) {
+    ifstream ifs(filename);
+    return !!ifs && obj.marshal_in_raw(ifs);
+}
+
+template <typename T>
+bool marshal_in_raw(T& obj, std::istream& is) {
+    return !!is && obj.marshal_in_raw(is);
 }
 
 template <typename PAIRING>
@@ -327,13 +333,13 @@ bool verify_proof(const string& proof,
     }
 
     return
-        marshal_in(vk, keypair_prefix + ".vk") &&
+        marshal_in_raw(vk, keypair_prefix + ".vk") &&
         marshal_in(r1input, input) &&
-        marshal_in(pA, ifs) &&
-        marshal_in(pB, ifs) &&
-        marshal_in(pC, ifs) &&
-        marshal_in(pH, ifs) &&
-        marshal_in(pK, ifs) &&
+        marshal_in_raw(pA, ifs) &&
+        marshal_in_raw(pB, ifs) &&
+        marshal_in_raw(pC, ifs) &&
+        marshal_in_raw(pH, ifs) &&
+        marshal_in_raw(pK, ifs) &&
         strongVerify(vk, r1input, PPZK_Proof<PAIRING>(pA, pB, pC, pH, pK));
 }
 
