@@ -261,5 +261,5 @@ int main(int argc, char *argv[])
         readLoop<EDWARDS_PAIRING>(shaBits, testCase, zkProof);
     }
 
-    exit(EXIT_SUCCESS);
+    return EXIT_SUCCESS;
 }
