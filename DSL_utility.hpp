@@ -10,6 +10,7 @@
 #include "Alg.hpp"
 #include "AST.hpp"
 #include "BitwiseAST.hpp"
+#include <Util.hpp> // snarklib
 
 namespace snarkfront {
 
@@ -69,14 +70,23 @@ std::size_t sizeBits(const AST_Var<ALG>&) {
 // serialize hash digests and preimages
 //
 
-#define DEFN_ARRAY_OUT(UINT)                            \
-template <std::size_t N>                                \
-std::ostream& operator<< (std::ostream& os,             \
-                          const std::array<UINT, N>& a) \
-{                                                       \
-    for (const auto& r : a)                             \
-        os << r << std::endl;                           \
-    return os;                                          \
+#define DEFN_ARRAY_OUT(UINT)                                    \
+template <std::size_t N>                                        \
+std::ostream& operator<< (                                      \
+    std::ostream& os,                                           \
+    const std::array<UINT, N>& a)                               \
+{                                                               \
+    const char *ptr = reinterpret_cast<const char*>(a.data());  \
+    if (snarklib::is_big_endian<int>()) {                       \
+        for (std::size_t i = 0; i < N; ++i) {                   \
+            for (int j = sizeof(UINT) - 1; j >= 0; --j) {       \
+                os.put(ptr[i * sizeof(UINT) + j]);              \
+            }                                                   \
+        }                                                       \
+    } else {                                                    \
+        os.write(ptr, sizeof(a));                               \
+    }                                                           \
+    return os;                                                  \
 }
 
 DEFN_ARRAY_OUT(std::uint8_t)
@@ -85,15 +95,16 @@ DEFN_ARRAY_OUT(std::uint64_t)
 
 #undef DEFN_ARRAY_OUT
 
-#define DEFN_VECTOR_ARRAY_OUT(UINT)                                     \
-template <std::size_t N>                                                \
-std::ostream& operator<< (std::ostream& os,                             \
-                          const std::vector<std::array<UINT, N>>& a)    \
-{                                                                       \
-    os << a.size() << std::endl;                                        \
-    for (const auto& r : a)                                             \
-        os << r;                                                        \
-    return os;                                                          \
+#define DEFN_VECTOR_ARRAY_OUT(UINT)                     \
+template <std::size_t N>                                \
+std::ostream& operator<< (                              \
+    std::ostream& os,                                   \
+    const std::vector<std::array<UINT, N>>& a)          \
+{                                                       \
+    os << a.size() << ' ';                              \
+    for (const auto& r : a)                             \
+        os << r;                                        \
+    return os;                                          \
 }
 
 DEFN_VECTOR_ARRAY_OUT(std::uint8_t)
@@ -102,14 +113,24 @@ DEFN_VECTOR_ARRAY_OUT(std::uint64_t)
 
 #undef DEFN_VECTOR_ARRAY_OUT
 
-#define DEFN_ARRAY_IN(UINT)                             \
-template <std::size_t N>                                \
-std::istream& operator>> (std::istream& is,             \
-                          std::array<UINT, N>& a)       \
-{                                                       \
-    for (auto& r : a)                                   \
-        if (!(is >> r)) break;                          \
-    return is;                                          \
+#define DEFN_ARRAY_IN(UINT)                                     \
+template <std::size_t N>                                        \
+std::istream& operator>> (                                      \
+    std::istream& is,                                           \
+    std::array<UINT, N>& a)                                     \
+{                                                               \
+    char *ptr = reinterpret_cast<char*>(a.data());              \
+    if (snarklib::is_big_endian<int>()) {                       \
+        for (std::size_t i = 0; i < N; ++i) {                   \
+            for (int j = sizeof(UINT) - 1; j >= 0; --j) {       \
+                if (! is.get(ptr[i * sizeof(UINT) + j]))        \
+                    return is;                                  \
+            }                                                   \
+        }                                                       \
+    } else {                                                    \
+        is.read(ptr, sizeof(a));                                \
+    }                                                           \
+    return is;                                                  \
 }
 
 DEFN_ARRAY_IN(std::uint8_t)
@@ -118,17 +139,20 @@ DEFN_ARRAY_IN(std::uint64_t)
 
 #undef DEFN_ARRAY_IN
 
-#define DEFN_VECTOR_ARRAY_IN(UINT)                              \
-template <std::size_t N>                                        \
-std::istream& operator>> (std::istream& is,                     \
-                          std::vector<std::array<UINT, N>>& a)  \
-{                                                               \
-    std::size_t len = -1;                                       \
-    if (!(is >> len) || (-1 == len)) return is;                 \
-    a.resize(len);                                              \
-    for (auto& r : a)                                           \
-        if (!(is >> r)) break;                                  \
-    return is;                                                  \
+#define DEFN_VECTOR_ARRAY_IN(UINT)              \
+template <std::size_t N>                        \
+std::istream& operator>> (                      \
+    std::istream& is,                           \
+    std::vector<std::array<UINT, N>>& a)        \
+{                                               \
+    std::size_t len = -1;                       \
+    if (!(is >> len) || (-1 == len)) return is; \
+    char c;                                     \
+    if (!is.get(c) || (' ' != c)) return is;    \
+    a.resize(len);                              \
+    for (auto& r : a)                           \
+        if (!(is >> r)) break;                  \
+    return is;                                  \
 }
 
 DEFN_VECTOR_ARRAY_IN(std::uint8_t)
