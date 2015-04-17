@@ -290,5 +290,5 @@ int main(int argc, char *argv[])
         cout << "test " << (result ? "passed" : "failed") << endl;
     }
 
-    exit(EXIT_SUCCESS);
+    return EXIT_SUCCESS;
 }
