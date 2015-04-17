@@ -80,23 +80,26 @@ public:
         os << m_str.size() << std::endl;
 
         for (const auto& a : m_str)
-            os << a << std::endl;
+            os << a << ' ';
     }
 
     bool marshal_in(std::istream& is) {
         if (! m_FR.marshal_in(is)) return false;
 
         std::size_t numberElems;
-        is >> numberElems;
-        if (!is) return false;
+        if (! (is >> numberElems)) return false;
 
         m_str.clear();
+        m_str.reserve(numberElems);
         for (std::size_t i = 0; i < numberElems; ++i) {
             std::string value;
-            is >> value;
-            if (!is) return false;
+            if (! (is >> value)) return false;
             m_str.emplace_back(value);
         }
+
+        // consume trailing space
+        char c;
+        if (!is.get(c) || (' ' != c)) return false;
 
         return true;
     }
