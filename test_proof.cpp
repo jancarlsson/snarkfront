@@ -119,5 +119,5 @@ int main(int argc, char *argv[])
         printUsage(argv[0]);
     }
 
-    exit(EXIT_SUCCESS);
+    return EXIT_SUCCESS;
 }
