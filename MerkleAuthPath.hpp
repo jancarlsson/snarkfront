@@ -199,34 +199,52 @@ public:
     }
 
     void marshal_out(std::ostream& os) const {
-        os << m_depth << std::endl
+        os << m_depth << ' '
            << m_rootPath
            << m_siblings;
 
-        for (const auto& a : m_childBits) {
-            os << a << std::endl;
+        const char *ptr = reinterpret_cast<const char*>(m_childBits.data());
+
+        if (snarklib::is_big_endian<int>()) {
+            for (std::size_t i = 0; i < m_childBits.size(); ++i) {
+                for (int j = sizeof(int) - 1; j >= 0; --j) {
+                    os.put(ptr[i * sizeof(int) + j]);
+                }
+            }
+
+        } else {
+            os.write(ptr, m_childBits.size() * sizeof(int));
         }
     }
 
     bool marshal_in(std::istream& is) {
         m_depth = 0; // use as valid flag
 
+        // depth
         std::size_t len = 0;
-        is >> len;
-        if (!is || 0 == len) return false;
+        if (!(is >> len) || (0 == len)) return false;
+
+        // consume space
+        char c;
+        if (!is.get(c) || (' ' != c)) return false;
 
         m_rootPath.resize(len);
-        is >> m_rootPath;
-        if (!is) return false;
+        if (! (is >> m_rootPath)) return false;
 
         m_siblings.resize(len);
-        is >> m_siblings;
-        if (!is) return false;
+        if (! (is >> m_siblings)) return false;
 
         m_childBits.resize(len);
-        for (auto& r : m_childBits) {
-            is >> r;
-            if (!is) return false;
+        char *ptr = reinterpret_cast<char*>(m_childBits.data());
+
+        if (snarklib::is_big_endian<int>()) {
+            for (std::size_t i = 0; i < m_childBits.size(); ++i) {
+                for (int j = sizeof(int) - 1; j >= 0; --j) {
+                    if (! is.get(ptr[i * sizeof(int) + j])) return false;
+                }
+            }
+        } else {
+            if (! is.read(ptr, m_childBits.size() * sizeof(int))) return false;
         }
 
         m_depth = len;
