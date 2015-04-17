@@ -77,16 +77,19 @@ public:
     }
 
     void marshal_out(std::ostream& os) const {
-        os << m_isFull << std::endl
-           << m_authPath;
+        os << m_isFull << ' ' << m_authPath;
     }
 
     bool marshal_in(std::istream& is) {
         m_isFull = true; // use as valid flag
 
+        // is full
         bool full = true;
-        is >> full;
-        if (!is) return false;
+        if (! (is >> full)) return false;
+
+        // space
+        char c;
+        if (!is.get(c) || (' ' != c)) return false;
 
         if (! m_authPath.marshal_in(is)) return false;
 
