@@ -97,5 +97,5 @@ int main(int argc, char *argv[])
         writeEntropy<EDWARDS_PAIRING>(os, is_clear_keypair, blind);
     }
 
-    exit(EXIT_SUCCESS);
+    return EXIT_SUCCESS;
 }
