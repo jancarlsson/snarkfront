@@ -99,5 +99,5 @@ int main(int argc, char *argv[])
 
     cout << ok << endl;
 
-    exit(EXIT_SUCCESS);
+    return EXIT_SUCCESS;
 }
