@@ -7,7 +7,8 @@
 #include <cstdint>
 #include <gmp.h>
 #include <vector>
-#include <BigInt.hpp> // snarklib
+
+#include <snarklib/BigInt.hpp>
 
 namespace snarkfront {
 
