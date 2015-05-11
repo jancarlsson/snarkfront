@@ -1,4 +1,4 @@
-#include "PowersOf2.hpp"
+#include "snarkfront/PowersOf2.hpp"
 
 using namespace std;
 
