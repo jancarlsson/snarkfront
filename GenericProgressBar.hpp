@@ -3,7 +3,8 @@
 
 #include <cstdint>
 #include <ostream>
-#include <ProgressCallback.hpp> // snarklib
+
+#include <snarklib/ProgressCallback.hpp>
 
 namespace snarkfront {
 
