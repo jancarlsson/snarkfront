@@ -1,4 +1,4 @@
-#include "EnumOps.hpp"
+#include "snarkfront/EnumOps.hpp"
 
 using namespace std;
 
@@ -44,6 +44,13 @@ LogicalOps eqToLogical(const EqualityCmp op) {
     switch (op) {
     case (EqualityCmp::EQ) : return LogicalOps::SAME;
     case (EqualityCmp::NEQ) : return LogicalOps::XOR;
+    }
+}
+
+LogicalOps eqToLogical(const ScalarCmp op) {
+    switch (op) {
+    case (ScalarCmp::EQ) : return LogicalOps::SAME;
+    default: return LogicalOps::XOR;
     }
 }
 
