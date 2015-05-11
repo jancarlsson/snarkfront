@@ -4,13 +4,14 @@
 #include <array>
 #include <cstdint>
 #include <vector>
-#include "Alg.hpp"
-#include "Alg_BigInt.hpp"
-#include "Alg_bool.hpp"
-#include "Alg_uint.hpp"
-#include "BitwiseAST.hpp"
-#include "DataBuffer.hpp"
-#include "PowersOf2.hpp"
+
+#include <snarkfront/Alg.hpp>
+#include <snarkfront/Alg_BigInt.hpp>
+#include <snarkfront/Alg_bool.hpp>
+#include <snarkfront/Alg_uint.hpp>
+#include <snarkfront/BitwiseAST.hpp>
+#include <snarkfront/DataBuffer.hpp>
+#include <snarkfront/PowersOf2.hpp>
 
 namespace snarkfront {
 
