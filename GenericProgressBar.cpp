@@ -1,6 +1,7 @@
 #include <cassert>
 #include <iostream>
-#include "GenericProgressBar.hpp"
+
+#include "snarkfront/GenericProgressBar.hpp"
 
 using namespace std;
 
