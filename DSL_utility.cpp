@@ -1,4 +1,4 @@
-#include "DSL_utility.hpp"
+#include "snarkfront/DSL_utility.hpp"
 
 using namespace std;
 
