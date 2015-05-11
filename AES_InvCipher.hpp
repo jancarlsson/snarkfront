@@ -3,8 +3,9 @@
 
 #include <array>
 #include <cstdint>
-#include "AES_InvSBox.hpp"
-#include "AES_KeyExpansion.hpp"
+
+#include <snarkfront/AES_InvSBox.hpp>
+#include <snarkfront/AES_KeyExpansion.hpp>
 
 namespace snarkfront {
 
