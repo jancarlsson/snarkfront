@@ -3,7 +3,8 @@
 
 #include <array>
 #include <cstdint>
-#include "AES_SBox.hpp"
+
+#include <snarkfront/AES_SBox.hpp>
 
 namespace snarkfront {
 
