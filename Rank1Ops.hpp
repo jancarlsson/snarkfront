@@ -5,9 +5,11 @@
 #include <cassert>
 #include <cstdint>
 #include <vector>
-#include "PowersOf2.hpp"
-#include <Rank1DSL.hpp> // snarklib
-#include "TLsingleton.hpp"
+
+#include <snarklib/Rank1DSL.hpp>
+
+#include <snarkfront/PowersOf2.hpp>
+#include <snarkfront/TLsingleton.hpp>
 
 namespace snarkfront {
 
