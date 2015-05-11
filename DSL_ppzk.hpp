@@ -4,14 +4,16 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include "Alg.hpp"
-#include "Alg_bool.hpp"
-#include "DSL_base.hpp"
-#include <PPZK_keypair.hpp> // snarklib
-#include <PPZK_proof.hpp> // snarklib
-#include <ProgressCallback.hpp> // snarklib
-#include "R1C.hpp"
-#include "TLsingleton.hpp"
+
+#include <snarklib/PPZK_keypair.hpp>
+#include <snarklib/PPZK_proof.hpp>
+#include <snarklib/ProgressCallback.hpp>
+
+#include <snarkfront/Alg.hpp>
+#include <snarkfront/Alg_bool.hpp>
+#include <snarkfront/DSL_base.hpp>
+#include <snarkfront/R1C.hpp>
+#include <snarkfront/TLsingleton.hpp>
 
 namespace snarkfront {
 
@@ -20,6 +22,8 @@ namespace snarkfront {
 //
 
 template <typename PAIRING> using Keypair = snarklib::PPZK_Keypair<PAIRING>;
+template <typename PAIRING> using ProvingKey = snarklib::PPZK_ProvingKey<PAIRING>;
+template <typename PAIRING> using VerificationKey = snarklib::PPZK_VerificationKey<PAIRING>;
 template <typename PAIRING> using Input = R1Cowitness<typename PAIRING::Fr>;
 template <typename PAIRING> using Proof = snarklib::PPZK_Proof<PAIRING>;
 typedef snarklib::ProgressCallback ProgressCallback;
@@ -90,10 +94,36 @@ const snarklib::R1Witness<typename PAIRING::Fr>& witness()
 
 template <typename PAIRING>
 snarklib::PPZK_Proof<PAIRING> proof(
-    const snarklib::PPZK_Keypair<PAIRING>& keypair)
+    const snarklib::PPZK_ProvingKey<PAIRING>& key)
 {
     return TL<R1C<typename PAIRING::Fr>>::singleton()
-        ->proof(keypair, 0);
+        ->proof(key, 0);
+}
+
+template <typename PAIRING>
+snarklib::PPZK_Proof<PAIRING> proof(
+    const snarklib::PPZK_ProvingKey<PAIRING>& key,
+    snarklib::ProgressCallback& callback)
+{
+    return TL<R1C<typename PAIRING::Fr>>::singleton()
+        ->proof(key, 0, std::addressof(callback));
+}
+
+template <typename PAIRING>
+snarklib::PPZK_Proof<PAIRING> proof(
+    const snarklib::PPZK_ProvingKey<PAIRING>& key,
+    const std::size_t reserveTune,
+    snarklib::ProgressCallback& callback)
+{
+    return TL<R1C<typename PAIRING::Fr>>::singleton()
+        ->proof(key, reserveTune, std::addressof(callback));
+}
+
+template <typename PAIRING>
+snarklib::PPZK_Proof<PAIRING> proof(
+    const snarklib::PPZK_Keypair<PAIRING>& keypair)
+{
+    return proof(keypair.pk());
 }
 
 template <typename PAIRING>
@@ -101,8 +131,7 @@ snarklib::PPZK_Proof<PAIRING> proof(
     const snarklib::PPZK_Keypair<PAIRING>& keypair,
     snarklib::ProgressCallback& callback)
 {
-    return TL<R1C<typename PAIRING::Fr>>::singleton()
-        ->proof(keypair, 0, std::addressof(callback));
+    return proof(keypair.pk(), callback);
 }
 
 template <typename PAIRING>
@@ -111,8 +140,28 @@ snarklib::PPZK_Proof<PAIRING> proof(
     const std::size_t reserveTune,
     snarklib::ProgressCallback& callback)
 {
+    return proof(keypair.pk(), reserveTune, callback);
+}
+
+template <typename PAIRING>
+bool verify(
+    const snarklib::PPZK_VerificationKey<PAIRING>& key,
+    const R1Cowitness<typename PAIRING::Fr>& input,
+    const snarklib::PPZK_Proof<PAIRING>& proof)
+{
     return TL<R1C<typename PAIRING::Fr>>::singleton()
-        ->proof(keypair, reserveTune, std::addressof(callback));
+        ->verify(key, input, proof);
+}
+
+template <typename PAIRING>
+bool verify(
+    const snarklib::PPZK_VerificationKey<PAIRING>& key,
+    const R1Cowitness<typename PAIRING::Fr>& input,
+    const snarklib::PPZK_Proof<PAIRING>& proof,
+    snarklib::ProgressCallback& callback)
+{
+    return TL<R1C<typename PAIRING::Fr>>::singleton()
+        ->verify(key, input, proof, std::addressof(callback));
 }
 
 template <typename PAIRING>
@@ -121,8 +170,7 @@ bool verify(
     const R1Cowitness<typename PAIRING::Fr>& input,
     const snarklib::PPZK_Proof<PAIRING>& proof)
 {
-    return TL<R1C<typename PAIRING::Fr>>::singleton()
-        ->verify(keypair, input, proof);
+    return verify(keypair.vk(), input, proof);
 }
 
 template <typename PAIRING>
@@ -132,8 +180,7 @@ bool verify(
     const snarklib::PPZK_Proof<PAIRING>& proof,
     snarklib::ProgressCallback& callback)
 {
-    return TL<R1C<typename PAIRING::Fr>>::singleton()
-        ->verify(keypair, input, proof, std::addressof(callback));
+    return verify(keypair.vk(), input, proof, callback);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
