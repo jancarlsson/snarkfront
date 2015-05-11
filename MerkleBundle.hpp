@@ -2,14 +2,16 @@
 #define _SNARKFRONT_MERKLE_BUNDLE_HPP_
 
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <istream>
 #include <ostream>
 #include <set>
 #include <vector>
-#include "DSL_utility.hpp"
-#include "MerkleAuthPath.hpp"
-#include "MerkleTree.hpp"
+
+#include <snarkfront/DSL_utility.hpp>
+#include <snarkfront/MerkleAuthPath.hpp>
+#include <snarkfront/MerkleTree.hpp>
 
 namespace snarkfront {
 
@@ -47,7 +49,7 @@ public:
         return m_tree.authPath().rootHash();
     }
 
-    void addLeaf(const DigType& cm, const bool keepPath = true) {
+    void addLeaf(const DigType& cm, const bool keepPath = false) {
         m_tree.updatePath(cm, m_authPath);
 
         if (keepPath) {
@@ -68,13 +70,13 @@ public:
         return m_authPath;
     }
 
-    void authGC(const std::set<DigType>& markedLeaf) {
+    void cleanup(std::function<bool (const DigType&)> func) {
         std::vector<DigType> keepLeaf;
         std::vector<PATH> keepPath;
 
         for (std::size_t i = 0; i < m_authLeaf.size(); ++i) {
             const auto& cm = m_authLeaf[i];
-            if (markedLeaf.count(cm)) {
+            if (func(cm)) {
                 keepLeaf.emplace_back(cm);
                 keepPath.emplace_back(m_authPath[i]);
             }
