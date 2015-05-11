@@ -6,14 +6,16 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "AST.hpp"
-#include <BigInt.hpp> // snarklib
-#include "EnumOps.hpp"
-#include "EvalAST.hpp"
-#include "PowersOf2.hpp"
-#include <Rank1DSL.hpp> // snarklib
-#include "R1C.hpp"
-#include "TLsingleton.hpp"
+
+#include <snarklib/BigInt.hpp>
+#include <snarklib/Rank1DSL.hpp>
+
+#include <snarkfront/AST.hpp>
+#include <snarkfront/EnumOps.hpp>
+#include <snarkfront/EvalAST.hpp>
+#include <snarkfront/PowersOf2.hpp>
+#include <snarkfront/R1C.hpp>
+#include <snarkfront/TLsingleton.hpp>
 
 namespace snarkfront {
 
