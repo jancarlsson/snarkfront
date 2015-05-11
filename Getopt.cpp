@@ -1,6 +1,7 @@
 #include <sstream>
 #include <unistd.h>
-#include "Getopt.hpp"
+
+#include "snarkfront/Getopt.hpp"
 
 using namespace std;
 
