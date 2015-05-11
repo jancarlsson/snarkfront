@@ -6,46 +6,46 @@
 //
 
 // not part of the EDSL but convenient for command line applications
-#include "CompilePPZK_query.hpp"
-#include "CompilePPZK_witness.hpp"
-#include "CompileQAP.hpp"
-#include "Getopt.hpp"
+#include <snarkfront/CompilePPZK_query.hpp>
+#include <snarkfront/CompilePPZK_witness.hpp>
+#include <snarkfront/CompileQAP.hpp>
+#include <snarkfront/Getopt.hpp>
 
 // the basic language
-#include "DSL_base.hpp"
-#include "DSL_bless.hpp"
-#include "DSL_identity.hpp"
-#include "DSL_ppzk.hpp"
-#include "DSL_utility.hpp"
+#include <snarkfront/DSL_base.hpp>
+#include <snarkfront/DSL_bless.hpp>
+#include <snarkfront/DSL_identity.hpp>
+#include <snarkfront/DSL_ppzk.hpp>
+#include <snarkfront/DSL_utility.hpp>
 
 // progress bar for proof generation and verification
-#include "GenericProgressBar.hpp"
+#include <snarkfront/GenericProgressBar.hpp>
 
 // input and printing of hexadecimal text
-#include "HexUtil.hpp"
+#include <snarkfront/HexUtil.hpp>
 
 // initialize elliptic curves
-#include "InitPairing.hpp"
+#include <snarkfront/InitPairing.hpp>
 
 // Merkle tree
-#include "MerkleAuthPath.hpp"
-#include "MerkleBundle.hpp"
-#include "MerkleTree.hpp"
+#include <snarkfront/MerkleAuthPath.hpp>
+#include <snarkfront/MerkleBundle.hpp>
+#include <snarkfront/MerkleTree.hpp>
 
 // Secure Hash Algorithms
-#include "SHA_1.hpp"
-#include "SHA_224.hpp"
-#include "SHA_256.hpp"
-#include "SHA_384.hpp"
-#include "SHA_512.hpp"
-#include "SHA_512_224.hpp"
-#include "SHA_512_256.hpp"
+#include <snarkfront/SHA_1.hpp>
+#include <snarkfront/SHA_224.hpp>
+#include <snarkfront/SHA_256.hpp>
+#include <snarkfront/SHA_384.hpp>
+#include <snarkfront/SHA_512.hpp>
+#include <snarkfront/SHA_512_224.hpp>
+#include <snarkfront/SHA_512_256.hpp>
 
 // Advanced Encryption Algorithm
-#include "AES_Cipher.hpp"
-#include "AES_InvCipher.hpp"
-#include "AES_InvSBox.hpp"
-#include "AES_KeyExpansion.hpp"
-#include "AES_SBox.hpp"
+#include <snarkfront/AES_Cipher.hpp>
+#include <snarkfront/AES_InvCipher.hpp>
+#include <snarkfront/AES_InvSBox.hpp>
+#include <snarkfront/AES_KeyExpansion.hpp>
+#include <snarkfront/AES_SBox.hpp>
 
 #endif
