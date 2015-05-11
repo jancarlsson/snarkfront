@@ -3,7 +3,8 @@
 
 #include <array>
 #include <cstdint>
-#include "DSL_utility.hpp"
+
+#include <snarkfront/DSL_utility.hpp>
 
 namespace snarkfront {
 
