@@ -1,4 +1,4 @@
-#include "HexUtil.hpp"
+#include "snarkfront/HexUtil.hpp"
 
 using namespace std;
 
@@ -162,5 +162,30 @@ void HexDumper::print(const vector<uint8_t>& msg) {
 void HexDumper::print(const DataBufferStream& a) {
     print(a.data());
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// convert between hexadecimal ASCII and binary
+//
+
+#define DEFN_ASCII_HEX_VECTOR(BITS)             \
+    string asciiHex(                            \
+    const vector<uint ## BITS ## _t>& a,        \
+    const bool space)                           \
+{                                               \
+    stringstream ss;                            \
+    DataBuffer<PrintHex> hexpr(ss, false);      \
+    hexpr.push(a[0]);                           \
+    for (size_t i = 1; i < a.size(); ++i) {     \
+        if (space) ss << " ";                   \
+        hexpr.push(a[i]);                       \
+    }                                           \
+    return ss.str();                            \
+}
+
+DEFN_ASCII_HEX_VECTOR(8)
+DEFN_ASCII_HEX_VECTOR(32)
+DEFN_ASCII_HEX_VECTOR(64)
+
+#undef DEFN_ASCII_HEX_VECTOR
 
 } // namespace snarkfront
