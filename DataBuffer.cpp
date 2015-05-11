@@ -1,5 +1,6 @@
 #include <cctype>
-#include "DataBuffer.hpp"
+
+#include "snarkfront/DataBuffer.hpp"
 
 using namespace std;
 
