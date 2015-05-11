@@ -6,11 +6,16 @@
 #include <iostream>
 #include <istream>
 #include <ostream>
+#include <string>
 #include <vector>
-#include "Alg.hpp"
-#include "AST.hpp"
-#include "BitwiseAST.hpp"
-#include <Util.hpp> // snarklib
+
+#include <snarklib/Util.hpp>
+
+#include <snarkfront/Alg.hpp>
+#include <snarkfront/AST.hpp>
+#include <snarkfront/BitwiseAST.hpp>
+#include <snarkfront/DSL_base.hpp>
+#include <snarkfront/HexUtil.hpp>
 
 namespace snarkfront {
 
@@ -65,6 +70,46 @@ std::size_t sizeBits(const AST_Var<ALG>&) {
     typename AST_Var<ALG>::ValueType dummy;
     return sizeBits(dummy);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// convert between hexadecimal ASCII and binary
+//
+
+#define DEFN_ASCII_HEX_ARRAY(BITS)                      \
+template <typename FR, std::size_t N>                   \
+std::string asciiHex(                                   \
+    const std::array<uint ## BITS ## _x<FR>, N>& a,     \
+    const bool space = false)                           \
+{                                                       \
+    std::array<uint ## BITS ## _t, N> tmp;              \
+    for (std::size_t i = 0; i < N; ++i)                 \
+        tmp[i] = a[i]->value();                         \
+    return asciiHex(tmp, space);                        \
+}
+
+DEFN_ASCII_HEX_ARRAY(8)
+DEFN_ASCII_HEX_ARRAY(32)
+DEFN_ASCII_HEX_ARRAY(64)
+
+#undef DEFN_ASCII_HEX_ARRAY
+
+#define DEFN_ASCII_HEX_VECTOR(BITS)                 \
+template <typename FR, std::size_t N>               \
+std::string asciiHex(                               \
+    const std::vector<uint ## BITS ## _x<FR>>& a,   \
+    const bool space = false)                       \
+{                                                   \
+    std::vector<uint ## BITS ## _t> tmp;            \
+    for (std::size_t i = 0; i < N; ++i)             \
+        tmp[i] = a[i]->value();                     \
+    return asciiHex(tmp, space);                    \
+}
+
+DEFN_ASCII_HEX_VECTOR(8)
+DEFN_ASCII_HEX_VECTOR(32)
+DEFN_ASCII_HEX_VECTOR(64)
+
+#undef DEFN_ASCII_HEX_VECTOR
 
 ////////////////////////////////////////////////////////////////////////////////
 // serialize hash digests and preimages
