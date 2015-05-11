@@ -3,7 +3,8 @@
 
 #include <algorithm>
 #include <cassert>
-#include "Alg.hpp"
+
+#include <snarkfront/Alg.hpp>
 
 namespace snarkfront {
 
