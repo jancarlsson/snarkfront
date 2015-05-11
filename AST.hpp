@@ -4,7 +4,8 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "Lazy.hpp"
+
+#include <snarkfront/Lazy.hpp>
 
 namespace snarkfront {
 
@@ -70,7 +71,7 @@ public:
     }
 
 private:
-    const ALG m_alg;
+    ALG m_alg;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
