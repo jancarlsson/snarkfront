@@ -6,9 +6,10 @@
 #include <istream>
 #include <ostream>
 #include <vector>
-#include "MerkleAuthPath.hpp"
-#include "SHA_256.hpp"
-#include "SHA_512.hpp"
+
+#include <snarkfront/MerkleAuthPath.hpp>
+#include <snarkfront/SHA_256.hpp>
+#include <snarkfront/SHA_512.hpp>
 
 namespace snarkfront {
 
