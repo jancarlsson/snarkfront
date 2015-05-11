@@ -5,7 +5,8 @@
 #include <cstdint>
 #include <ostream>
 #include <string>
-#include "DataBuffer.hpp"
+
+#include <snarkfront/DataBuffer.hpp>
 
 namespace snarkfront {
 
