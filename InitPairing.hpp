@@ -1,7 +1,7 @@
 #ifndef _SNARKFRONT_INIT_PAIRING_HPP_
 #define _SNARKFRONT_INIT_PAIRING_HPP_
 
-#include <EC.hpp> // snarklib
+#include <snarklib/EC.hpp>
 
 namespace snarkfront {
 
