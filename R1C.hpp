@@ -9,17 +9,19 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include "Counter.hpp"
-#include "EnumOps.hpp"
-#include "PowersOf2.hpp"
-#include <HugeSystem.hpp> // snarklib
-#include <PPZK_keypair.hpp> // snarklib
-#include <PPZK_proof.hpp> // snarklib
-#include <PPZK_verify.hpp> // snarklib
-#include <ProgressCallback.hpp> // snarklib
-#include <Rank1DSL.hpp> // snarklib
-#include "Rank1Ops.hpp"
-#include "TLsingleton.hpp"
+
+#include <snarklib/HugeSystem.hpp>
+#include <snarklib/PPZK_keypair.hpp>
+#include <snarklib/PPZK_proof.hpp>
+#include <snarklib/PPZK_verify.hpp>
+#include <snarklib/ProgressCallback.hpp>
+#include <snarklib/Rank1DSL.hpp>
+
+#include <snarkfront/Counter.hpp>
+#include <snarkfront/EnumOps.hpp>
+#include <snarkfront/PowersOf2.hpp>
+#include <snarkfront/Rank1Ops.hpp>
+#include <snarkfront/TLsingleton.hpp>
 
 namespace snarkfront {
 
@@ -202,7 +204,7 @@ public:
     // generate proof with private witness
     template <typename PAIRING>
     snarklib::PPZK_Proof<PAIRING> proof(
-        const snarklib::PPZK_Keypair<PAIRING>& key,
+        const snarklib::PPZK_ProvingKey<PAIRING>& pk,
         const std::size_t reserveTune,
         snarklib::ProgressCallback* callback = nullptr)
     {
@@ -211,10 +213,34 @@ public:
         return snarklib::PPZK_Proof<PAIRING>(
             m_constraintSystem,
             m_input.sizeFR(),
-            key.pk(),
+            pk,
             m_witness_FR,
             snarklib::PPZK_ProofRandomness<typename PAIRING::Fr>(0),
             reserveTune,
+            callback);
+    }
+
+    // generate proof with private witness
+    template <typename PAIRING>
+    snarklib::PPZK_Proof<PAIRING> proof(
+        const snarklib::PPZK_Keypair<PAIRING>& key,
+        const std::size_t reserveTune,
+        snarklib::ProgressCallback* callback = nullptr)
+    {
+        return proof(key.pk(), reserveTune, callback);
+    }
+
+    // verify proof with public circuit inputs
+    template <typename PAIRING>
+    bool verify(const snarklib::PPZK_VerificationKey<PAIRING>& vk,
+                const R1Cowitness<FR>& in,
+                const snarklib::PPZK_Proof<PAIRING>& p,
+                snarklib::ProgressCallback* callback = nullptr)
+    {
+        return snarklib::strongVerify(
+            vk,
+            *in,
+            p,
             callback);
     }
 
@@ -225,11 +251,7 @@ public:
                 const snarklib::PPZK_Proof<PAIRING>& p,
                 snarklib::ProgressCallback* callback = nullptr)
     {
-        return snarklib::strongVerify(
-            key.vk(),
-            *in,
-            p,
-            callback);
+        return verify(key.vk(), in, p, callback);
     }
 
     R1T createTerm(const FR& a, const bool nonzeroIndex) {
