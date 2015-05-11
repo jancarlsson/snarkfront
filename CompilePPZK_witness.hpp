@@ -6,14 +6,13 @@
 #include <sstream>
 #include <string>
 
-// snarklib
-#include <AuxSTL.hpp>
-#include <HugeSystem.hpp>
-#include <PPZK_witness.hpp>
-#include <PPZK_randomness.hpp>
-#include <ProgressCallback.hpp>
-#include <Rank1DSL.hpp>
-#include <Util.hpp>
+#include <snarklib/AuxSTL.hpp>
+#include <snarklib/HugeSystem.hpp>
+#include <snarklib/PPZK_witness.hpp>
+#include <snarklib/PPZK_randomness.hpp>
+#include <snarklib/ProgressCallback.hpp>
+#include <snarklib/Rank1DSL.hpp>
+#include <snarklib/Util.hpp>
 
 namespace snarkfront {
 
