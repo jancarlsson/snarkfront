@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+
 #include "snarkfront.hpp"
 
 using namespace snarkfront;
