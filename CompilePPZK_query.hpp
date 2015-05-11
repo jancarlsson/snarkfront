@@ -10,17 +10,16 @@
 #include <sstream>
 #include <string>
 
-// snarklib
-#include <AuxSTL.hpp>
-#include <HugeSystem.hpp>
-#include <IndexSpace.hpp>
-#include <PPZK_keystruct.hpp>
-#include <PPZK_query.hpp>
-#include <PPZK_randomness.hpp>
-#include <ProgressCallback.hpp>
-#include <QAP_system.hpp>
-#include <Util.hpp>
-#include <WindowExp.hpp>
+#include <snarklib/AuxSTL.hpp>
+#include <snarklib/HugeSystem.hpp>
+#include <snarklib/IndexSpace.hpp>
+#include <snarklib/PPZK_keystruct.hpp>
+#include <snarklib/PPZK_query.hpp>
+#include <snarklib/PPZK_randomness.hpp>
+#include <snarklib/ProgressCallback.hpp>
+#include <snarklib/QAP_system.hpp>
+#include <snarklib/Util.hpp>
+#include <snarklib/WindowExp.hpp>
 
 namespace snarkfront {
 
