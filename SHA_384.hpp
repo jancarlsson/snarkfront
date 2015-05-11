@@ -3,13 +3,14 @@
 
 #include <array>
 #include <cstdint>
-#include "Alg.hpp"
-#include "Alg_uint.hpp"
-#include "AST.hpp"
-#include "BitwiseAST.hpp"
-#include "BitwiseINT.hpp"
-#include "Lazy.hpp"
-#include "SHA_512.hpp"
+
+#include <snarkfront/Alg.hpp>
+#include <snarkfront/Alg_uint.hpp>
+#include <snarkfront/AST.hpp>
+#include <snarkfront/BitwiseAST.hpp>
+#include <snarkfront/BitwiseINT.hpp>
+#include <snarkfront/Lazy.hpp>
+#include <snarkfront/SHA_512.hpp>
 
 namespace snarkfront {
 
