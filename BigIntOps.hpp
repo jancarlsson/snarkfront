@@ -6,7 +6,8 @@
 #include <climits>
 #include <cstdint>
 #include <gmp.h>
-#include <BigInt.hpp> // snarklib
+
+#include <snarklib/BigInt.hpp>
 
 namespace snarkfront {
 
