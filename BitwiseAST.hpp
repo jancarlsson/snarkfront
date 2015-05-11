@@ -4,8 +4,9 @@
 #include <array>
 #include <cassert>
 #include <climits>
-#include "Alg.hpp"
-#include "AST.hpp"
+
+#include <snarkfront/Alg.hpp>
+#include <snarkfront/AST.hpp>
 
 namespace snarkfront {
 
