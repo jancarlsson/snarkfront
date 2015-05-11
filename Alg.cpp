@@ -1,4 +1,4 @@
-#include "Alg.hpp"
+#include "snarkfront/Alg.hpp"
 
 using namespace std;
 
