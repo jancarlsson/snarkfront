@@ -2,8 +2,9 @@
 #define _SNARKFRONT_ENUM_OPS_HPP_
 
 #include <cstdint>
-#include "BitwiseINT.hpp"
-#include "PowersOf2.hpp"
+
+#include <snarkfront/BitwiseINT.hpp>
+#include <snarkfront/PowersOf2.hpp>
 
 namespace snarkfront {
 
@@ -25,6 +26,7 @@ bool isPermute(const BitwiseOps op);
 // EQ --> SAME
 // NEQ --> XOR
 LogicalOps eqToLogical(const EqualityCmp op);
+LogicalOps eqToLogical(const ScalarCmp op);
 
 // evaluate logical operations
 template <typename T>
