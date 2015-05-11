@@ -2,8 +2,9 @@
 #define _SNARKFRONT_EVAL_AST_HPP_
 
 #include <stack>
-#include "AST.hpp"
-#include "EnumOps.hpp"
+
+#include <snarkfront/AST.hpp>
+#include <snarkfront/EnumOps.hpp>
 
 namespace snarkfront {
 
