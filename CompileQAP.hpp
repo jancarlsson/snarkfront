@@ -7,16 +7,15 @@
 #include <functional>
 #include <string>
 
-// snarklib
-#include <AuxSTL.hpp>
-#include <HugeSystem.hpp>
-#include <IndexSpace.hpp>
-#include <PPZK_randomness.hpp>
-#include <QAP_query.hpp>
-#include <QAP_system.hpp>
-#include <QAP_witness.hpp>
-#include <Rank1DSL.hpp>
-#include <Util.hpp>
+#include <snarklib/AuxSTL.hpp>
+#include <snarklib/HugeSystem.hpp>
+#include <snarklib/IndexSpace.hpp>
+#include <snarklib/PPZK_randomness.hpp>
+#include <snarklib/QAP_query.hpp>
+#include <snarklib/QAP_system.hpp>
+#include <snarklib/QAP_witness.hpp>
+#include <snarklib/Rank1DSL.hpp>
+#include <snarklib/Util.hpp>
 
 namespace snarkfront {
 
