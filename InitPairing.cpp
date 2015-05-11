@@ -1,5 +1,6 @@
 #include <cassert>
-#include "InitPairing.hpp"
+
+#include "snarkfront/InitPairing.hpp"
 
 namespace snarkfront {
 
