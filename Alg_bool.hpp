@@ -2,7 +2,8 @@
 #define _SNARKFRONT_ALG_BOOL_HPP_
 
 #include <cassert>
-#include "Alg.hpp"
+
+#include <snarkfront/Alg.hpp>
 
 namespace snarkfront {
 
