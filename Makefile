@@ -1,11 +1,12 @@
 CXX = g++
-CXXFLAGS = -O2 -g3 -std=c++11
+CXXFLAGS = -O2 -g3 -std=c++11 -I.
 
 RM = rm
+LN = ln
 AR = ar
 RANLIB = ranlib
 
-LIBRARY_HPP = \
+LIBRARY_BACK_HPP = \
 	AES_Cipher.hpp \
 	AES_InvCipher.hpp \
 	AES_InvSBox.hpp \
@@ -50,8 +51,14 @@ LIBRARY_HPP = \
 	SHA_512_224.hpp \
 	SHA_512_256.hpp \
 	SHA_512.hpp \
-	snarkfront.hpp \
 	TLsingleton.hpp
+
+LIBRARY_FRONT_HPP = \
+	snarkfront.hpp
+
+LIBRARY_HPP = \
+	$(LIBRARY_BACK_HPP) \
+	$(LIBRARY_FRONT_HPP)
 
 LIBRARY_BIN = \
 	hodur \
@@ -90,7 +97,8 @@ else
 install :
 	mkdir -p $(PREFIX)/include/snarkfront $(PREFIX)/lib $(PREFIX)/bin
 	cp libsnarkfront.* $(PREFIX)/lib
-	cp $(LIBRARY_HPP) $(PREFIX)/include/snarkfront
+	cp $(LIBRARY_BACK_HPP) $(PREFIX)/include/snarkfront
+	cp $(LIBRARY_FRONT_HPP) $(PREFIX)/include
 	cp $(LIBRARY_BIN) $(PREFIX)/bin
 endif
 
@@ -105,7 +113,7 @@ CLEAN_FILES = \
 	proof.txt
 
 clean :
-	rm -f *.o $(CLEAN_FILES) tmp_test_cli.*
+	rm -f *.o $(CLEAN_FILES) tmp_test_cli.* snarkfront
 
 
 ################################################################################
@@ -158,7 +166,7 @@ tools :
 verify :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make verify SNARKLIB_PREFIX=/usr/local)
 else
-CXXFLAGS_SNARKLIB = -I$(SNARKLIB_PREFIX)/include/snarklib -DUSE_ASM -DUSE_ADD_SPECIAL -DUSE_ASSERT
+CXXFLAGS_SNARKLIB = -I$(SNARKLIB_PREFIX)/include -DUSE_ASM -DUSE_ADD_SPECIAL -DUSE_ASSERT
 LDFLAGS_SNARKLIB = -lgmpxx -lgmp
 
 SO_FLAGS = $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) -fPIC
@@ -179,6 +187,8 @@ LIBRARY_CPP = \
 	PowersOf2.cpp
 
 libsnarkfront.so : $(LIBRARY_HPP) $(LIBRARY_CPP)
+	$(RM) -f snarkfront
+	$(LN) -s . snarkfront
 	$(CXX) -c $(SO_FLAGS) -o Alg.o Alg.cpp
 	$(CXX) -c $(SO_FLAGS) -o DataBuffer.o DataBuffer.cpp
 	$(CXX) -c $(SO_FLAGS) -o DSL_base.o DSL_base.cpp
@@ -195,6 +205,8 @@ libsnarkfront.so : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(CXX) -o libsnarkfront.so -shared $(LIBRARY_CPP:.cpp=.o)
 
 libsnarkfront.a : $(LIBRARY_HPP) $(LIBRARY_CPP)
+	$(RM) -f snarkfront
+	$(LN) -s . snarkfront
 	$(CXX) -c $(AR_FLAGS) -o Alg.o Alg.cpp
 	$(CXX) -c $(AR_FLAGS) -o DataBuffer.o DataBuffer.cpp
 	$(CXX) -c $(AR_FLAGS) -o DSL_base.o DSL_base.cpp
