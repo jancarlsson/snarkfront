@@ -6,12 +6,13 @@
 #include <istream>
 #include <ostream>
 #include <vector>
-#include "DSL_base.hpp"
-#include "DSL_bless.hpp"
-#include "DSL_utility.hpp"
-#include "PowersOf2.hpp"
-#include "SHA_256.hpp"
-#include "SHA_512.hpp"
+
+#include <snarkfront/DSL_base.hpp>
+#include <snarkfront/DSL_bless.hpp>
+#include <snarkfront/DSL_utility.hpp>
+#include <snarkfront/PowersOf2.hpp>
+#include <snarkfront/SHA_256.hpp>
+#include <snarkfront/SHA_512.hpp>
 
 namespace snarkfront {
 
