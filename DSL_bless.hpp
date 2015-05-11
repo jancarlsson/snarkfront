@@ -4,14 +4,15 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
-#include <vector>
-#include "DataBuffer.hpp"
-#include "DSL_base.hpp"
-#include "DSL_utility.hpp"
-#include "PowersOf2.hpp"
-#include "R1C.hpp"
 #include <sstream>
-#include "TLsingleton.hpp"
+#include <vector>
+
+#include <snarkfront/DataBuffer.hpp>
+#include <snarkfront/DSL_base.hpp>
+#include <snarkfront/DSL_utility.hpp>
+#include <snarkfront/PowersOf2.hpp>
+#include <snarkfront/R1C.hpp>
+#include <snarkfront/TLsingleton.hpp>
 
 namespace snarkfront {
 
