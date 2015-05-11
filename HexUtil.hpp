@@ -7,7 +7,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "DataBuffer.hpp"
+
+#include <snarkfront/DataBuffer.hpp>
 
 namespace snarkfront {
 
@@ -114,39 +115,36 @@ bool asciiHexToArray(const std::string& hexDigits, std::array<T, N>& dig)
     }
 }
 
-template <typename T, std::size_t N>
-std::string asciiHex(const std::array<T, N>& a,
-                     const bool space = false)
-{
-    std::stringstream ss;
-    DataBuffer<PrintHex> hexpr(ss, false);
-
-    hexpr.push(a[0]);
-
-    for (std::size_t i = 1; i < N; ++i) {
-        if (space) ss << " ";
-        hexpr.push(a[i]);
-    }
-
-    return ss.str();
+#define DEFN_ASCII_HEX_ARRAY(BITS)                      \
+template <std::size_t N>                                \
+std::string asciiHex(                                   \
+    const std::array<std::uint ## BITS ## _t, N>& a,    \
+    const bool space = false)                           \
+{                                                       \
+    std::stringstream ss;                               \
+    DataBuffer<PrintHex> hexpr(ss, false);              \
+    hexpr.push(a[0]);                                   \
+    for (std::size_t i = 1; i < N; ++i) {               \
+        if (space) ss << " ";                           \
+        hexpr.push(a[i]);                               \
+    }                                                   \
+    return ss.str();                                    \
 }
 
-template <typename T>
-std::string asciiHex(const std::vector<T>& a,
-                     const bool space = false)
-{
-    std::stringstream ss;
-    DataBuffer<PrintHex> hexpr(ss, false);
+DEFN_ASCII_HEX_ARRAY(8)
+DEFN_ASCII_HEX_ARRAY(32)
+DEFN_ASCII_HEX_ARRAY(64)
 
-    hexpr.push(a[0]);
+#undef DEFN_ASCII_HEX_ARRAY
 
-    for (std::size_t i = 1; i < a.size(); ++i) {
-        if (space) ss << " ";
-        hexpr.push(a[i]);
-    }
+std::string asciiHex(const std::vector<std::uint8_t>& a,
+                     const bool space = false);
 
-    return ss.str();
-}
+std::string asciiHex(const std::vector<std::uint32_t>& a,
+                     const bool space = false);
+
+std::string asciiHex(const std::vector<std::uint64_t>& a,
+                     const bool space = false);
 
 } // namespace snarkfront
 
