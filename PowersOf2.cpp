@@ -4,6 +4,9 @@ using namespace std;
 
 namespace snarkfront {
 
+bool zero_internal(const bool& dummy) { return false; }
+bool one_internal(const bool& dummy) { return true; }
+
 size_t sizeBits(const bool& dummy) { return 1; }
 size_t sizeBits(const uint8_t& dummy) { return 8; }
 size_t sizeBits(const uint32_t& dummy) { return 32; }
