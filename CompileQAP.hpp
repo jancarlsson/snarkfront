@@ -107,6 +107,12 @@ private:
                         m_hugeSystem.numCircuitInputs(),
                         m_lagrangePoint.point());
 
+        if (qap.weakPoint()) {
+            // Lagrange evaluation point is root of unity
+            m_error = true;
+            return;
+        }
+
         const auto Q = func(qap);
 
         auto space = snarklib::BlockVector<FR>::space(Q.vec());
@@ -207,6 +213,12 @@ private:
                         m_hugeSystem.numCircuitInputs(),
                         m_lagrangePoint.point());
 
+        if (qap.weakPoint()) {
+            // Lagrange evaluation point is root of unity
+            m_error = true;
+            return;
+        }
+
         snarklib::QAP_QueryK<FR> Q(qap,
                                    m_clearGreeks.beta_rA(),
                                    m_clearGreeks.beta_rB(),
@@ -297,10 +309,17 @@ public:
     }
 
 private:
-    void writeFiles(const std::string& outfile) {
+    void writeFiles(const std::string& outfile)
+    {
         const SYSPT qap(m_hugeSystem,
                         m_hugeSystem.numCircuitInputs(),
                         m_lagrangePoint.point());
+
+        if (qap.weakPoint()) {
+            // Lagrange evaluation point is root of unity
+            m_error = true;
+            return;
+        }
 
         snarklib::QAP_QueryIC<FR> Q(qap);
 
@@ -392,6 +411,12 @@ public:
     {
         const SYSPT qap(m_hugeSystem,
                         m_hugeSystem.numCircuitInputs());
+
+        if (qap.weakPoint()) {
+            // Lagrange evaluation point is root of unity
+            m_error = true;
+            return;
+        }
 
         const snarklib::QAP_WitnessABCH<snarklib::HugeSystem, FR>
             ABCH(qap,
