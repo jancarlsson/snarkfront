@@ -34,18 +34,20 @@ possible by the libsnark source code release.
 Language summary
 --------------------------------------------------------------------------------
 
-Five types:
+Six types:
 
 - Boolean
-- 128-bit unsigned integer scalars
 - 8-bit unsigned integer octets
 - 32-bit unsigned integer words
 - 64-bit unsigned integer words
+- 128-bit unsigned integer scalars
+- underlying elliptic curve finite scalar field
 
 The usual operators:
 
 - logical and bitwise complement
 - AND, OR, XOR, addition, subtraction, multiplication, modulo addition
+- inverse and exponentiation (finite fields)
 - shift and rotate
 - comparisons: == != < <= > >=
 - ternary conditional
