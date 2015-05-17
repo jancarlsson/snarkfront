@@ -22,10 +22,10 @@ namespace snarkfront {
 
 // variable with value
 template <typename FR> void bless(bool_x<FR>& x, const bool a) { x.bless(a); }
-template <typename FR> void bless(bigint_x<FR>& x, const std::string& a) { x.bless(a); }
 template <typename FR> void bless(uint8_x<FR>& x, const std::uint8_t a) { x.bless(a); }
 template <typename FR> void bless(uint32_x<FR>& x, const std::uint32_t a) { x.bless(a); }
 template <typename FR> void bless(uint64_x<FR>& x, const std::uint64_t a) { x.bless(a); }
+template <typename FR> void bless(bigint_x<FR>& x, const std::string& a) { x.bless(a); }
 
 template <typename FR> void bless(bigint_x<FR>& x, const std::uint64_t a) {
     std::stringstream ss;
@@ -33,12 +33,15 @@ template <typename FR> void bless(bigint_x<FR>& x, const std::uint64_t a) {
     x.bless(ss.str());
 }
 
+template <typename FR> void bless(field_x<FR>& x, const FR& a) { x.bless(a); }
+
 // initialize variable
 template <typename FR> void bless(bool_x<FR>& x) { bless(x, false); }
-template <typename FR> void bless(bigint_x<FR>& x) { bless(x, "0"); }
 template <typename FR> void bless(uint8_x<FR>& x) { bless(x, 0); }
 template <typename FR> void bless(uint32_x<FR>& x) { bless(x, 0); }
 template <typename FR> void bless(uint64_x<FR>& x) { bless(x, 0); }
+template <typename FR> void bless(bigint_x<FR>& x) { bless(x, "0"); }
+template <typename FR> void bless(field_x<FR>& x) { bless(x, FR::zero()); }
 
 // array of variables with array of values
 template <typename T, typename U, std::size_t N>
@@ -55,12 +58,18 @@ void bless(std::array<T, N>& a) {
 }
 
 // conversion of:
+// - 8-bit octet to 8 bits (Boolean)
+// - 32-bit word to 32 bits
 // - 32-bit word to four 8-bit octets
+// - 64-bit word to 64 bits (Boolean)
 // - 64-bit word to eight 8-bit octets
 // - 64-bit word to two 32-bit words
+// - 128-bit big integer to 128 bits (Boolean)
 // - 128-bit big integer to 16 8-bit octets
 // - 128-bit big integer to four 32-bit words
-// - 128 bit big integer to two 64-bit words
+// - 128-bit big integer to two 64-bit words
+// - 181-bit Edwards scalar field to 181 bits (Boolean)
+// - 254-bit Barreto-Naehrig scalar field to 254 bits (Boolean)
 template <typename T, std::size_t N, typename U>
 void bless_internal(std::array<T, N>& x, const U& a, const bool bigEndian) {
     const std::size_t
@@ -98,13 +107,6 @@ void bless_internal(std::array<T, N>& x, const U& a, const bool bigEndian) {
 
 template <typename T, std::size_t N, typename FR>
 void bless(std::array<T, N>& x,
-           const bigint_x<FR>& a,
-           const bool bigEndian = false) {
-    bless_internal(x, a, bigEndian);
-}
-
-template <typename T, std::size_t N, typename FR>
-void bless(std::array<T, N>& x,
            const uint8_x<FR>& a,
            const bool bigEndian = false) {
     bless_internal(x, a, bigEndian);
@@ -120,6 +122,20 @@ void bless(std::array<T, N>& x,
 template <typename T, std::size_t N, typename FR>
 void bless(std::array<T, N>& x,
            const uint64_x<FR>& a,
+           const bool bigEndian = false) {
+    bless_internal(x, a, bigEndian);
+}
+
+template <typename T, std::size_t N, typename FR>
+void bless(std::array<T, N>& x,
+           const bigint_x<FR>& a,
+           const bool bigEndian = false) {
+    bless_internal(x, a, bigEndian);
+}
+
+template <typename T, std::size_t N, typename FR>
+void bless(std::array<T, N>& x,
+           const field_x<FR>& a,
            const bool bigEndian = false) {
     bless_internal(x, a, bigEndian);
 }
