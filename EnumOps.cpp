@@ -12,6 +12,7 @@ namespace snarkfront {
 
 DEFN_OPARGC(LogicalOps, LogicalOps::CMPLMNT == op ? 1 : 2)
 DEFN_OPARGC(ScalarOps, 2)
+DEFN_OPARGC(FieldOps, FieldOps::INV == op ? 1 : 2)
 DEFN_OPARGC(BitwiseOps, BitwiseOps::CMPLMNT == op ? 1 : 2)
 DEFN_OPARGC(EqualityCmp, 2)
 DEFN_OPARGC(ScalarCmp, 2)
