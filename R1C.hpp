@@ -394,6 +394,20 @@ public:
     }
 
     // create constant or variable for operation result
+    R1T createResult(const FieldOps op, const R1T& x, const R1T& y, const FR& witness) {
+        if (! x.isVariable() && ! y.isVariable()) {
+            // x and y are constant
+            return createConstant(witness);
+
+        } else {
+            // at least one of x and y is a variable
+            const R1T z = createVariable(witness);
+            addConstraint(op, x, y, z);
+            return z;
+        }
+    }
+
+    // create constant or variable for operation result
     R1T createResult(const BitwiseOps op, const R1T& x, const R1T& y, const FR& witness) {
         if (! x.isVariable() && ! y.isVariable()) {
             // x and y are constant
@@ -672,6 +686,31 @@ private:
 
         case (ScalarOps::MUL) :
             rank1_op<snarklib::HugeSystem, R1_MUL<FR>>(m_constraintSystem, x, y, z);
+            break;
+        }
+    }
+
+    // z = OP(x, y)
+    void addConstraint(const FieldOps op, const R1T& x, const R1T& y, const R1T& z) {
+#ifdef USE_ASSERT
+        assert(z.isVariable() && (x.isVariable() || y.isVariable()));
+#endif
+
+        switch (op) {
+        case (FieldOps::ADD) :
+            rank1_op<snarklib::HugeSystem, R1_ADD<FR>>(m_constraintSystem, x, y, z);
+            break;
+
+        case (FieldOps::SUB) :
+            rank1_op<snarklib::HugeSystem, R1_SUB<FR>>(m_constraintSystem, x, y, z);
+            break;
+
+        case (FieldOps::MUL) :
+            rank1_op<snarklib::HugeSystem, R1_MUL<FR>>(m_constraintSystem, x, y, z);
+            break;
+
+        case (FieldOps::INV) :
+            rank1_op<snarklib::HugeSystem, R1_INV<FR>>(m_constraintSystem, x, y, z);
             break;
         }
     }
