@@ -14,12 +14,6 @@ string valueToString(const bool& a) {
     return ss.str();
 }
 
-string valueToString(const snarklib::BigInt<2>& a) {
-    stringstream ss;
-    ss << a;
-    return ss.str();
-}
-
 string valueToString(const uint32_t& a) {
     stringstream ss;
     ss << a;
