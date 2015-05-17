@@ -14,7 +14,9 @@ LIBRARY_BACK_HPP = \
 	AES_SBox.hpp \
 	Alg_BigInt.hpp \
 	Alg_bool.hpp \
+	Alg_Field.hpp \
 	Alg.hpp \
+	Alg_internal.hpp \
 	Alg_uint.hpp \
 	AST.hpp \
 	BigIntOps.hpp \
@@ -168,6 +170,7 @@ verify :
 else
 CXXFLAGS_SNARKLIB = -I$(SNARKLIB_PREFIX)/include -DUSE_ASM -DUSE_ADD_SPECIAL -DUSE_ASSERT
 LDFLAGS_SNARKLIB = -lgmpxx -lgmp
+LDFLAGS = -L. -lsnarkfront
 
 SO_FLAGS = $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) -fPIC
 AR_FLAGS = $(CXXFLAGS) $(CXXFLAGS_SNARKLIB)
@@ -229,43 +232,43 @@ archive : libsnarkfront.a
 
 hodur : hodur.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o hodur.o
-	$(CXX) -o $@ hodur.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+	$(CXX) -o $@ hodur.o $(LDFLAGS) $(LDFLAGS_SNARKLIB)
 
 ppzk : ppzk.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o ppzk.o
-	$(CXX) -o $@ ppzk.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+	$(CXX) -o $@ ppzk.o $(LDFLAGS) $(LDFLAGS_SNARKLIB)
 
 qap : qap.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o qap.o
-	$(CXX) -o $@ qap.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+	$(CXX) -o $@ qap.o $(LDFLAGS) $(LDFLAGS_SNARKLIB)
 
 randomness : randomness.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o randomness.o
-	$(CXX) -o $@ randomness.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+	$(CXX) -o $@ randomness.o $(LDFLAGS) $(LDFLAGS_SNARKLIB)
 
 test_aes : test_aes.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_aes.o
-	$(CXX) -o $@ test_aes.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+	$(CXX) -o $@ test_aes.o $(LDFLAGS) $(LDFLAGS_SNARKLIB)
 
 test_bundle : test_bundle.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_bundle.o
-	$(CXX) -o $@ test_bundle.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+	$(CXX) -o $@ test_bundle.o $(LDFLAGS) $(LDFLAGS_SNARKLIB)
 
 test_merkle : test_merkle.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_merkle.o
-	$(CXX) -o $@ test_merkle.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+	$(CXX) -o $@ test_merkle.o $(LDFLAGS) $(LDFLAGS_SNARKLIB)
 
 test_proof : test_proof.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_proof.o
-	$(CXX) -o $@ test_proof.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+	$(CXX) -o $@ test_proof.o $(LDFLAGS) $(LDFLAGS_SNARKLIB)
 
 test_sha : test_sha.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_sha.o
-	$(CXX) -o $@ test_sha.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+	$(CXX) -o $@ test_sha.o $(LDFLAGS) $(LDFLAGS_SNARKLIB)
 
 test_SHAVS : test_SHAVS.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o test_SHAVS.o
-	$(CXX) -o $@ test_SHAVS.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+	$(CXX) -o $@ test_SHAVS.o $(LDFLAGS) $(LDFLAGS_SNARKLIB)
 
 tests : $(LIBRARY_TESTS)
 
@@ -273,5 +276,5 @@ tools : $(LIBRARY_BIN)
 
 verify : verify.cpp libsnarkfront.a
 	$(CXX) -c $(CXXFLAGS) $(CXXFLAGS_SNARKLIB) $< -o verify.o
-	$(CXX) -o $@ verify.o $(LDFLAGS_SNARKLIB) libsnarkfront.a
+	$(CXX) -o $@ verify.o $(LDFLAGS) $(LDFLAGS_SNARKLIB)
 endif
