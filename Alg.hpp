@@ -23,10 +23,11 @@ namespace snarkfront {
 // Parameters for specializing the AST templates to primitive types
 //
 // - Alg_bool for predicate
-// - Alg_BigInt for scalar field of GMP big numbers
 // - Alg_uint8 for 8-bit octets (char)
 // - Alg_uint32 for 32-bit words
 // - Alg_uint64 for 64-bit words
+// - Alg_BigInt for 128-bit GMP big numbers
+// - Alg_Field for finite scalar field used by elliptic curve
 //
 
 template <typename VAL,
@@ -39,12 +40,6 @@ Alg_bool = Alg<bool,
                FR,
                LogicalOps,
                EqualityCmp>;
-
-template <typename FR> using
-Alg_BigInt = Alg<snarklib::BigInt<2>, // 128 bits on x86-64
-                 FR,
-                 ScalarOps,
-                 ScalarCmp>;
 
 template <typename FR> using
 Alg_uint8 = Alg<std::uint8_t,
@@ -64,15 +59,42 @@ Alg_uint64 = Alg<std::uint64_t,
                  BitwiseOps,
                  EqualityCmp>;
 
+template <typename FR> using
+Alg_BigInt = Alg<snarklib::BigInt<2>, // N = 2 is 128 bits on x86-64
+                 FR,
+                 ScalarOps,
+                 ScalarCmp>;
+
+template <typename FR> using
+Alg_Field = Alg<FR,
+                FR,
+                FieldOps,
+                EqualityCmp>;
+
 ////////////////////////////////////////////////////////////////////////////////
 // algebra parameter
 //
 
 std::string valueToString(const bool& a);
-std::string valueToString(const snarklib::BigInt<2>& a);
 std::string valueToString(const std::uint8_t& a);
 std::string valueToString(const std::uint32_t& a);
 std::string valueToString(const std::uint64_t& a);
+
+template <mp_size_t N>
+std::string valueToString(const snarklib::BigInt<N>& a) {
+    std::stringstream ss;
+    ss << a;
+    return ss.str();
+}
+
+template <typename FR>
+std::string valueToString(const FR& a) {
+#ifdef USE_ASSERT
+    assert(1 == a.dimension()); // always true for elliptic curve
+                                // scalar field
+#endif
+    return valueToString(a[0].asBigInt());
+}
 
 template <typename VAL, // value for application code
           typename FR,  // finite field witness (elliptic curve Fr)
@@ -205,7 +227,10 @@ public:
                             C.result().r1Terms());
     }
 
-    // bitwise type conversion between unsigned integers and bool
+    // conversion from bool to 8-bit, 32-bit, 64-bit unsigned word bitmasks
+    // conversion from bool to 128-bit and finite field one and zero
+    // bitwise type conversion between unsigned integer words
+    // conversion from 128-bit big integer and finite field are undefined
     template <typename U>
     static U xwordOp(const AST_Node<Alg>& src, const U& dummy)
     {
@@ -215,12 +240,28 @@ public:
 
         const auto x = TL<R1C<FR>>::singleton()->argBits(E.result());
         typename U::ValueType uvalue;
+        const auto returnSize = sizeBits(uvalue);
+
+#ifdef USE_ASSERT
+        // source must be: bool, 8-bit, 32-bit, 64-bit
+        assert(x.size() <= 64);
+#endif
 
         if (1 == x.size()) {
-            // source is bool, replicate bit to word
-            uvalue = E.result().value()
-                ? -1 // all bits set
-                : 0; // all bits clear
+            // source is bool
+
+            if (returnSize <= 64) {
+                // replicate bit to unsigned integer word
+                uvalue = E.result().value()
+                    ? -1 // all bits set
+                    : 0; // all bits clear
+
+            } else {
+                // convert bit to zero and one
+                uvalue = typename U::ValueType(E.result().value()
+                                               ? 1ul
+                                               : 0ul);
+            }
 
         } else {
             // source is 8-bit octet, 32-bit or 64-bit word
@@ -231,7 +272,7 @@ public:
         return U(uvalue,
                  valueToString(uvalue),
                  valueBits(uvalue),
-                 rank1_xword(x, sizeBits(uvalue)));
+                 rank1_xword(x, returnSize));
     }
 
 private:
