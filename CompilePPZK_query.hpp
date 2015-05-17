@@ -733,6 +733,12 @@ public:
                         m_hugeSystem.numCircuitInputs(),
                         m_lagrangePoint.point());
 
+        if (qap.weakPoint()) {
+            // Lagrange evaluation point is root of unity
+            m_error = true;
+            return;
+        }
+
         const auto& Z = qap.compute_Z();
 
         const bool blind = !m_blindGreeks.empty();
