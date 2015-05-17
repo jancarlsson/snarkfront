@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <snarklib/BigInt.hpp>
+#include <snarklib/Field.hpp>
 
 namespace snarkfront {
 
@@ -67,10 +68,24 @@ private:
     std::vector<T> m_lut; // index -> T(2^index)
 };
 
-// convert Boolean to BigInt/field/group one and zero
+// convert Boolean to one and zero
+bool zero_internal(const bool& dummy);
+bool one_internal(const bool& dummy);
+
+template <typename T, std::size_t N>
+static snarklib::Field<T, N> zero_internal(const snarklib::Field<T, N>& dummy) {
+    return snarklib::Field<T, N>::zero();
+}
+
+template <typename T, std::size_t N>
+static snarklib::Field<T, N> one_internal(const snarklib::Field<T, N>& dummy) {
+    return snarklib::Field<T, N>::one();
+}
+
 template <typename T>
 T boolTo(const bool a) {
-    return a ? T::one() : T::zero();
+    T dummy;
+    return a ? one_internal(dummy) : zero_internal(dummy);
 }
 
 // size of type in bits
@@ -82,6 +97,11 @@ std::size_t sizeBits(const std::uint64_t& dummy);
 template <mp_size_t N>
 std::size_t sizeBits(const snarklib::BigInt<N>& dummy) {
     return snarklib::BigInt<N>::maxBits();
+}
+
+template <typename T, std::size_t N>
+std::size_t sizeBits(const snarklib::Field<T, N>& dummy) {
+    return snarklib::Field<T, N>::sizeInBits();
 }
 
 // returns number of matching bits starting from most significant bit
@@ -116,6 +136,15 @@ std::vector<int> valueBits(const snarklib::BigInt<N>& a) {
     }
 
     return v;
+}
+
+template <typename T, std::size_t N>
+std::vector<int> valueBits(const snarklib::Field<T, N>& a) {
+#ifdef USE_ASSERT
+    assert(1 == a.dimension()); // always true for elliptic curve
+                                // scalar field
+#endif
+    return valueBits(a[0].asBigInt());
 }
 
 // convert bits to value
