@@ -3,14 +3,16 @@
 
 #include <cstdint>
 
+#include <snarklib/FpModel.hpp>
+
 #include <snarkfront/BitwiseINT.hpp>
-#include <snarkfront/PowersOf2.hpp>
 
 namespace snarkfront {
 
 // logical and arithmetic
 enum class LogicalOps { AND, OR, XOR, SAME, CMPLMNT };
 enum class ScalarOps { ADD, SUB, MUL };
+enum class FieldOps { ADD, SUB, MUL, INV };
 enum class BitwiseOps { AND, OR, XOR, SAME, CMPLMNT, ADDMOD, SHL, SHR, ROTL, ROTR };
 
 // comparison
@@ -49,6 +51,18 @@ T evalOp(const ScalarOps op, const T& x, const T& y)
     case (ScalarOps::ADD) : return x + y;
     case (ScalarOps::SUB) : return x - y;
     case (ScalarOps::MUL) : return x * y;
+    }
+}
+
+// evaluate finite scalar field arithmetic operations
+template <typename T>
+T evalOp(const FieldOps op, const T& x, const T& y)
+{
+    switch (op) {
+    case (FieldOps::ADD) : return x + y;
+    case (FieldOps::SUB) : return x - y;
+    case (FieldOps::MUL) : return x * y;
+    case (FieldOps::INV) : return snarklib::inverse(x);
     }
 }
 
