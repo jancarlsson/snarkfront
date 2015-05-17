@@ -4,6 +4,7 @@
 #include <gmp.h>
 
 #include <snarkfront/Alg.hpp>
+#include <snarkfront/Alg_internal.hpp>
 #include <snarkfront/BigIntOps.hpp>
 
 namespace snarkfront {
@@ -13,42 +14,18 @@ namespace snarkfront {
 //
 
 template <typename FR>
-void evalStackOp(std::stack<Alg_BigInt<FR>>& S, const ScalarOps op)
-{
-    typedef typename Alg_BigInt<FR>::ValueType Value;
-    typedef typename Alg_BigInt<FR>::R1T R1T;
-    auto& RS = TL<R1C<FR>>::singleton();
-
-    // y is right argument
-    const auto R = S.top();
-    S.pop();
-    const Value yvalue = R.value();
-    const FR ywitness = R.witness();
-    const R1T y = RS->argScalar(R);
-
-    // x is left argument
-    const auto L = S.top();
-    S.pop();
-    const Value xvalue = L.value();
-    const FR xwitness = L.witness();
-    const R1T x = RS->argScalar(L);
-
-    // z is result
-    const Value zvalue = evalOp(op, xvalue, yvalue);
-    const FR zwitness = evalOp(op, xwitness, ywitness);
-    const R1T z = RS->createResult(op, x, y, zwitness);
-
-    S.push(
-        Alg_BigInt<FR>(zvalue, zwitness, valueBits(zvalue), {z}));
+void evalStackOp(std::stack<Alg_BigInt<FR>>& S, const ScalarOps op) {
+    evalStackOp_Scalar<Alg_BigInt<FR>>(S, op);
 }
 
-template <typename FR>
-void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op)
+template <typename ALG>
+void evalStackCmp_Scalar(std::stack<ALG>& S, const ScalarCmp op)
 {
-    typedef typename Alg_BigInt<FR>::ValueType Value;
-    typedef typename Alg_BigInt<FR>::R1T R1T;
-    auto& RS = TL<R1C<FR>>::singleton();
-    auto& POW2 = TL<PowersOf2<FR>>::singleton();
+    typedef typename ALG::ValueType Value;
+    typedef typename ALG::FrType Fr;
+    typedef typename ALG::R1T R1T;
+    auto& RS = TL<R1C<Fr>>::singleton();
+    auto& POW2 = TL<PowersOf2<Fr>>::singleton();
 
     // y is right argument
     const auto R = S.top();
@@ -59,16 +36,11 @@ void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op)
     const auto L = S.top();
     S.pop();
     const Value xvalue = L.value();
-
-    // for BigInt
-    const mp_size_t N = Value::numberLimbs();
-    const std::size_t N127 = sizeBits(yvalue) - 1;
-    static const Value ovalue = powerBigInt<N>(N127); // half of max value
 
     // z is result
     const bool result = evalOp(op, xvalue, yvalue);
-    const Value zvalue = powerBigInt<N>(result);
-    const FR zwitness = boolTo<FR>(result);
+    const Value zvalue = powerBigInt<Value::numberLimbs()>(result);
+    const Fr zwitness = boolTo<Fr>(result);
     R1T z;
 
     if (ScalarCmp::EQ == op || ScalarCmp::NEQ == op) {
@@ -94,7 +66,7 @@ void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op)
             const bool b = evalOp(op, xbits[i], ybits[i]);
             zwitness.push_back(b);
             zvec.emplace_back(
-                RS->createResult(eqToLogical(op), x[i], y[i], boolTo<FR>(b)));
+                RS->createResult(eqToLogical(op), x[i], y[i], boolTo<Fr>(b)));
         }
 
         z = ScalarCmp::EQ == op
@@ -103,15 +75,17 @@ void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op)
 
     } else {
         // inequalities need to compare scalar values
-        const FR
+        const Fr
             ywitness = R.witness(),
             xwitness = L.witness();
         const R1T
             y = RS->argScalar(R),
             x = RS->argScalar(L);
 
-        // offset is half of maximum value (127 bits)
-        const FR owitness = POW2->getNumber(N127);
+        // offset is half of maximum value
+        const std::size_t N_msb = sizeBits(yvalue) - 1;
+        static const Value ovalue = powerBigInt<Value::numberLimbs()>(N_msb);
+        const Fr owitness = POW2->getNumber(N_msb);
         const R1T o = RS->createConstant(owitness);
 
         // simpler to handle LT(x, y) as GT(y, x)
@@ -122,7 +96,7 @@ void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op)
 
         // offset + x (or offset + y)
         const Value oxvalue = ovalue + (interchangeXY ? yvalue : xvalue);
-        const FR oxwitness = owitness + (interchangeXY ? ywitness : xwitness);
+        const Fr oxwitness = owitness + (interchangeXY ? ywitness : xwitness);
         const R1T ox = RS->createResult(ScalarOps::ADD,
                                         o,
                                         interchangeXY ? y : x,
@@ -130,7 +104,7 @@ void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op)
 
         // offset + x - y (or offset + y - x)
         const Value oxyvalue = oxvalue - (interchangeXY ? xvalue : yvalue);
-        const FR oxywitness = oxwitness - (interchangeXY ? xwitness : ywitness);
+        const Fr oxywitness = oxwitness - (interchangeXY ? xwitness : ywitness);
         const R1T oxy = RS->createResult(ScalarOps::SUB,
                                          ox,
                                          interchangeXY ? x : y,
@@ -139,8 +113,8 @@ void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op)
         // constraint variable bit representation of offset + x - y (or offset + y - x)
         const std::vector<int> oxy_splitBits = valueBits(oxyvalue);
         const std::vector<R1T> oxybits = RS->witnessToBits(oxy, oxy_splitBits);
-        const bool high_witness = oxy_splitBits[N127];
-        const R1T& high_bit = oxybits[N127];
+        const bool high_witness = oxy_splitBits[N_msb];
+        const R1T& high_bit = oxybits[N_msb];
 
         switch (op) {
         case (ScalarCmp::LT) : // interchanged X and Y so same as GT
@@ -156,7 +130,7 @@ void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op)
                 low_bits.reserve(sizeBits(yvalue));
 
                 // low bits
-                for (std::size_t i = 0; i < N127; ++i) {
+                for (std::size_t i = 0; i < N_msb; ++i) {
                     low_witness.push_back(oxy_splitBits[i]);
                     low_bits.emplace_back(oxybits[i]);
                 }
@@ -184,7 +158,12 @@ void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op)
     }
 
     S.push(
-        Alg_BigInt<FR>(zvalue, zwitness, valueBits(zvalue), {z}));
+        ALG(zvalue, zwitness, valueBits(zvalue), {z}));
+}
+
+template <typename FR>
+void evalStackCmp(std::stack<Alg_BigInt<FR>>& S, const ScalarCmp op) {
+    evalStackCmp_Scalar(S, op);
 }
 
 } // namespace snarkfront
