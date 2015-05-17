@@ -42,34 +42,6 @@ std::array<c_bool<FR>, N> zero(const std::array<bool_x<FR>, N>& dummy) {
     return a;
 }
 
-// big integer
-template <mp_size_t N>
-snarklib::BigInt<N> zero(const snarklib::BigInt<N>& dummy) {
-    return snarklib::BigInt<N>::zero();
-}
-
-template <mp_size_t N>
-snarklib::BigInt<N> one(const snarklib::BigInt<N>& dummy) {
-    return snarklib::BigInt<N>::one();
-}
-
-template <typename FR>
-c_bigint<FR> zero(const bigint_x<FR>& dummy) {
-    return c_bigint<FR>(bigint_x<FR>::ValueType::zero());
-}
-
-template <typename FR>
-c_bigint<FR> one(const bigint_x<FR>& dummy) {
-    return c_bigint<FR>(bigint_x<FR>::ValueType::one());
-}
-
-template <typename FR, std::size_t N>
-std::array<c_bigint<FR>, N> zero(const std::array<bigint_x<FR>, N>& dummy) {
-    std::array<c_bigint<FR>, N> a;
-    for (std::size_t i = 0; i < N; ++i) a[i] = zero(dummy[i]);
-    return a;
-}
-
 // 8-bit octet
 std::uint8_t zero(const std::uint8_t& dummy);
 std::uint8_t one(const std::uint8_t& dummy);
@@ -150,6 +122,64 @@ c_uint64<FR> one(const uint64_x<FR>& dummy) {
 template <typename FR, std::size_t N>
 std::array<c_uint64<FR>, N> zero(const std::array<uint64_x<FR>, N>& dummy) {
     std::array<c_uint64<FR>, N> a;
+    for (std::size_t i = 0; i < N; ++i) a[i] = zero(dummy[i]);
+    return a;
+}
+
+// big integer
+template <mp_size_t N>
+snarklib::BigInt<N> zero(const snarklib::BigInt<N>& dummy) {
+    return snarklib::BigInt<N>::zero();
+}
+
+template <mp_size_t N>
+snarklib::BigInt<N> one(const snarklib::BigInt<N>& dummy) {
+    return snarklib::BigInt<N>::one();
+}
+
+// 128-bit big integer
+template <typename FR>
+c_bigint<FR> zero(const bigint_x<FR>& dummy) {
+    return c_bigint<FR>(bigint_x<FR>::ValueType::zero());
+}
+
+template <typename FR>
+c_bigint<FR> one(const bigint_x<FR>& dummy) {
+    return c_bigint<FR>(bigint_x<FR>::ValueType::one());
+}
+
+template <typename FR, std::size_t N>
+std::array<c_bigint<FR>, N> zero(const std::array<bigint_x<FR>, N>& dummy) {
+    std::array<c_bigint<FR>, N> a;
+    for (std::size_t i = 0; i < N; ++i) a[i] = zero(dummy[i]);
+    return a;
+}
+
+// field
+template <typename T, std::size_t N>
+snarklib::Field<T, N> zero(const snarklib::Field<T, N>& dummy) {
+    return snarklib::Field<T, N>::zero();
+}
+
+template <typename T, std::size_t N>
+snarklib::Field<T, N> one(const snarklib::Field<T, N>& dummy) {
+    return snarklib::Field<T, N>::one();
+}
+
+// finite scalar field
+template <typename FR>
+c_field<FR> zero(const field_x<FR>& dummy) {
+    return c_field<FR>(field_x<FR>::ValueType::zero());
+}
+
+template <typename FR>
+c_field<FR> one(const field_x<FR>& dummy) {
+    return c_field<FR>(field_x<FR>::ValueType::one());
+}
+
+template <typename FR, std::size_t N>
+std::array<c_field<FR>, N> zero(const std::array<field_x<FR>, N>& dummy) {
+    std::array<c_field<FR>, N> a;
     for (std::size_t i = 0; i < N; ++i) a[i] = zero(dummy[i]);
     return a;
 }
