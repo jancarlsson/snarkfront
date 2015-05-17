@@ -5,6 +5,7 @@
 #include <cassert>
 
 #include <snarkfront/Alg.hpp>
+#include <snarkfront/Alg_internal.hpp>
 
 namespace snarkfront {
 
@@ -15,7 +16,7 @@ namespace snarkfront {
 //
 
 template <typename ALG>
-void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
+void evalStackOp_Bitwise(std::stack<ALG>& S, const BitwiseOps op)
 {
     typedef typename ALG::ValueType Value;
     typedef typename ALG::FrType Fr;
@@ -191,92 +192,33 @@ void evalStackOp_internal(std::stack<ALG>& S, const BitwiseOps op)
 }
 
 template <typename FR>
-void evalStackOp(std::stack<Alg_uint8<FR>>& S, const BitwiseOps op)
-{
-    evalStackOp_internal<Alg_uint8<FR>>(S, op);
+void evalStackOp(std::stack<Alg_uint8<FR>>& S, const BitwiseOps op) {
+    evalStackOp_Bitwise<Alg_uint8<FR>>(S, op);
 }
 
 template <typename FR>
-void evalStackOp(std::stack<Alg_uint32<FR>>& S, const BitwiseOps op)
-{
-    evalStackOp_internal<Alg_uint32<FR>>(S, op);
+void evalStackOp(std::stack<Alg_uint32<FR>>& S, const BitwiseOps op) {
+    evalStackOp_Bitwise<Alg_uint32<FR>>(S, op);
 }
 
 template <typename FR>
-void evalStackOp(std::stack<Alg_uint64<FR>>& S, const BitwiseOps op)
-{
-    evalStackOp_internal<Alg_uint64<FR>>(S, op);
-}
-
-template <typename ALG>
-void evalStackCmp_internal(std::stack<ALG>& S, const EqualityCmp op)
-{
-    typedef typename ALG::ValueType Value;
-    typedef typename ALG::FrType Fr;
-    typedef typename ALG::R1T R1T;
-    auto& RS = TL<R1C<Fr>>::singleton();
-    auto& POW2 = TL<PowersOf2<Fr>>::singleton();
-
-    // y is right argument
-    const auto R = S.top();
-    S.pop();
-    const Value yvalue = R.value();
-    const std::vector<int> ybits = R.splitBits();
-    const std::vector<R1T> y = RS->argBits(R);
-
-#ifdef USE_ASSERT
-    assert(y.size() >= sizeBits(yvalue));
-#endif
-
-    // x is left argument
-    const auto L = S.top();
-    S.pop();
-    const Value xvalue = L.value();
-    const std::vector<int> xbits = L.splitBits();
-    const std::vector<R1T> x = RS->argBits(L);
-
-#ifdef USE_ASSERT
-    assert(x.size() >= sizeBits(xvalue));
-#endif
-
-    // intermediate constraint variables for each bit
-    std::vector<R1T> zvec;
-    std::vector<int> zwitness;
-    zvec.reserve(sizeBits(yvalue));
-    zwitness.reserve(sizeBits(yvalue));
-    for (std::size_t i = 0; i < sizeBits(yvalue); ++i) {
-        const bool b = evalOp(op, xbits[i], ybits[i]);
-        zwitness.push_back(b);
-        zvec.emplace_back(
-            RS->createResult(eqToLogical(op), x[i], y[i], boolTo<Fr>(b)));
-    }
-
-    // z is result
-    const Value zvalue = evalOp(op, xvalue, yvalue);
-    const R1T z = EqualityCmp::EQ == op
-        ? RS->declarative_AND(zvec) // all must be same
-        : RS->imperative_OR(zvec, zwitness); // one must be different
-
-    S.push(
-        ALG(zvalue, boolTo<Fr>(zvalue), valueBits(zvalue), {z}));
+void evalStackOp(std::stack<Alg_uint64<FR>>& S, const BitwiseOps op) {
+    evalStackOp_Bitwise<Alg_uint64<FR>>(S, op);
 }
 
 template <typename FR>
-void evalStackCmp(std::stack<Alg_uint8<FR>>& S, const EqualityCmp op)
-{
-    evalStackCmp_internal(S, op);
+void evalStackCmp(std::stack<Alg_uint8<FR>>& S, const EqualityCmp op) {
+    evalStackCmp_Equality(S, op);
 }
 
 template <typename FR>
-void evalStackCmp(std::stack<Alg_uint32<FR>>& S, const EqualityCmp op)
-{
-    evalStackCmp_internal(S, op);
+void evalStackCmp(std::stack<Alg_uint32<FR>>& S, const EqualityCmp op) {
+    evalStackCmp_Equality(S, op);
 }
 
 template <typename FR>
-void evalStackCmp(std::stack<Alg_uint64<FR>>& S, const EqualityCmp op)
-{
-    evalStackCmp_internal(S, op);
+void evalStackCmp(std::stack<Alg_uint64<FR>>& S, const EqualityCmp op) {
+    evalStackCmp_Equality(S, op);
 }
 
 } // namespace snarkfront
