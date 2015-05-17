@@ -98,6 +98,9 @@ DEFN_R1OP(ADD, x + y == z)
 DEFN_R1OP(SUB, x - y == z)
 DEFN_R1OP(MUL, x * y == z)
 
+// INV
+DEFN_R1OP(INV, x * z == FR::one())
+
 #undef DEFN_R1OP
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -211,11 +214,34 @@ rank1_xword(
     std::vector<snarklib::R1Term<FR>> v(returnSize, FR::zero());
 
     if (1 == x.size()) {
-        // convert bool to 8-bit, 32-bit, or 64-bit
-        for (std::size_t i = 0; i < returnSize; ++i)
-            v[i] = x[0];
+        // source is bool
+
+        if (returnSize <= 64) {
+            // convert bool to 8-bit, 32-bit, or 64-bit word as bitmask
+            for (std::size_t i = 0; i < returnSize; ++i)
+                v[i] = x[0];
+
+        } else if (128 == returnSize) {
+            // convert bool to 128-bit as integer value
+            v[0] = x[0];
+
+        } else {
+            // convert bool to FR::zero() or FR::one()
+            const auto ONE = valueBits(FR::one());
+            for (std::size_t i = 0; i < ONE.size(); ++i) {
+                if (ONE[i]) v[i] = x[0];
+            }
+        }
 
     } else {
+#ifdef USE_ASSERT
+        // source and destination are not finite scalar field
+        assert(sizeBits(FR::zero()) != x.size());
+        assert(sizeBits(FR::zero()) != returnSize);
+#endif
+
+        // source is unsigned integer: 8-bit, 32-bit, 64-bit, 128-bit
+
         // if destination type is bool, returnSize is 1 so takes 0th bit
         // otherwise, bitwise slices between unsigned integer types
         const auto N = std::min(returnSize, x.size());
