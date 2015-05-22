@@ -163,6 +163,7 @@ class QAP_query_K
 {
     typedef typename PAIRING::Fr FR;
     typedef typename snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR> SYSPT;
+    typedef typename snarklib::QAP_QueryK<snarklib::HugeSystem, FR> QTYPE;
 
 public:
     QAP_query_K(const std::string& afile,
@@ -219,10 +220,10 @@ private:
             return;
         }
 
-        snarklib::QAP_QueryK<FR> Q(qap,
-                                   m_clearGreeks.beta_rA(),
-                                   m_clearGreeks.beta_rB(),
-                                   m_clearGreeks.beta_rC());
+        QTYPE Q(qap,
+                m_clearGreeks.beta_rA(),
+                m_clearGreeks.beta_rB(),
+                m_clearGreeks.beta_rC());
 
         std::size_t block = (-1 == blocknum) ? 0 : blocknum;
         bool b = true;
@@ -278,6 +279,7 @@ class QAP_query_IC
     typedef typename PAIRING::G1 G1;
     typedef typename PAIRING::G2 G2;
     typedef typename snarklib::QAP_SystemPoint<snarklib::HugeSystem, FR> SYSPT;
+    typedef typename snarklib::QAP_QueryIC<snarklib::HugeSystem, FR> QTYPE;
 
 public:
     QAP_query_IC(const std::string& afile, // side-effect: file is modified
@@ -321,7 +323,7 @@ private:
             return;
         }
 
-        snarklib::QAP_QueryIC<FR> Q(qap);
+        QTYPE Q(qap);
 
         std::size_t block = 0;
         bool b = true;
