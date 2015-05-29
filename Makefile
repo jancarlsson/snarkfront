@@ -7,6 +7,7 @@ AR = ar
 RANLIB = ranlib
 
 LIBRARY_BACK_HPP = \
+	AdvancedEncryptionStd.hpp \
 	AES_Cipher.hpp \
 	AES_InvCipher.hpp \
 	AES_InvSBox.hpp \
@@ -27,6 +28,7 @@ LIBRARY_BACK_HPP = \
 	CompileQAP.hpp \
 	Counter.hpp \
 	DataBuffer.hpp \
+	DSL_algo.hpp \
 	DSL_base.hpp \
 	DSL_bless.hpp \
 	DSL_identity.hpp \
@@ -46,6 +48,7 @@ LIBRARY_BACK_HPP = \
 	R1C.hpp \
 	Rank1Ops.hpp \
 	SecureHashStd.hpp \
+	Serialize.hpp \
 	SHA_1.hpp \
 	SHA_224.hpp \
 	SHA_256.hpp \
@@ -187,7 +190,8 @@ LIBRARY_CPP = \
 	Getopt.cpp \
 	HexUtil.cpp \
 	InitPairing.cpp \
-	PowersOf2.cpp
+	PowersOf2.cpp \
+	Serialize.cpp
 
 libsnarkfront.so : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(RM) -f snarkfront
@@ -204,6 +208,7 @@ libsnarkfront.so : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(CXX) -c $(SO_FLAGS) -o HexUtil.o HexUtil.cpp
 	$(CXX) -c $(SO_FLAGS) -o InitPairing.o InitPairing.cpp
 	$(CXX) -c $(SO_FLAGS) -o PowersOf2.o PowersOf2.cpp
+	$(CXX) -c $(SO_FLAGS) -o Serialize.o Serialize.cpp
 	$(RM) -f libsnarkfront.so
 	$(CXX) -o libsnarkfront.so -shared $(LIBRARY_CPP:.cpp=.o)
 
@@ -222,6 +227,7 @@ libsnarkfront.a : $(LIBRARY_HPP) $(LIBRARY_CPP)
 	$(CXX) -c $(AR_FLAGS) -o HexUtil.o HexUtil.cpp
 	$(CXX) -c $(AR_FLAGS) -o InitPairing.o InitPairing.cpp
 	$(CXX) -c $(AR_FLAGS) -o PowersOf2.o PowersOf2.cpp
+	$(CXX) -c $(AR_FLAGS) -o Serialize.o Serialize.cpp
 	$(RM) -f libsnarkfront.a
 	$(AR) qc libsnarkfront.a $(LIBRARY_CPP:.cpp=.o)
 	$(RANLIB) libsnarkfront.a
