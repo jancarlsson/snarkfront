@@ -50,6 +50,17 @@ void bless(std::array<T, N>& a, const std::array<U, N>& b) {
         bless(a[i], b[i]);
 }
 
+// vector of variables with vector of values
+template <typename T, typename U>
+void bless(std::vector<T>& a, const std::vector<U>& b) {
+#ifdef USE_ASSERT
+    assert(a.size() == b.size());
+#endif
+
+    for (std::size_t i = 0; i < a.size(); ++i)
+        bless(a[i], b[i]);
+}
+
 // initialize array of variables
 template <typename T, std::size_t N>
 void bless(std::array<T, N>& a) {
