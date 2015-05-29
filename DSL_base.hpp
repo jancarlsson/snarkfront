@@ -3,7 +3,6 @@
 
 #include <array>
 #include <cstdint>
-#include <vector>
 
 #include <snarkfront/Alg.hpp>
 #include <snarkfront/Alg_BigInt.hpp>
@@ -11,7 +10,6 @@
 #include <snarkfront/Alg_Field.hpp>
 #include <snarkfront/Alg_uint.hpp>
 #include <snarkfront/BitwiseAST.hpp>
-#include <snarkfront/DataBuffer.hpp>
 
 namespace snarkfront {
 
@@ -34,58 +32,6 @@ template <typename FR> using uint32_x = AST_Var<Alg_uint32<FR>>;
 template <typename FR> using uint64_x = AST_Var<Alg_uint64<FR>>;
 template <typename FR> using bigint_x = AST_Var<Alg_BigInt<FR>>;
 template <typename FR> using field_x = AST_Var<Alg_Field<FR>>;
-
-////////////////////////////////////////////////////////////////////////////////
-// convenient message digest for data
-// (new variables for entire message block)
-//
-
-template <typename T>
-typename T::DigType digest(T hashAlgo, const DataBufferStream& buf)
-{
-    auto bufCopy = buf; // need copy as blessing from stream consumes it
-
-    while (! bufCopy.empty()) {
-        typename T::MsgType msg;
-        bless(msg, bufCopy);
-        hashAlgo.msgInput(msg);
-    }
-
-    hashAlgo.computeHash();
-
-    return hashAlgo.digest();
-}
-
-template <typename T>
-typename T::DigType digest(T hashAlgo, const std::string& a)
-{
-    DataBufferStream buf(a);
-    T::padMessage(buf);
-    return digest(hashAlgo, buf);
-}
-
-template <typename T>
-typename T::DigType digest(T hashAlgo, const char* a)
-{
-    return digest(hashAlgo, std::string(a));
-}
-
-template <typename T>
-typename T::DigType digest(T hashAlgo, const std::vector<std::uint8_t>& a)
-{
-    DataBufferStream buf(a);
-    T::padMessage(buf);
-    return digest(hashAlgo, buf);
-}
-
-template <typename T, typename... Args>
-typename T::DigType digest(T hashAlgo, const Args... parameterPack)
-{
-    DataBufferStream buf;
-    buf.push(parameterPack...);
-    T::padMessage(buf);
-    return digest(hashAlgo, buf);
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // logical and bitwise complement
