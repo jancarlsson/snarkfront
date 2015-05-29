@@ -11,7 +11,11 @@
 #include <snarkfront/CompileQAP.hpp>
 #include <snarkfront/Getopt.hpp>
 
+// read and write useful types for applications
+#include <snarkfront/Serialize.hpp>
+
 // the basic language
+#include <snarkfront/DSL_algo.hpp>
 #include <snarkfront/DSL_base.hpp>
 #include <snarkfront/DSL_bless.hpp>
 #include <snarkfront/DSL_identity.hpp>
@@ -42,6 +46,7 @@
 #include <snarkfront/SHA_512_256.hpp>
 
 // Advanced Encryption Algorithm
+#include <snarkfront/AdvancedEncryptionStd.hpp>
 #include <snarkfront/AES_Cipher.hpp>
 #include <snarkfront/AES_InvCipher.hpp>
 #include <snarkfront/AES_InvSBox.hpp>
