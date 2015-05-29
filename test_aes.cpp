@@ -26,81 +26,29 @@ void printUsage(const char* exeName) {
     exit(EXIT_FAILURE);
 }
 
-template <typename AES, typename KEY_BLOCK, typename SCHEDULE_BLOCK>
-void runTest(const vector<uint8_t>& keyOctets,
-             const vector<uint8_t>& inOctets,
-             typename AES::BlockType& outBlock)
-{
-    typename AES::BlockType inBlock;
-    KEY_BLOCK keyBlock;
-    SCHEDULE_BLOCK scheduleBlock;
-
-    DataBufferStream keyBuf(keyOctets), inBuf(inOctets);
-    bless(inBlock, inBuf);
-    bless(keyBlock, keyBuf);
-
-    typename AES::KeyExpansion keyExpand;
-    keyExpand(keyBlock, scheduleBlock);
-
-    AES cipherAlgo;
-    cipherAlgo(inBlock, outBlock, scheduleBlock);
-}
-
-template <typename ZK_AES, typename EVAL_AES>
-bool runTest(const vector<uint8_t>& keyOctets,
+template <typename FR>
+bool runTest(const bool encMode,
+             const vector<uint8_t>& keyOctets,
              const vector<uint8_t>& inOctets)
 {
-    typename ZK_AES::BlockType zkOut;
-    typename EVAL_AES::BlockType evalOut;
+    typename zk::AES<FR>::BlockType zkOut;
+    typename eval::AES::BlockType evalOut;
 
     const auto keySize = keyOctets.size() * CHAR_BIT;
     if (128 == keySize) {
         // AES-128
-        runTest<ZK_AES,
-                typename ZK_AES::KeyExpansion::Key128Type,
-                typename ZK_AES::KeyExpansion::Schedule128Type>(
-                    keyOctets,
-                    inOctets,
-                    zkOut);
-
-        runTest<EVAL_AES,
-                typename EVAL_AES::KeyExpansion::Key128Type,
-                typename EVAL_AES::KeyExpansion::Schedule128Type>(
-                    keyOctets,
-                    inOctets,
-                    evalOut);
+        zkOut = cipher(zk::AES128<FR>(), !encMode, inOctets, keyOctets);
+        evalOut = cipher(eval::AES128(), !encMode, inOctets, keyOctets);
 
     } else if (192 == keySize) {
         // AES-192
-        runTest<ZK_AES,
-                typename ZK_AES::KeyExpansion::Key192Type,
-                typename ZK_AES::KeyExpansion::Schedule192Type>(
-                    keyOctets,
-                    inOctets,
-                    zkOut);
-
-        runTest<EVAL_AES,
-                typename EVAL_AES::KeyExpansion::Key192Type,
-                typename EVAL_AES::KeyExpansion::Schedule192Type>(
-                    keyOctets,
-                    inOctets,
-                    evalOut);
+        zkOut = cipher(zk::AES192<FR>(), !encMode, inOctets, keyOctets);
+        evalOut = cipher(eval::AES192(), !encMode, inOctets, keyOctets);
 
     } else if (256 == keySize) {
         // AES-256
-        runTest<ZK_AES,
-                typename ZK_AES::KeyExpansion::Key256Type,
-                typename ZK_AES::KeyExpansion::Schedule256Type>(
-                    keyOctets,
-                    inOctets,
-                    zkOut);
-
-        runTest<EVAL_AES,
-                typename EVAL_AES::KeyExpansion::Key256Type,
-                typename EVAL_AES::KeyExpansion::Schedule256Type>(
-                    keyOctets,
-                    inOctets,
-                    evalOut);
+        zkOut = cipher(zk::AES256<FR>(), !encMode, inOctets, keyOctets);
+        evalOut = cipher(eval::AES256(), !encMode, inOctets, keyOctets);
     }
 
     assert_true(zkOut == evalOut);
@@ -134,9 +82,7 @@ bool runTest(const vector<uint8_t>& keyOctets,
 
     typedef typename PAIRING::Fr FR;
 
-    const bool valueOK = encMode
-        ? runTest<zk::AES_Encrypt<FR>, eval::AES_Encrypt>(keyOctets, inOctets)
-        : runTest<zk::AES_Decrypt<FR>, eval::AES_Decrypt>(keyOctets, inOctets);
+    const bool valueOK = runTest<FR>(encMode, keyOctets, inOctets);
 
     cout << "variable count " << variable_count<PAIRING>() << endl;
 
