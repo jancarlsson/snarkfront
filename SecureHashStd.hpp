@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include <snarkfront/DataBuffer.hpp>
 
@@ -76,6 +77,13 @@ public:
     // append array of words to message
     template <typename T, std::size_t N>
     void msgInput(const std::array<T, N>& a) {
+        for (const auto& b : a)
+            msgInput(b);
+    }
+
+    // append vector of words to message
+    template <typename T>
+    void msgInput(const std::vector<T>& a) {
         for (const auto& b : a)
             msgInput(b);
     }
