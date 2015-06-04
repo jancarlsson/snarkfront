@@ -27,10 +27,19 @@ template <typename FR> void bless(uint32_x<FR>& x, const std::uint32_t a) { x.bl
 template <typename FR> void bless(uint64_x<FR>& x, const std::uint64_t a) { x.bless(a); }
 template <typename FR> void bless(bigint_x<FR>& x, const std::string& a) { x.bless(a); }
 
-template <typename FR> void bless(bigint_x<FR>& x, const std::uint64_t a) {
+template <typename FR> void bless(bigint_x<FR>& x,
+                                  const std::uint64_t a,
+                                  const bool assert64bits = true) {
     std::stringstream ss;
     ss << a;
     x.bless(ss.str());
+
+    if (assert64bits) {
+        // prevent cheating - high 64-bits must be zero
+        std::array<uint64_x<FR>, 2> value64;
+        bless(value64, x);
+        assert_true(value64[1] == zero(value64[1]));
+    }
 }
 
 template <typename FR> void bless(field_x<FR>& x, const FR& a) { x.bless(a); }
@@ -64,6 +73,13 @@ void bless(std::vector<T>& a, const std::vector<U>& b) {
 // initialize array of variables
 template <typename T, std::size_t N>
 void bless(std::array<T, N>& a) {
+    for (auto& x : a)
+        bless(x);
+}
+
+// initialize vector of variables
+template <typename T>
+void bless(std::vector<T>& a) {
     for (auto& x : a)
         bless(x);
 }
