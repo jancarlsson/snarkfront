@@ -11,6 +11,13 @@
 namespace snarkfront {
 
 ////////////////////////////////////////////////////////////////////////////////
+// read and write types: uint32_t
+//
+
+void writeStream(std::ostream& os, const std::uint32_t& a);
+bool readStream(std::istream& is, std::uint32_t& a);
+
+////////////////////////////////////////////////////////////////////////////////
 // read and write types: uint64_t
 //
 
@@ -30,6 +37,13 @@ bool readStream(std::istream& is, std::string& a);
 
 void writeStream(std::ostream& os, const std::vector<std::uint8_t>& a);
 bool readStream(std::istream& is, std::vector<std::uint8_t>& a);
+
+////////////////////////////////////////////////////////////////////////////////
+// read and write types: vector<uint32_t>     (commitment vector)
+//
+
+void writeStream(std::ostream& os, const std::vector<std::uint32_t>& a);
+bool readStream(std::istream& is, std::vector<std::uint32_t>& a);
 
 ////////////////////////////////////////////////////////////////////////////////
 // read and write types: array<uint8_t, N>    (byte array)
