@@ -171,7 +171,10 @@ tools :
 verify :
 	$(error Please provide SNARKLIB_PREFIX, e.g. make verify SNARKLIB_PREFIX=/usr/local)
 else
-CXXFLAGS_SNARKLIB = -I$(SNARKLIB_PREFIX)/include -DUSE_ASM -DUSE_ADD_SPECIAL -DUSE_ASSERT
+CXXFLAGS_SNARKLIB = \
+	-I$(SNARKLIB_PREFIX)/include \
+	-DUSE_ASM -DUSE_ADD_SPECIAL -DUSE_ASSERT -DPARNO_SOUNDNESS_FIX
+
 LDFLAGS_SNARKLIB = -lgmpxx -lgmp
 LDFLAGS = -L. -lsnarkfront
 
