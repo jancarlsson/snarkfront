@@ -1,11 +1,14 @@
 #include <array>
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "snarkfront.hpp"
 
 using namespace snarkfront;
+using namespace cryptl;
 using namespace std;
 
 void printUsage(const char* exeName) {
@@ -29,7 +32,9 @@ int main(int argc, char *argv[])
     typedef BN128_PAIRING PAIRING;
 
     // output hash digest is publicly known
-    const auto pubHash = digest(eval::SHA256(), "abc");
+    vector<uint8_t> preImage;
+    for (const auto& c : "secret message") preImage.push_back(c);
+    const auto pubHash = digest(cryptl::SHA256(), preImage);
 
     if ("keygen" == mode) {
 
@@ -44,7 +49,7 @@ int main(int argc, char *argv[])
         end_input<PAIRING>();
 
         // constraint system from circuit
-        assert_true(pubVars == digest(zk::SHA256<FR>(), ""));
+        assert_true(pubVars == digest(snarkfront::SHA256<FR>(), vector<uint8_t>()));
 
         // generate proving/verification key pair
         GenericProgressBar progress(cerr, 50);
@@ -87,7 +92,7 @@ int main(int argc, char *argv[])
         end_input<PAIRING>();
 
         // perform calculation
-        assert_true(pubVars == digest(zk::SHA256<FR>(), "abc"));
+        assert_true(pubVars == digest(snarkfront::SHA256<FR>(), preImage));
 
         // generate proof
         GenericProgressBar progress(cerr, 50);
