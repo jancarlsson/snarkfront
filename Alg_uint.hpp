@@ -23,7 +23,7 @@ void evalStackOp_Bitwise(std::stack<ALG>& S, const BitwiseOps op)
     typedef typename ALG::R1T R1T;
     auto& RS = TL<R1C<Fr>>::singleton();
 
-    typedef BitwiseINT<Value> BitOps;
+    typedef cryptl::BitwiseINT<Value> BitOps;
 
     // y is right argument
     const auto R = S.top();
