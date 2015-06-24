@@ -3,9 +3,9 @@
 
 #include <cstdint>
 
-#include <snarklib/FpModel.hpp>
+#include <cryptl/BitwiseINT.hpp>
 
-#include <snarkfront/BitwiseINT.hpp>
+#include <snarklib/FpModel.hpp>
 
 namespace snarkfront {
 
@@ -70,7 +70,7 @@ T evalOp(const FieldOps op, const T& x, const T& y)
 template <typename T>
 T evalOp(const BitwiseOps op, const T& x, const T& y)
 {
-    typedef BitwiseINT<T> B;
+    typedef cryptl::BitwiseINT<T> B;
 
     switch (op) {
     case (BitwiseOps::AND) : return B::AND(x, y);
