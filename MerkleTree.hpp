@@ -7,9 +7,10 @@
 #include <ostream>
 #include <vector>
 
+#include <cryptl/SHA_256.hpp>
+#include <cryptl/SHA_512.hpp>
+
 #include <snarkfront/MerkleAuthPath.hpp>
-#include <snarkfront/SHA_256.hpp>
-#include <snarkfront/SHA_512.hpp>
 
 namespace snarkfront {
 
@@ -132,8 +133,8 @@ std::istream& operator>> (std::istream& is, MerkleTree<HASH>& a) {
 // typedefs
 //
 
-typedef MerkleTree<eval::SHA256> MerkleTree_SHA256;
-typedef MerkleTree<eval::SHA512> MerkleTree_SHA512;
+typedef MerkleTree<cryptl::SHA256> MerkleTree_SHA256;
+typedef MerkleTree<cryptl::SHA512> MerkleTree_SHA512;
 
 } // namespace snarkfront
 
