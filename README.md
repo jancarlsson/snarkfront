@@ -56,8 +56,8 @@ The usual operators:
 
 Cryptographic algorithms:
 
-- FIPS PUB 180-4: SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256
-- FIPS PUB 197: AES-128, AES-192, AES-256
+- [FIPS PUB 180-4]: SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256
+- [FIPS PUB 197]: AES-128, AES-192, AES-256
 - binary Merkle tree using SHA-256 or SHA-512
 
 Elliptic curve pairings:
@@ -74,98 +74,36 @@ Use both API and CLI toolchain:
 Build instructions
 --------------------------------------------------------------------------------
 
-The snarklib C++ template library is required.
-It may be found here: [GitHub snarklib project]
+The following libraries are required.
 
-The [GNU Multiple Precision Arithmetic Library] is also required.
+- [GNU Multiple Precision Arithmetic Library]
+- [GitHub snarklib project]
+- [GitHub cryptl project]
 
-The relationship between snarkfront and snarklib is symbiotic. They are two
-levels of the same idea. It is convenient to install them into the same PREFIX
-location.
+Note that both snarklib and cryptl are C++ template libraries. They are
+entirely header files.
 
-First, install snarklib: (nothing to build because all header files)
+To build everything as statically linked:
 
-    $ cd ~/snarklib
+    $ make archive tools tests PREFIX=/usr/local
+
+To build the shared library:
+
+    $ make lib PREFIX=/usr/local
+
+When building, the $(PREFIX)/include directory is added to the compiler header
+file path.
+
+To install the library files and tools:
+
     $ make install PREFIX=/usr/local
 
-Second, build and install snarkfront:
-
-    $ cd ~/snarkfront
-    $ make tools SNARKLIB_PREFIX=/usr/local
-    $ make install PREFIX=/usr/local
-
-To build the testing applications: (as statically linked)
-
-    $ cd ~/snarkfront
-    $ make tests SNARKLIB_PREFIX=/usr/local
-
-This generates:
-
-1. test_SHAVS  - implements NIST SHA validation suite
-2. test_proof  - isolated stages for: key generation, input, proof, verify
-3. test_sha    - play with zero knowledge SHA-2
-4. test_merkle - play with zero knowledge Merkle trees
-5. test_bundle - CLI testing with Merkle trees
-6. test_aes    - play with zero knowledge AES
-
---------------------------------------------------------------------------------
-test_SHAVS (Secure Hash Algorithm and Verification System)
---------------------------------------------------------------------------------
-
-This tests the zero knowledge implementation of SHA-2 included in snarkfront.
-The snarkfront implementation is derived directly from the NIST standards
-document [FIPS PUB 180-4]. To run these tests, download the [SHAVS] test cases
-using the [SHA byte test vectors] provided as a courtesy by NIST.
-
-If the test vectors are in directory ~/SHA_byte_test_vectors:
-
-    $ ./test_SHAVS.sh ~/SHA_byte_test_vectors
-
-The validation tests are processed in order:
-
-1. Monte Carlo
-2. Short messages
-3. Long messages
-
-Note the Monte Carlo tests are quite fast. The short messages tests take
-longer but are still reasonable. The long messages tests require much more
-time.
-
-The test_SHAVS binary has additional modes not exposed by the shell script.
-
-    $ ./test_SHAVS
-    usage: cat NIST_SHAVS_byte_test_vector_file | ./test_SHAVS -p BN128|Edwards -b 1|224|256|384|512 [-i Len|COUNT] [-p]
-
-    example: SHA1 short messages
-    cat SHA1ShortMsg.rsp | ./test_SHAVS -p BN128 -b 1
-
-    example: SHA256 long messages with proof
-    cat SHA256LongMsg.rsp | ./test_SHAVS -p Edwards -b 256 -p
-
-    example: SHA512 Monte Carlo mode
-    cat SHA512Monte.txt | ./test_SHAVS -p BN128 -b 512
-
-    example: SHA224 short messages, only Len = 464 test case
-    cat SHA224ShortMsg.rsp | ./test_SHAVS -p Edwards -b 224 -i 464
-
-    example: SHA384 Monte Carlo mode, only COUNT = 75 test case
-    cat SHA384Monte.txt | ./test_SHAVS -p BN128 -b 384 -i 75
-
-The "-p" switch enables zero knowledge proofs. This is very expensive if run
-for hundreds or thousands of test cases. For this reason, the shell script
-leaves proofs disabled. (Note the snarkfront SHA-2 implementation uses the
-same templates for both proof and non-proof modes. So testing in non-proof
-mode does exercise the same code.)
+When installing, library files are copied to $(PREFIX)/include/snarkfront,
+$(PREFIX)/lib and $(PREFIX)/bin .
 
 --------------------------------------------------------------------------------
 test_proof (zero knowledge proof for SHA-256)
 --------------------------------------------------------------------------------
-
-This tests the "Alice and Bob" example above where:
-
-- the lock is SHA-256
-- the secret combination is message: "abc"
-- the state is "unlocked" if the message digest matches: edeaaff3 f1774ad2 88867377 0c6d6409 7e391bc3 62d7d6fb 34982ddf 0efd18cb
 
 Just run the shell script:
 
@@ -189,7 +127,7 @@ Equivalently:
 
     $ cat keygen.txt input.txt proof.txt | ./test_proof -m verify
 
-Note how expensive key pair generation is in comparison with the proof and
+Note key pair generation is expensive in comparison with the proof and
 verification. This is typical. The proving key will be very large and take a
 long time to generate. However, it only has to be done once at the very
 beginning and then is reused forever by all parties.
@@ -204,11 +142,7 @@ has the information it should possess.
 test_aes (zero knowledge AES)
 --------------------------------------------------------------------------------
 
-This tests the zero knowledge implementation of AES included in snarkfront.
-The snarkfront implementation is derived directly from the NIST standards
-document [FIPS PUB 197].
-
-The usage message explains how to run this.
+The usage message:
 
     $ ./test_aes 
     encrypt: ./test_aes -p BN128|Edwards -b 128|192|256 -k key_in_hex -e -i hex_text
@@ -252,7 +186,7 @@ the API (which holds all cryptographic structures in RAM).
 test_sha (zero knowledge SHA-2)
 --------------------------------------------------------------------------------
 
-The usage message explains how to run this.
+The usage message:
 
     $ ./test_sha 
     usage: ./test_sha -b 1|224|256|384|512|512_224|512_256 [-p BN128|Edwards] [-r] [-d hex_digest] [-e equal_pattern] [-n not_equal_pattern]
@@ -317,7 +251,7 @@ variable. In this case, there are three variables and one gate.
 test_merkle (zero knowledge Merkle tree)
 --------------------------------------------------------------------------------
 
-The usage message explains how to run this.
+The usage message:
 
     $ ./test_merkle 
     usage: ./test_merkle -p BN128|Edwards -b 256|512 -d tree_depth -i leaf_number
@@ -339,7 +273,7 @@ of the tree. This reversed indexing is consistent with how the proof works.
 The proof follows the path from the leaf upwards to the root.
 
 --------------------------------------------------------------------------------
-test_cli.sh
+test_cli.sh (command line toolchain)
 --------------------------------------------------------------------------------
 
 An example script exercises the command line toolchain end-to-end.
@@ -393,12 +327,10 @@ References
 
 [GitHub snarklib project]: https://github.com/jancarlsson/snarklib
 
+[GitHub cryptl project]: https://github.com/jancarlsson/cryptl
+
 [GNU Multiple Precision Arithmetic Library]: https://gmplib.org/
 
 [FIPS PUB 180-4]: http://csrc.nist.gov/publications/fips/fips180-4/fips-180-4.pdf
 
 [FIPS PUB 197]: https://csrc.nist.gov/publications/fips/fips197/fips-197.pdf
-
-[SHAVS]: http://csrc.nist.gov/groups/STM/cavp/documents/shs/SHAVS.pdf
-
-[SHA byte test vectors]: http://csrc.nist.gov/groups/STM/cavp/documents/shs/shabytetestvectors.zip
