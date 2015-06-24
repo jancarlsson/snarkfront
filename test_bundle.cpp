@@ -8,6 +8,7 @@
 #include "snarkfront.hpp"
 
 using namespace snarkfront;
+using namespace cryptl;
 using namespace std;
 
 void printUsage(const char* exeName) {
