@@ -148,11 +148,11 @@ std::istream& operator>> (std::istream& is,
 // typedefs
 //
 
-template <typename COUNT> using
-MerkleBundle_SHA256 = MerkleBundle<MerkleTree_SHA256, eval::MerkleAuthPath_SHA256, COUNT>;
+template <typename COUNT> using MerkleBundle_SHA256
+= MerkleBundle<MerkleTree_SHA256, eval::MerkleAuthPath_SHA256, COUNT>;
 
-template <typename COUNT> using
-MerkleBundle_SHA512 = MerkleBundle<MerkleTree_SHA512, eval::MerkleAuthPath_SHA512, COUNT>;
+template <typename COUNT> using MerkleBundle_SHA512
+= MerkleBundle<MerkleTree_SHA512, eval::MerkleAuthPath_SHA512, COUNT>;
 
 } // namespace snarkfront
 
