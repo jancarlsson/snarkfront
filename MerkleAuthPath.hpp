@@ -7,12 +7,13 @@
 #include <ostream>
 #include <vector>
 
+#include <cryptl/SHA_256.hpp>
+#include <cryptl/SHA_512.hpp>
+
 #include <snarkfront/DSL_base.hpp>
 #include <snarkfront/DSL_bless.hpp>
 #include <snarkfront/DSL_utility.hpp>
 #include <snarkfront/PowersOf2.hpp>
-#include <snarkfront/SHA_256.hpp>
-#include <snarkfront/SHA_512.hpp>
 
 namespace snarkfront {
 
@@ -300,13 +301,16 @@ std::istream& operator>> (std::istream& is, MerkleAuthPath<HASH, BIT>& a) {
 //
 
 namespace zk {
-    template <typename FR> using MerkleAuthPath_SHA256 = MerkleAuthPath<SHA256<FR>, bool_x<FR>>;
-    template <typename FR> using MerkleAuthPath_SHA512 = MerkleAuthPath<SHA512<FR>, bool_x<FR>>;
+    template <typename FR> using MerkleAuthPath_SHA256
+    = MerkleAuthPath<SHA256<FR>, bool_x<FR>>;
+
+    template <typename FR> using MerkleAuthPath_SHA512
+    = MerkleAuthPath<SHA512<FR>, bool_x<FR>>;
 } // namespace zk
 
 namespace eval {
-    typedef MerkleAuthPath<SHA256, int> MerkleAuthPath_SHA256;
-    typedef MerkleAuthPath<SHA512, int> MerkleAuthPath_SHA512;
+    typedef MerkleAuthPath<cryptl::SHA256, int> MerkleAuthPath_SHA256;
+    typedef MerkleAuthPath<cryptl::SHA512, int> MerkleAuthPath_SHA512;
 } // namespace eval
 
 } // namespace snarkfront
