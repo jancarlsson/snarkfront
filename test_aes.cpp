@@ -8,13 +8,13 @@
 #include "snarkfront.hpp"
 
 using namespace snarkfront;
+using namespace cryptl;
 using namespace std;
 
 void printUsage(const char* exeName) {
     const string
         AES = " -b 128|192|256",
         KEY = " -k key_in_hex",
-        MODE = " -e|-d",
         ENC = " -e",
         DEC = " -d",
         INPUT = " -i hex_text",
@@ -26,51 +26,81 @@ void printUsage(const char* exeName) {
     exit(EXIT_FAILURE);
 }
 
-template <typename FR>
-bool runTest(const bool encMode,
-             const vector<uint8_t>& keyOctets,
-             const vector<uint8_t>& inOctets)
+template <typename A, typename B>
+bool runTest(A dummyA,
+             B dummyB,
+             const vector<uint8_t>& key,
+             const vector<uint8_t>& in)
 {
-    typename zk::AES<FR>::BlockType zkOut;
-    typename eval::AES::BlockType evalOut;
+    // A
+    typename A::KeyType keyA;
+    for (size_t i = 0; i < keyA.size(); ++i) keyA[i] = key[i];
+    const auto& inA = in;
+    const auto outA = ECB(dummyA, keyA, inA);
 
-    const auto keySize = keyOctets.size() * CHAR_BIT;
-    if (128 == keySize) {
-        // AES-128
-        zkOut = cipher(zk::AES128<FR>(), !encMode, inOctets, keyOctets);
-        evalOut = cipher(eval::AES128(), !encMode, inOctets, keyOctets);
+    // B
+    typename B::KeyType keyB;
+    for (size_t i = 0; i < keyB.size(); ++i) bless(keyB[i], key[i]);
+    vector<typename B::VarType> inB(in.size());
+    bless(inB, in);
+    const auto outB = ECB(dummyB, keyB, inB);
 
-    } else if (192 == keySize) {
-        // AES-192
-        zkOut = cipher(zk::AES192<FR>(), !encMode, inOctets, keyOctets);
-        evalOut = cipher(eval::AES192(), !encMode, inOctets, keyOctets);
+    typename A::BlockType blockA;
+    typename B::BlockType blockB;
+    for (size_t i = 0; i < outA.size() / blockA.size(); ++i) {
+        const size_t offset = i * blockA.size();
 
-    } else if (256 == keySize) {
-        // AES-256
-        zkOut = cipher(zk::AES256<FR>(), !encMode, inOctets, keyOctets);
-        evalOut = cipher(eval::AES256(), !encMode, inOctets, keyOctets);
+        for (size_t j = 0; j < blockA.size(); ++j) {
+            blockA[j] = outA[j + offset];
+            blockB[j] = outB[j + offset];
+        }
+
+        assert_true(blockA == blockB);
     }
 
-    assert_true(zkOut == evalOut);
-
-    DataBuffer<PrintHex> hexpr(cout, false);
+    DataPusher<PrintHex<false>> hexpr(cout);
     bool ok = true;
 
     // compare output blocks
-    for (size_t i = 0; i < zkOut.size(); ++i) {
-        if (zkOut[i]->value() != evalOut[i]) {
+    for (size_t i = 0; i < outB.size(); ++i) {
+        if (outB[i]->value() != outA[i]) {
             ok = false;
-            cout << "output[" << i << "] error zk: ";
-            hexpr.push(zkOut[i]->value());
-            cout << " eval: ";
-            hexpr.push(evalOut[i]);
+            cout << "output[" << i << "] error ";
+            hexpr.push(outB[i]->value());
+            cout << " != ";
+            hexpr.push(outA[i]);
             cout << endl;
         }
     }
 
-    if (ok) cout << "output: " << asciiHex(evalOut) << endl;
+    if (ok) cout << "output: " << asciiHex(outA) << endl;
 
     return ok;
+}
+
+template <typename FR>
+bool runTest(const bool encMode,
+             const vector<uint8_t>& key,
+             const vector<uint8_t>& in)
+{
+    switch (key.size() * CHAR_BIT) {
+    case (128) :
+        return encMode
+            ? runTest(cryptl::AES128(), snarkfront::AES128<FR>(), key, in)
+            : runTest(cryptl::UNAES128(), snarkfront::UNAES128<FR>(), key, in);
+
+    case (192) :
+        return encMode
+            ? runTest(cryptl::AES192(), snarkfront::AES192<FR>(), key, in)
+            : runTest(cryptl::UNAES192(), snarkfront::UNAES192<FR>(), key, in);
+
+    case (256) :
+        return encMode
+            ? runTest(cryptl::AES256(), snarkfront::AES256<FR>(), key, in)
+            : runTest(cryptl::UNAES256(), snarkfront::UNAES256<FR>(), key, in);
+    }
+
+    return false;
 }
 
 template <typename PAIRING>
@@ -80,10 +110,7 @@ bool runTest(const vector<uint8_t>& keyOctets,
 {
     reset<PAIRING>();
 
-    typedef typename PAIRING::Fr FR;
-
-    const bool valueOK = runTest<FR>(encMode, keyOctets, inOctets);
-
+    const bool valueOK = runTest<typename PAIRING::Fr>(encMode, keyOctets, inOctets);
     cout << "variable count " << variable_count<PAIRING>() << endl;
 
     GenericProgressBar progress1(cerr), progress2(cerr, 50);
@@ -92,14 +119,14 @@ bool runTest(const vector<uint8_t>& keyOctets,
     const auto key = keypair<PAIRING>(progress2);
     cerr << endl;
 
-    const auto in = input<PAIRING>();
+    const auto inp = input<PAIRING>();
 
     cerr << "generate proof";
-    const auto p = proof(key, progress2);
+    const auto prf = proof(key, progress2);
     cerr << endl;
 
     cerr << "verify proof ";
-    const bool proofOK = verify(key, in, p, progress1);
+    const bool proofOK = verify(key, inp, prf, progress1);
     cerr << endl;
 
     return valueOK && proofOK;
@@ -124,27 +151,15 @@ int main(int argc, char *argv[])
     if (!validPairingName(pairing) || !validAESName(aesBits) || !(encMode ^ decMode))
         printUsage(argv[0]);
 
-    vector<uint8_t> keyOctets;
-    if (!asciiHexToVector(keyText, keyOctets)) {
-        cerr << "error: malformed key" << endl;
+    vector<uint8_t> key;
+    if (!asciiHexToVector(keyText, key) || (aesBits != key.size() * CHAR_BIT)) {
+        cerr << "error: malformed key " << keyText << endl;
         exit(EXIT_FAILURE);
     }
 
-    const auto keySize = keyOctets.size() * CHAR_BIT;
-    if (aesBits != keySize) {
-        cerr << "error: key size is " << keySize << " bits" << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    vector<uint8_t> inOctets;
-    if (!asciiHexToVector(inText, inOctets)) {
-        cerr << "error: malformed input" << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    const auto inSize = inOctets.size() * CHAR_BIT;
-    if (128 != inSize) {
-        cerr << "error: input size is " << inSize << " bits" << endl;
+    vector<uint8_t> in;
+    if (!asciiHexToVector(inText, in) || (128 != in.size() * CHAR_BIT)) {
+        cerr << "error: malformed input " << inText << endl;
         exit(EXIT_FAILURE);
     }
 
@@ -153,12 +168,12 @@ int main(int argc, char *argv[])
     if (pairingBN128(pairing)) {
         // Barreto-Naehrig 128 bits
         init_BN128();
-        result = runTest<BN128_PAIRING>(keyOctets, encMode, inOctets);
+        result = runTest<BN128_PAIRING>(key, encMode, in);
 
     } else if (pairingEdwards(pairing)) {
         // Edwards 80 bits
         init_Edwards();
-        result = runTest<EDWARDS_PAIRING>(keyOctets, encMode, inOctets);
+        result = runTest<EDWARDS_PAIRING>(key, encMode, in);
     }
 
     cout << "test " << (result ? "passed" : "failed") << endl;
