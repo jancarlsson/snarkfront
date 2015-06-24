@@ -4,7 +4,6 @@
 #include <array>
 #include <cassert>
 #include <cstdint>
-#include <iostream>
 #include <istream>
 #include <ostream>
 #include <string>
@@ -12,11 +11,13 @@
 
 #include <snarklib/Util.hpp>
 
+#include <cryptl/BitwiseLUT.hpp>
+#include <cryptl/ASCII_Hex.hpp>
+
 #include <snarkfront/Alg.hpp>
 #include <snarkfront/AST.hpp>
 #include <snarkfront/BitwiseAST.hpp>
 #include <snarkfront/DSL_base.hpp>
-#include <snarkfront/HexUtil.hpp>
 
 namespace snarkfront {
 
@@ -85,7 +86,7 @@ std::string asciiHex(                                   \
     std::array<uint ## BITS ## _t, N> tmp;              \
     for (std::size_t i = 0; i < N; ++i)                 \
         tmp[i] = a[i]->value();                         \
-    return asciiHex(tmp, space);                        \
+    return cryptl::asciiHex(tmp, space);                \
 }
 
 DEFN_ASCII_HEX_ARRAY(8)
@@ -103,7 +104,7 @@ std::string asciiHex(                               \
     std::vector<uint ## BITS ## _t> tmp;            \
     for (std::size_t i = 0; i < N; ++i)             \
         tmp[i] = a[i]->value();                     \
-    return asciiHex(tmp, space);                    \
+    return cryptl::asciiHex(tmp, space);            \
 }
 
 DEFN_ASCII_HEX_VECTOR(8)
@@ -211,71 +212,23 @@ DEFN_VECTOR_ARRAY_IN(std::uint64_t)
 // lookup table for unsigned integer types
 //
 
-template <typename T, typename U, typename VAL, typename BITWISE>
-class BitwiseLUT
-{
-public:
-    template <std::size_t N>
-    BitwiseLUT(const std::array<VAL, N>& table_elements)
-        : m_value(table_elements.begin(),
-                  table_elements.end())
-    {
-#ifdef USE_ASSERT
-        // empty look up table does not make sense
-        assert(N > 0);
-#endif
-    }
+template <typename FR> using array_uint8 = cryptl::BitwiseLUT<
+    AST_Node<Alg_uint8<FR>>,
+    AST_Op<Alg_uint8<FR>>,
+    std::uint8_t,
+    BitwiseAST<Alg_uint8<FR>>>;
 
-    std::size_t size() const { return m_value.size(); }
+template <typename FR> using array_uint32 = cryptl::BitwiseLUT<
+    AST_Node<Alg_uint32<FR>>,
+    AST_Op<Alg_uint32<FR>>,
+    std::uint32_t,
+    BitwiseAST<Alg_uint32<FR>>>;
 
-    U operator[] (const T& x) const
-    {
-        const auto N = m_value.size();
-
-        if (1 == N) {
-            // returns value if index is 0, else all clear bits
-            return BITWISE::AND(BITWISE::_constant(m_value[0]),
-                                BITWISE::_CMPLMNT(BITWISE::_bitmask(0 != x)));
-
-        } else {
-            auto sum = BITWISE::_AND(BITWISE::_constant(m_value[0]),
-                                     BITWISE::_CMPLMNT(BITWISE::_bitmask(0 != x)));
-
-            for (std::size_t i = 1; i < N - 1; ++i) {
-                sum = BITWISE::_ADDMOD(sum,
-                                       BITWISE::_AND(
-                                           BITWISE::_constant(m_value[i]),
-                                           BITWISE::_CMPLMNT(BITWISE::_bitmask(i != x))));
-            }
-
-            return BITWISE::ADDMOD(sum,
-                                   BITWISE::_AND(
-                                       BITWISE::_constant(m_value[N - 1]),
-                                       BITWISE::_CMPLMNT(BITWISE::_bitmask((N-1) != x))));
-        }
-    }
-
-private:
-    const std::vector<VAL> m_value;
-};
-
-template <typename FR> using
-array_uint8 = BitwiseLUT<AST_Node<Alg_uint8<FR>>,
-                         AST_Op<Alg_uint8<FR>>,
-                         std::uint8_t,
-                         BitwiseAST<Alg_uint8<FR>>>;
-
-template <typename FR> using
-array_uint32 = BitwiseLUT<AST_Node<Alg_uint32<FR>>,
-                          AST_Op<Alg_uint32<FR>>,
-                          std::uint32_t,
-                          BitwiseAST<Alg_uint32<FR>>>;
-
-template <typename FR> using
-array_uint64 = BitwiseLUT<AST_Node<Alg_uint64<FR>>,
-                          AST_Op<Alg_uint64<FR>>,
-                          std::uint64_t,
-                          BitwiseAST<Alg_uint64<FR>>>;
+template <typename FR> using array_uint64 = cryptl::BitwiseLUT<
+    AST_Node<Alg_uint64<FR>>,
+    AST_Op<Alg_uint64<FR>>,
+    std::uint64_t,
+    BitwiseAST<Alg_uint64<FR>>>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // finite field exponentiation
