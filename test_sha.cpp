@@ -1,3 +1,4 @@
+#include <climits>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
@@ -9,6 +10,7 @@
 #include "snarkfront.hpp"
 
 using namespace snarkfront;
+using namespace cryptl;
 using namespace std;
 
 void printUsage(const char* exeName) {
@@ -25,7 +27,8 @@ void printUsage(const char* exeName) {
         optEQ = " [-e equal_pattern]",
         optNEQ = " [-n not_equal_pattern]";
 
-    cout << "usage: " << exeName << SHA << optPAIR << optR << optDIG << optEQ << optNEQ << endl
+    cout << "usage: " << exeName
+         << SHA << optPAIR << optR << optDIG << optEQ << optNEQ << endl
          << endl
          << "text from standard input:" << endl
          << "echo \"abc\" | " << exeName << PAIR << SHA << endl
@@ -42,61 +45,71 @@ void printUsage(const char* exeName) {
     exit(EXIT_FAILURE);
 }
 
-template <typename ZK_SHA, typename EVAL_SHA>
+template <typename A, typename B>
 bool runTest(const bool stdInput,
              const bool hashOnly,
              const string& hashDig,
              const string& eqPattern,
              const string& neqPattern)
 {
-    DataBufferStream buf;
+    stringstream preImage;
+    size_t lengthBits = 0;
 
+    // initialize pre-image message
     if (stdInput) {
         // fill message block(s) from standard input
-        cin >> buf;
+        char c;
+        while (!cin.eof() && cin.get(c)) {
+            preImage.put(c);
+            lengthBits += CHAR_BIT;
+        }
 
-        ZK_SHA::padMessage(buf);
+        A::padMessage(preImage, lengthBits);
 
     } else {
         // fill entire message block with random data
         random_device rd;
-        const size_t M = sizeof(typename EVAL_SHA::WordType) / sizeof(uint32_t);
-        for (size_t i = 0; i < 16 * M; ++i)
-            buf->push32(rd());
+        while (lengthBits < 16 * sizeof(typename A::WordType) * CHAR_BIT) {
+            const unsigned int r = rd();
+            for (size_t i = 0; i < sizeof(unsigned int); ++i) {
+                preImage.put((r >> (i * CHAR_BIT)) & 0xff);
+                lengthBits += CHAR_BIT;
+            }
+        }
 
         // no padding is not SHA-2 standard (compression function only)
     }
 
     if (!hashOnly) {
-        // print buffer
+        // print pre-image message
         HexDumper dump(cout);
-        dump.print(buf);
+        stringstream ss(preImage.str());
+        dump.print(ss);
     }
 
-    // compute message digest (adds padding if necessary)
-    typename ZK_SHA::DigType zk_digest;
+    // compute message digest in zero knowledge
+    typename B::DigType outB;
     if (eqPattern.empty() && neqPattern.empty()) {
-        // just hash the buffer data
-        zk_digest = digest(ZK_SHA(), buf);
+        // just hash the message data
+        stringstream ss(preImage.str());
+        outB = digest(B(), ss);
 
     } else {
         // additional constraints on pre-image
         // must expose buffer as variables
-        std::size_t idx = 0;
+        B hashAlgo;
+        typename B::MsgType msg;
 
-        ZK_SHA hashAlgo;
-
-        auto bufCopy = buf;
-        while (! bufCopy.empty()) {
-            typename ZK_SHA::MsgType msg;
-            bless(msg, bufCopy);
+        size_t idx = 0;
+        stringstream ss(preImage.str());
+        while (!ss.eof() && bless(msg, ss)) {
             hashAlgo.msgInput(msg);
 
             // pre-image buffer variables as octets
-            typename ZK_SHA::PreType preimg;
+            typename B::PreType preimg;
             bless(preimg, msg);
 
-            PrintHex pr(cout, false);
+            DataPusher<PrintHex<false>> pr(cout);
 
             // constraints on pre-image, if any
             for (std::size_t i = 0; i < preimg.size(); ++i) {
@@ -105,7 +118,7 @@ bool runTest(const bool stdInput,
                     assert_true(preimg[i] == eqPattern[idx]);
 
                     cout << "constrain preimage[" << idx << "] == ";
-                    pr.pushOctet(eqPattern[idx]);
+                    pr.push8(eqPattern[idx]);
                     cout << endl;
                 }
 
@@ -114,7 +127,7 @@ bool runTest(const bool stdInput,
                     assert_true(preimg[i] != neqPattern[idx]);
 
                     cout << "constrain preimage[" << idx << "] != ";
-                    pr.pushOctet(neqPattern[idx]);
+                    pr.push8(neqPattern[idx]);
                     cout << endl;
                 }
 
@@ -123,24 +136,27 @@ bool runTest(const bool stdInput,
         }
 
         hashAlgo.computeHash();
-        zk_digest = hashAlgo.digest();
+        outB = hashAlgo.digest();
     }
 
-    const auto eval_digest = digest(EVAL_SHA(), buf);
+    // compute message digest value
+    stringstream ss(preImage.str());
+    const auto outA = digest(A(), ss);
 
-    assert(zk_digest.size() == eval_digest.size());
+    // digest output should always be the same size
+    assert(outA.size() == outB.size());
 
-    DataBuffer<PrintHex> hexpr(cout, false);
+    bool ok = true;
 
     // compare message digest values
-    bool ok = true;
-    for (size_t i = 0; i < zk_digest.size(); ++i) {
-        if (zk_digest[i]->value() != eval_digest[i]) {
+    DataPusher<PrintHex<false>> hexpr(cout);
+    for (size_t i = 0; i < outB.size(); ++i) {
+        if (outB[i]->value() != outA[i]) {
             ok = false;
-            cout << "digest[" << i << "] error zk: ";
-            hexpr.push(zk_digest[i]->value());
-            cout << " eval: ";
-            hexpr.push(eval_digest[i]);
+            cout << "digest[" << i << "] error ";
+            hexpr.push(outB[i]->value());
+            cout << " != ";
+            hexpr.push(outA[i]);
             cout << endl;
         }
     }
@@ -148,7 +164,7 @@ bool runTest(const bool stdInput,
     // message digest proof constraint
     if (hashDig.empty()) {
         // hash digest calculated by SHA template
-        assert_true(zk_digest == eval_digest);
+        assert_true(outA == outB);
 
     } else {
         // hash digest specified as ASCII hex string
@@ -158,7 +174,7 @@ bool runTest(const bool stdInput,
 
         } else {
             // check that hash digest is correct size
-            const size_t N = sizeof(typename EVAL_SHA::DigType);
+            const size_t N = sizeof(typename A::DigType);
             if (v.size() != N) {
                 ok = false;
                 cout << "error: hash digest " << hashDig
@@ -166,18 +182,19 @@ bool runTest(const bool stdInput,
                      << endl;
 
             } else {
-                DataBufferStream digBuf(v);
+                stringstream ss;
+                for (const auto& c : v) ss.put(c);
 
-                typename ZK_SHA::DigType dig;
-                bless(dig, digBuf);
+                typename B::DigType dig;
+                bless(dig, ss);
 
-                assert_true(zk_digest == dig);
+                assert_true(outB == dig);
             }
         }
     }
 
     if (!hashOnly) cout << "digest ";
-    cout << asciiHex(eval_digest, !hashOnly) << endl;
+    cout << asciiHex(outA, !hashOnly) << endl;
 
     return ok;
 }
@@ -196,26 +213,32 @@ bool runTest(const string& shaBits,
     typedef typename PAIRING::Fr FR;
 
     if ("1" == shaBits) {
-        valueOK = runTest<zk::SHA1<FR>, eval::SHA1>(stdInput, hashOnly,
-                                                    hashDig, eqPattern, neqPattern);
+        valueOK = runTest<cryptl::SHA1, snarkfront::SHA1<FR>>(
+            stdInput, hashOnly, hashDig, eqPattern, neqPattern);
+
     } else if ("224" == shaBits) {
-        valueOK = runTest<zk::SHA224<FR>, eval::SHA224>(stdInput, hashOnly,
-                                                        hashDig, eqPattern, neqPattern);
+        valueOK = runTest<cryptl::SHA224, snarkfront::SHA224<FR>>(
+            stdInput, hashOnly, hashDig, eqPattern, neqPattern);
+
     } else if ("256" == shaBits) {
-        valueOK = runTest<zk::SHA256<FR>, eval::SHA256>(stdInput, hashOnly,
-                                                        hashDig, eqPattern, neqPattern);
+        valueOK = runTest<cryptl::SHA256, snarkfront::SHA256<FR>>(
+            stdInput, hashOnly, hashDig, eqPattern, neqPattern);
+
     } else if ("384" == shaBits) {
-        valueOK = runTest<zk::SHA384<FR>, eval::SHA384>(stdInput, hashOnly,
-                                                        hashDig, eqPattern, neqPattern);
+        valueOK = runTest<cryptl::SHA384, snarkfront::SHA384<FR>>(
+            stdInput, hashOnly, hashDig, eqPattern, neqPattern);
+
     } else if ("512" == shaBits) {
-        valueOK = runTest<zk::SHA512<FR>, eval::SHA512>(stdInput, hashOnly,
-                                                        hashDig, eqPattern, neqPattern);
+        valueOK = runTest<cryptl::SHA512, snarkfront::SHA512<FR>>(
+            stdInput, hashOnly, hashDig, eqPattern, neqPattern);
+
     } else if ("512_224" == shaBits) {
-        valueOK = runTest<zk::SHA512_224<FR>, eval::SHA512_224>(stdInput, hashOnly,
-                                                                hashDig, eqPattern, neqPattern);
+        valueOK = runTest<cryptl::SHA512_224, snarkfront::SHA512_224<FR>>(
+            stdInput, hashOnly, hashDig, eqPattern, neqPattern);
+
     } else if ("512_256" == shaBits) {
-        valueOK = runTest<zk::SHA512_256<FR>, eval::SHA512_256>(stdInput, hashOnly,
-                                                                hashDig, eqPattern, neqPattern);
+        valueOK = runTest<cryptl::SHA512_256, snarkfront::SHA512_256<FR>>(
+            stdInput, hashOnly, hashDig, eqPattern, neqPattern);
     }
 
     // special case for hash only, skip zero knowledge proof
@@ -229,14 +252,14 @@ bool runTest(const string& shaBits,
     const auto key = keypair<PAIRING>(progress2);
     cerr << endl;
 
-    const auto in = input<PAIRING>();
+    const auto inp = input<PAIRING>();
 
     cerr << "generate proof";
-    const auto p = proof(key, progress2);
+    const auto prf = proof(key, progress2);
     cerr << endl;
 
     cerr << "verify proof ";
-    const bool proofOK = verify(key, in, p, progress1);
+    const bool proofOK = verify(key, inp, prf, progress1);
     cerr << endl;
 
     return valueOK && proofOK;
