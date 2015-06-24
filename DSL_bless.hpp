@@ -7,8 +7,10 @@
 #include <sstream>
 #include <vector>
 
-#include <snarkfront/DataBuffer.hpp>
+#include <cryptl/Bless.hpp>
+
 #include <snarkfront/DSL_base.hpp>
+#include <snarkfront/DSL_ppzk.hpp>
 #include <snarkfront/DSL_utility.hpp>
 #include <snarkfront/PowersOf2.hpp>
 #include <snarkfront/R1C.hpp>
@@ -21,15 +23,25 @@ namespace snarkfront {
 //
 
 // variable with value
-template <typename FR> void bless(bool_x<FR>& x, const bool a) { x.bless(a); }
-template <typename FR> void bless(uint8_x<FR>& x, const std::uint8_t a) { x.bless(a); }
-template <typename FR> void bless(uint32_x<FR>& x, const std::uint32_t a) { x.bless(a); }
-template <typename FR> void bless(uint64_x<FR>& x, const std::uint64_t a) { x.bless(a); }
-template <typename FR> void bless(bigint_x<FR>& x, const std::string& a) { x.bless(a); }
+#define DEFN_BLESS(X, A)                        \
+    template <typename FR>                      \
+    void bless(X<FR>& x, const A& a) {          \
+        x.bless(a);                             \
+    }
 
-template <typename FR> void bless(bigint_x<FR>& x,
-                                  const std::uint64_t a,
-                                  const bool assert64bits = true) {
+    DEFN_BLESS(bool_x, bool)
+    DEFN_BLESS(uint8_x, std::uint8_t)
+    DEFN_BLESS(uint32_x, std::uint32_t)
+    DEFN_BLESS(uint64_x, std::uint64_t)
+    DEFN_BLESS(bigint_x, std::string)
+    DEFN_BLESS(field_x, FR)
+
+#undef DEFN_BLESS
+
+template <typename FR>
+void bless(bigint_x<FR>& x,
+           const std::uint64_t a,
+           const bool assert64bits = true) {
     std::stringstream ss;
     ss << a;
     x.bless(ss.str());
@@ -42,15 +54,21 @@ template <typename FR> void bless(bigint_x<FR>& x,
     }
 }
 
-template <typename FR> void bless(field_x<FR>& x, const FR& a) { x.bless(a); }
-
 // initialize variable
-template <typename FR> void bless(bool_x<FR>& x) { bless(x, false); }
-template <typename FR> void bless(uint8_x<FR>& x) { bless(x, 0); }
-template <typename FR> void bless(uint32_x<FR>& x) { bless(x, 0); }
-template <typename FR> void bless(uint64_x<FR>& x) { bless(x, 0); }
-template <typename FR> void bless(bigint_x<FR>& x) { bless(x, "0"); }
-template <typename FR> void bless(field_x<FR>& x) { bless(x, FR::zero()); }
+#define DEFN_BLESS(X, A)                        \
+    template <typename FR>                      \
+    void bless(X<FR>& x) {                      \
+        bless(x, A);                            \
+    }
+
+    DEFN_BLESS(bool_x, false)
+    DEFN_BLESS(uint8_x, 0)
+    DEFN_BLESS(uint32_x, 0)
+    DEFN_BLESS(uint64_x, 0)
+    DEFN_BLESS(bigint_x, "0")
+    DEFN_BLESS(field_x, FR::zero())
+
+#undef DEFN_BLESS
 
 // array of variables with array of values
 template <typename T, typename U, std::size_t N>
@@ -65,7 +83,6 @@ void bless(std::vector<T>& a, const std::vector<U>& b) {
 #ifdef USE_ASSERT
     assert(a.size() == b.size());
 #endif
-
     for (std::size_t i = 0; i < a.size(); ++i)
         bless(a[i], b[i]);
 }
@@ -73,15 +90,13 @@ void bless(std::vector<T>& a, const std::vector<U>& b) {
 // initialize array of variables
 template <typename T, std::size_t N>
 void bless(std::array<T, N>& a) {
-    for (auto& x : a)
-        bless(x);
+    for (auto& x : a) bless(x);
 }
 
 // initialize vector of variables
 template <typename T>
 void bless(std::vector<T>& a) {
-    for (auto& x : a)
-        bless(x);
+    for (auto& x : a) bless(x);
 }
 
 // conversion of:
@@ -132,40 +147,22 @@ void bless_internal(std::array<T, N>& x, const U& a, const bool bigEndian) {
     }
 }
 
-template <typename T, std::size_t N, typename FR>
-void bless(std::array<T, N>& x,
-           const uint8_x<FR>& a,
-           const bool bigEndian = false) {
-    bless_internal(x, a, bigEndian);
-}
+// conversion
+#define DEFN_BLESS(X)                                   \
+    template <typename T, std::size_t N, typename FR>   \
+    void bless(std::array<T, N>& x,                     \
+               const X<FR>& a,                          \
+               const bool bigEndian = false) {          \
+        bless_internal(x, a, bigEndian);                \
+    }
 
-template <typename T, std::size_t N, typename FR>
-void bless(std::array<T, N>& x,
-           const uint32_x<FR>& a,
-           const bool bigEndian = false) {
-    bless_internal(x, a, bigEndian);
-}
+    DEFN_BLESS(uint8_x)
+    DEFN_BLESS(uint32_x)
+    DEFN_BLESS(uint64_x)
+    DEFN_BLESS(bigint_x)
+    DEFN_BLESS(field_x)
 
-template <typename T, std::size_t N, typename FR>
-void bless(std::array<T, N>& x,
-           const uint64_x<FR>& a,
-           const bool bigEndian = false) {
-    bless_internal(x, a, bigEndian);
-}
-
-template <typename T, std::size_t N, typename FR>
-void bless(std::array<T, N>& x,
-           const bigint_x<FR>& a,
-           const bool bigEndian = false) {
-    bless_internal(x, a, bigEndian);
-}
-
-template <typename T, std::size_t N, typename FR>
-void bless(std::array<T, N>& x,
-           const field_x<FR>& a,
-           const bool bigEndian = false) {
-    bless_internal(x, a, bigEndian);
-}
+#undef DEFN_BLESS
 
 template <typename T, std::size_t N, typename U, std::size_t M>
 void bless(std::array<T, N>& x,
@@ -197,42 +194,73 @@ void bless(T& x, const R1Cowitness<FR>& input) {
 // array of variables from proof input
 template <typename T, std::size_t N, typename FR>
 void bless(std::array<T, N>& a, const R1Cowitness<FR>& input) {
-    for (auto& x : a)
-        bless(x, input);
+    for (auto& x : a) bless(x, input);
 }
 
-// 8-bit octet variable from data buffer stream
+// 8-bit octet variable from input stream
 template <typename FR>
-void bless(uint8_x<FR>& x, DataBufferStream& ss) {
-    bless(x, ss.getWord<std::uint8_t>());
+bool bless(snarkfront::uint8_x<FR>& x, std::istream& is) {
+    std::uint8_t a;
+    if (cryptl::bless(a, is)) {
+        bless(x, a);
+        return true;
+    } else {
+        return false;
+    }
 }
 
-// 32-bit word variable from data buffer stream
+// 8-bit octet variable array from input stream
+template <typename FR, std::size_t N>
+bool bless(std::array<snarkfront::uint8_x<FR>, N>& a, std::istream& is) {
+    for (auto& x : a) {
+        if (! bless(x, is)) return false;
+    }
+
+    return true;
+}
+
+// 32-bit word variable from input stream
 template <typename FR>
-void bless(uint32_x<FR>& x, DataBufferStream& ss) {
-    bless(x, ss.getWord<std::uint32_t>());
+bool bless(snarkfront::uint32_x<FR>& x, std::istream& is) {
+    std::uint32_t a;
+    if (cryptl::bless(a, is)) {
+        bless(x, a);
+        return true;
+    } else {
+        return false;
+    }
 }
 
-// 64-bit word variable from data buffer stream
+// 32-bit octet variable array from input stream
+template <typename FR, std::size_t N>
+bool bless(std::array<snarkfront::uint32_x<FR>, N>& a, std::istream& is) {
+    for (auto& x : a) {
+        if (! bless(x, is)) return false;
+    }
+
+    return true;
+}
+
+// 64-bit word variable from input stream
 template <typename FR>
-void bless(uint64_x<FR>& x, DataBufferStream& ss) {
-    bless(x, ss.getWord<std::uint64_t>());
+bool bless(snarkfront::uint64_x<FR>& x, std::istream& is) {
+    std::uint64_t a;
+    if (cryptl::bless(a, is)) {
+        bless(x, a);
+        return true;
+    } else {
+        return false;
+    }
 }
 
-// 8-bit value from data buffer stream (useful for templates)
-void bless(std::uint8_t& a, DataBufferStream& ss);
+// 64-bit octet variable array from input stream
+template <typename FR, std::size_t N>
+bool bless(std::array<snarkfront::uint64_x<FR>, N>& a, std::istream& is) {
+    for (auto& x : a) {
+        if (! bless(x, is)) return false;
+    }
 
-// 32-bit value from data buffer stream (useful for templates)
-void bless(std::uint32_t& a, DataBufferStream& ss);
-
-// 64-bit value from data buffer stream (useful for templates)
-void bless(std::uint64_t& a, DataBufferStream& ss);
-
-// array of variables/values from data buffer stream
-template <typename T, std::size_t N>
-void bless(std::array<T, N>& a, DataBufferStream& ss) {
-    for (auto& x : a)
-        bless(x, ss);
+    return true;
 }
 
 } // namespace snarkfront
