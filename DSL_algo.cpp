@@ -9,12 +9,12 @@ namespace snarkfront {
 // (arises frequently in applications)
 //
 
-cryptl::SHA256 H(const uint32_t& dummy) {
+cryptl::SHA256 HASH256(const uint32_t& dummy) {
     return cryptl::SHA256();
 }
 
-cryptl::SHA256 H(const vector<uint32_t>& dummy) {
+cryptl::SHA256 HASH256(const vector<uint32_t>& dummy) {
     return cryptl::SHA256();
 }
 
-}; // namespace snarkfront
+} // namespace snarkfront
