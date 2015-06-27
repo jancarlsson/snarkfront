@@ -136,27 +136,27 @@ template <typename FR> using SHA512_256 = cryptl::SHA_512_256<
 // (arises frequently in applications)
 //
 
-cryptl::SHA256 H(const std::uint32_t& dummy);
+cryptl::SHA256 HASH256(const std::uint32_t& dummy);
 
 template <std::size_t N>
-cryptl::SHA256 H(const std::array<std::uint32_t, N>& dummy) {
+cryptl::SHA256 HASH256(const std::array<std::uint32_t, N>& dummy) {
     return cryptl::SHA256();
 }
 
-cryptl::SHA256 H(const std::vector<std::uint32_t>& dummy);
+cryptl::SHA256 HASH256(const std::vector<std::uint32_t>& dummy);
 
 template <typename FR>
-SHA256<FR> H(const AST_Var<Alg_uint32<FR>>& dummy) {
+SHA256<FR> HASH256(const AST_Var<Alg_uint32<FR>>& dummy) {
     return SHA256<FR>();
 }
 
 template <typename FR, std::size_t N>
-SHA256<FR> H(const std::array<AST_Var<Alg_uint32<FR>>, N>& dummy) {
+SHA256<FR> HASH256(const std::array<AST_Var<Alg_uint32<FR>>, N>& dummy) {
     return SHA256<FR>();
 }
 
 template <typename FR>
-SHA256<FR> H(const std::vector<AST_Var<Alg_uint32<FR>>>& dummy) {
+SHA256<FR> HASH256(const std::vector<AST_Var<Alg_uint32<FR>>>& dummy) {
     return SHA256<FR>();
 }
 
