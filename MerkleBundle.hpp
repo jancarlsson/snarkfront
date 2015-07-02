@@ -49,8 +49,11 @@ public:
         return m_tree.authPath().rootHash();
     }
 
-    void addLeaf(const DigType& cm, const bool keepPath = false) {
+    std::size_t addLeaf(const DigType& cm, const bool keepPath = false) {
+
         m_tree.updatePath(cm, m_authPath);
+
+        const std::size_t pathIndex = keepPath ? m_authPath.size() : -1;
 
         if (keepPath) {
             m_authLeaf.emplace_back(cm);
@@ -60,6 +63,8 @@ public:
         m_tree.updateSiblings(cm);
 
         ++m_treeSize;
+
+        return pathIndex;
     }
 
     const std::vector<DigType>& authLeaf() const {
