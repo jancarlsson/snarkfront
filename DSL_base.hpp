@@ -56,7 +56,7 @@ template <typename FR> using field_x = AST_Var<Alg_Field<FR>>;
 #undef DEFN_CMPLMNT
 
 ////////////////////////////////////////////////////////////////////////////////
-// AND, OR, XOR, ADD, SUB, MUL, ADDMOD
+// AND, OR, XOR, ADD, SUB, MUL, ADDMOD, MULMOD
 //
 
 #define DEFN_OP(ALG, OP, ENUM)                          \
@@ -119,6 +119,10 @@ template <typename FR> using field_x = AST_Var<Alg_Field<FR>>;
     DEFN_OP(uint8, +, ADDMOD)
     DEFN_OP(uint32, +, ADDMOD)
     DEFN_OP(uint64, +, ADDMOD)
+
+    DEFN_OP(uint8, *, MULMOD)
+    DEFN_OP(uint32, *, MULMOD)
+    DEFN_OP(uint64, *, MULMOD)
 
 #undef DEFN_OP
 
