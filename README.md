@@ -46,7 +46,9 @@ Six types:
 The usual operators:
 
 - logical and bitwise complement
-- AND, OR, XOR, addition, subtraction, multiplication, modulo addition
+- AND, OR, XOR
+- addition, subtraction, multiplication
+- modulo addition, modulo multiplication
 - inverse and exponentiation (finite fields)
 - shift and rotate
 - comparisons: == != < <= > >=
