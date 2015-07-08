@@ -13,7 +13,9 @@ namespace snarkfront {
 enum class LogicalOps { AND, OR, XOR, SAME, CMPLMNT };
 enum class ScalarOps { ADD, SUB, MUL };
 enum class FieldOps { ADD, SUB, MUL, INV };
-enum class BitwiseOps { AND, OR, XOR, SAME, CMPLMNT, ADDMOD, SHL, SHR, ROTL, ROTR };
+enum class BitwiseOps { AND, OR, XOR, SAME, CMPLMNT,
+                        ADDMOD, MULMOD,
+                        SHL, SHR, ROTL, ROTR };
 
 // comparison
 enum class EqualityCmp { EQ, NEQ };
@@ -79,6 +81,7 @@ T evalOp(const BitwiseOps op, const T& x, const T& y)
     case (BitwiseOps::SAME) : return B::CMPLMNT(B::XOR(x, y));
     case (BitwiseOps::CMPLMNT) : return B::CMPLMNT(x);
     case (BitwiseOps::ADDMOD) : return B::ADDMOD(x, y);
+    case (BitwiseOps::MULMOD) : return B::MULMOD(x, y);
     case (BitwiseOps::SHL) : return B::SHL(x, y);
     case (BitwiseOps::SHR) : return B::SHR(x, y);
     case (BitwiseOps::ROTL) : return B::ROTL(x, y);
