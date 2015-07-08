@@ -121,6 +121,46 @@ void evalStackOp_Bitwise(std::stack<ALG>& S, const BitwiseOps op)
         S.push(
             ALG(zvalue, zwitness, zbits, {z}));
 
+    } else if (BitwiseOps::MULMOD == op) {
+        // x is left argument
+        const auto L = S.top();
+        S.pop();
+        const Value xvalue = L.value();
+        const Fr x_witness = ALG::valueToString(xvalue);
+        const std::vector<R1T> xbits = RS->argBits(L);
+        const std::vector<R1T> xfit = rank1_xword(xbits, sizeBits(xvalue));
+        const R1T x = RS->bitsToWitness(xfit, x_witness);
+
+        // right argument
+        const Fr y_witness = ALG::valueToString(yvalue);
+        const std::vector<R1T> ybits = RS->argBits(R);
+        const std::vector<R1T> yfit = rank1_xword(ybits, sizeBits(yvalue));
+        const R1T y = RS->bitsToWitness(yfit, y_witness);
+
+        // overflow multiplication
+        Value high, low;
+        mulover(high, low, xvalue, yvalue);
+
+        const Value zvalue = BitOps::MULMOD(xvalue, yvalue);
+#ifdef USE_ASSERT
+        assert(zvalue == low);
+#endif
+
+        std::vector<int> zbits = valueBits(low);
+        for (std::size_t i = 0; i < sizeBits(high); ++i) {
+            zbits.push_back(high & 0x1);
+            high >>= 1;
+        }
+#ifdef USE_ASSERT
+        assert(0 == high);
+#endif
+
+        const Fr zwitness = x_witness * y_witness;
+        const R1T z = RS->createResult(op, x, y, zwitness);
+
+        S.push(
+            ALG(zvalue, zwitness, zbits, {z}));
+
     } else if (BitwiseOps::CMPLMNT == op) {
         // y is only argument
         const std::vector<R1T> y = RS->argBits(R);
