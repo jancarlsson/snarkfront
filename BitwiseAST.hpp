@@ -48,11 +48,12 @@ public:
         return ptrOp(T::OpType:: NAME , x, y);                  \
     }
 
-    // AND, OR, XOR, ADDMOD
+    // AND, OR, XOR, ADDMOD, MULMOD
     DEFN_OPXY(AND)
     DEFN_OPXY(OR)
     DEFN_OPXY(XOR)
     DEFN_OPXY(ADDMOD)
+    DEFN_OPXY(MULMOD)
 
 #undef DEFN_OPXY
 
@@ -113,6 +114,14 @@ public:
     template <typename X>
     static AST_Const<T>* _constant(const X& x) { return new AST_Const<T>(x); }
 
+    // zero array
+    template <typename X, std::size_t N>
+    static std::array<AST_Const<T>, N> zero(const std::array<X, N>& dummy) {
+        std::array<AST_Const<T>, N> a;
+        for (auto& b : a) b = constant(0);
+        return a;
+    }
+
     // conversion between unsigned integer types
     template <typename X, typename U>
     static AST_X<U> xword(const X& x, const U& dummy) {
@@ -122,6 +131,47 @@ public:
     template <typename X, typename U>
     static AST_X<U>* _xword(const X& x, const U& dummy) {
         return new AST_X<U>(x);
+    }
+
+    // conversion from bool
+    template <typename B>
+    static AST_X<T> xword(const B& x) {
+        return AST_X<T>(x);
+    }
+
+    template <typename B>
+    static AST_X<T>* _xword(const B& x) {
+        return new AST_X<T>(x);
+    }
+
+    // negation
+    template <typename X>
+    static AST_Op<T> negate(const X& x) {
+        return ADDMOD(
+            _CMPLMNT(x),
+            _constant(static_cast<VAL>(1)));
+    }
+
+    template <typename X>
+    static AST_Op<T>* _negate(const X& x) {
+        return _ADDMOD(
+            _CMPLMNT(x),
+            _constant(static_cast<VAL>(1)));
+    }
+
+    // logical NOT
+    template <typename B>
+    static AST_Op<Alg_bool<FR>> NOT(const B& b) {
+        return AST_Op<Alg_bool<FR>>(
+            Alg_bool<FR>::OpType::CMPLMNT,
+            b);
+    }
+
+    template <typename B>
+    static AST_Op<Alg_bool<FR>>* _NOT(const B& b) {
+        return new AST_Op<Alg_bool<FR>>(
+            Alg_bool<FR>::OpType::CMPLMNT,
+            b);
     }
 
     // all mask bits take value of same bool
