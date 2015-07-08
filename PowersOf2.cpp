@@ -41,4 +41,39 @@ size_t countBits(const vector<int>& v) {
     return count;
 }
 
+void mulover(uint8_t& c1, uint8_t& c0, const uint8_t& a, const uint8_t& b)
+{
+    const uint32_t c = static_cast<uint32_t>(a) * static_cast<uint32_t>(b);
+    c0 = c & 0xff;
+    c1 = (c >> 8) & 0xff;
+}
+
+void mulover(uint32_t& c1, uint32_t& c0, const uint32_t& a, const uint32_t& b)
+{
+    const uint64_t c = static_cast<uint64_t>(a) * static_cast<uint64_t>(b);
+    c0 = c & 0xffffffff;
+    c1 = (c >> 32) & 0xffffffff;
+}
+
+void mulover(uint64_t& c1, uint64_t& c0, const uint64_t& a, const uint64_t& b)
+{
+    // a = (a >> 32) * (1 << 32) + (a & 0xffffffff)
+    //   = a_high * (1 << 32) + a_low
+    const uint64_t a_high = a >> 32, a_low = a & 0xffffffff;
+
+    // b = (b >> 32) * (1 << 32) + (b & 0xffffffff)
+    //   = b_high * (1 << 32) + b_low
+    const uint64_t b_high = b >> 32, b_low = b & 0xffffffff;
+
+    // a * b = a_high * b_high * (1 << 64)
+    //         + a_high * b_low * (1 << 32)
+    //         + b_high * a_low * (1 << 32)
+    //         + a_low * b_low
+    const uint64_t ab = a_high * b_low, ba = b_high * a_low;
+    c0 = a_low * b_low;
+    c1 = a_high * b_high + (ab >> 32) + (ba >> 32);
+    addover(c1, c0, ab << 32);
+    addover(c1, c0, ba << 32);
+}
+
 } // namespace snarkfront
