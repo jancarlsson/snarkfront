@@ -340,8 +340,12 @@ public:
         assert(sizeBits(dummy) == termCnt || 1 == termCnt);
 #endif
 
-        // For bool and BigInt, sizeBits(dummy) is 1 so the
-        // conditional always fails. It can only be true for uint32/64.
+        // For bool, sizeBits(dummy) is 1 so conditional always fails.
+        // For other types, sizeBits(dummy) is greater than 1 so
+        // conditional is equivalent to 1 != termCnt. In the case of
+        // BigInt and Field, termCnt is always 1 so conditional fails.
+        // The conditional can only be true for uint8/32/64 when not
+        // ADDMOD or MULMOD.
         return ((sizeBits(dummy) == termCnt) && (1 != termCnt))
             ? bitsToWitness(arg.r1Terms(), arg.witness())
             : arg.r1Terms()[0];
@@ -357,9 +361,10 @@ public:
         assert(sizeBits(dummy) == termCnt || 1 == termCnt);
 #endif
 
-        // For uint32/64, sizeBits(dummy) is greater than 1 so the
-        // conditional is equivalent to: 1 == termCnt. This will be
-        // true only for ADDMOD.
+        // For bool, sizeBits(dummy) is 1 so conditional always fails.
+        // For other types, sizeBits(dummy) is greater than 1 so
+        // conditional is equivalent to: 1 == termCnt. In the case of
+        // uint8/32/64, this will be true only for ADDMOD and MULMOD.
         return ((1 == termCnt) && (sizeBits(dummy) != termCnt))
             ? witnessToBits(arg.r1Terms()[0], arg.splitBits())
             : arg.r1Terms();
@@ -745,6 +750,10 @@ private:
         case (BitwiseOps::ADDMOD) :
             rank1_op<snarklib::HugeSystem, R1_ADD<FR>>(m_constraintSystem, x, y, z);
             break;
+
+        case (BitwiseOps::MULMOD) :
+            rank1_op<snarklib::HugeSystem, R1_MUL<FR>>(m_constraintSystem, x, y, z);
+            break;
         }
     }
 
@@ -777,6 +786,10 @@ private:
         case (BitwiseOps::ADDMOD) :
             // x + 0 == x
             return x;
+
+        case (BitwiseOps::MULMOD) :
+            // x * 0 == 0
+            return R1T();
         }
     }
 
