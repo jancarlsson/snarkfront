@@ -198,6 +198,15 @@ void addover(UINT_N& a1, UINT_N& a0, const UINT_N& b)
     a0 = low;
 }
 
+// overflow multiplication (uint8_t, uint32_t and uint64_t)
+#define DEFN_MULOVER(T) void mulover(T& c1, T& c0, const T& a, const T& b);
+
+DEFN_MULOVER(std::uint8_t)
+DEFN_MULOVER(std::uint32_t)
+DEFN_MULOVER(std::uint64_t)
+
+#undef DEFN_MULOVER
+
 } // namespace snarkfront
 
 #endif
