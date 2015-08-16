@@ -36,6 +36,7 @@ LIBRARY_BACK_HPP = \
 	MerkleAuthPath.hpp \
 	MerkleBundle.hpp \
 	MerkleTree.hpp \
+	NS_snarkfront.hpp \
 	PowersOf2.hpp \
 	R1C.hpp \
 	Rank1Ops.hpp \
