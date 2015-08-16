@@ -4,6 +4,7 @@
 #include <array>
 #include <cassert>
 #include <climits>
+#include <cstdint>
 
 #include <snarkfront/Alg.hpp>
 #include <snarkfront/AST.hpp>
@@ -161,16 +162,50 @@ public:
 
     // logical NOT
     template <typename B>
-    static AST_Op<Alg_bool<FR>> NOT(const B& b) {
+    static AST_Op<Alg_bool<FR>> logicalNOT(const B& b) {
         return AST_Op<Alg_bool<FR>>(
             Alg_bool<FR>::OpType::CMPLMNT,
             b);
     }
 
     template <typename B>
-    static AST_Op<Alg_bool<FR>>* _NOT(const B& b) {
+    static AST_Op<Alg_bool<FR>>* _logicalNOT(const B& b) {
         return new AST_Op<Alg_bool<FR>>(
             Alg_bool<FR>::OpType::CMPLMNT,
+            b);
+    }
+
+    // logical AND
+    template <typename A, typename B>
+    static AST_Op<Alg_bool<FR>> logicalAND(const A& a, const B& b) {
+        return AST_Op<Alg_bool<FR>>(
+            Alg_bool<FR>::OpType::AND,
+            a,
+            b);
+    }
+
+    template <typename A, typename B>
+    static AST_Op<Alg_bool<FR>>* _logicalAND(const A& a, const B& b) {
+        return new AST_Op<Alg_bool<FR>>(
+            Alg_bool<FR>::OpType::AND,
+            a,
+            b);
+    }
+
+    // logical OR
+    template <typename A, typename B>
+    static AST_Op<Alg_bool<FR>> logicalOR(const A& a, const B& b) {
+        return AST_Op<Alg_bool<FR>>(
+            Alg_bool<FR>::OpType::OR,
+            a,
+            b);
+    }
+
+    template <typename A, typename B>
+    static AST_Op<Alg_bool<FR>>* _logicalOR(const A& a, const B& b) {
+        return new AST_Op<Alg_bool<FR>>(
+            Alg_bool<FR>::OpType::OR,
+            a,
             b);
     }
 
@@ -217,6 +252,96 @@ public:
         assert(n < sizeof(VAL) * CHAR_BIT);
 #endif
         return new AST_X<Alg_bool<FR>>(SHR(x, n));
+    }
+
+    // look-up table
+    template <typename X, std::size_t N>
+    static AST_Op<T> lookuptable(const std::array<VAL, N>& a, const X& idx) {
+        if (1 == N) {
+            // returns value if index is 0, else all clear bits
+            return AND(
+                _constant(a[0]),
+                _CMPLMNT(_bitmask(0 != idx)));
+
+        } else {
+            auto sum = _AND(
+                _constant(a[0]),
+                _CMPLMNT(_bitmask(0 != idx)));
+
+            for (std::size_t i = 1; i < N - 1; ++i) {
+                sum = _ADDMOD(
+                    sum,
+                    _AND(_constant(a[i]),
+                         _CMPLMNT(_bitmask(i != idx))));
+            }
+
+            return ADDMOD(
+                sum,
+                _AND(_constant(a[N-1]),
+                     _CMPLMNT(_bitmask((N-1) != idx))));
+        }
+    }
+
+    template <typename X, std::size_t N>
+    static AST_Op<T>* _lookuptable(const std::array<VAL, N>& a, const X& idx) {
+        if (1 == N) {
+            // returns value if index is 0, else all clear bits
+            return _AND(
+                _constant(a[0]),
+                _CMPLMNT(_bitmask(0 != idx)));
+
+        } else {
+            auto sum = _AND(
+                _constant(a[0]),
+                _CMPLMNT(_bitmask(0 != idx)));
+
+            for (std::size_t i = 1; i < N - 1; ++i) {
+                sum = _ADDMOD(
+                    sum,
+                    _AND(_constant(a[i]),
+                         _CMPLMNT(_bitmask(i != idx))));
+            }
+
+            return _ADDMOD(
+                sum,
+                _AND(_constant(a[N-1]),
+                     _CMPLMNT(_bitmask((N-1) != idx))));
+        }
+    }
+
+    // array subscript
+    template <typename X, typename Y, std::size_t N>
+    static AST_Op<T> arraysubscript(const std::array<Y, N>& a, const X& idx) {
+        if (1 == N) {
+            // returns value if index is 0, else all clear bits
+            return AND(a[0], _CMPLMNT(_bitmask(0 != idx)));
+
+        } else {
+            auto sum = _AND(a[0], _CMPLMNT(_bitmask(0 != idx)));
+
+            for (std::size_t i = 1; i < N - 1; ++i) {
+                sum = _ADDMOD(sum, _AND(a[i], _CMPLMNT(_bitmask(i != idx))));
+            }
+
+            return ADDMOD(sum, _AND(a[N-1], _CMPLMNT(_bitmask((N-1) != idx))));
+        }
+    }
+
+    template <typename X, typename Y, std::size_t N>
+    static AST_Op<T>* _arraysubscript(const std::array<Y, N>& a, const X& idx) {
+        if (1 == N) {
+            // returns value if index is 0, else all clear bits
+            return _AND(a[0], _CMPLMNT(_bitmask(0 != idx)));
+
+        } else {
+            auto sum = _AND(a[0], _CMPLMNT(_bitmask(0 != idx)));
+
+            for (std::size_t i = 1; i < N - 1; ++i) {
+                sum = _ADDMOD(sum, _AND(a[i], _CMPLMNT(_bitmask(i != idx))));
+            }
+
+            return _ADDMOD(sum, _AND(a[N-1], _CMPLMNT(_bitmask((N-1) != idx))));
+        }
     }
 
     // multiplication by x in GF(2^n)
