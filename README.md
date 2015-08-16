@@ -53,7 +53,7 @@ The usual operators:
 - shift and rotate
 - comparisons: == != < <= > >=
 - ternary conditional
-- array subscript (look up tables)
+- array subscript
 - type conversion between Boolean, 8-bit, 32-bit, 64-bit, and 128-bit
 
 Cryptographic algorithms:
