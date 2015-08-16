@@ -11,7 +11,6 @@
 
 #include <snarklib/Util.hpp>
 
-#include <cryptl/BitwiseLUT.hpp>
 #include <cryptl/ASCII_Hex.hpp>
 
 #include <snarkfront/Alg.hpp>
@@ -207,28 +206,6 @@ DEFN_VECTOR_ARRAY_IN(std::uint32_t)
 DEFN_VECTOR_ARRAY_IN(std::uint64_t)
 
 #undef DEFN_VECTOR_ARRAY_IN
-
-////////////////////////////////////////////////////////////////////////////////
-// lookup table for unsigned integer types
-//
-
-template <typename FR> using array_uint8 = cryptl::BitwiseLUT<
-    AST_Node<Alg_uint8<FR>>,
-    AST_Op<Alg_uint8<FR>>,
-    std::uint8_t,
-    BitwiseAST<Alg_uint8<FR>>>;
-
-template <typename FR> using array_uint32 = cryptl::BitwiseLUT<
-    AST_Node<Alg_uint32<FR>>,
-    AST_Op<Alg_uint32<FR>>,
-    std::uint32_t,
-    BitwiseAST<Alg_uint32<FR>>>;
-
-template <typename FR> using array_uint64 = cryptl::BitwiseLUT<
-    AST_Node<Alg_uint64<FR>>,
-    AST_Op<Alg_uint64<FR>>,
-    std::uint64_t,
-    BitwiseAST<Alg_uint64<FR>>>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // finite field exponentiation
