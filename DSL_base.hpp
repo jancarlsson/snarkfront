@@ -306,14 +306,20 @@ AST_X<Alg_bool<FR>> operator!= (const std::array< T , N>& x,    \
 }
 
     DEFN_CMP_ARRAY(uint8_x<FR>, uint8_x<FR>)
+    DEFN_CMP_ARRAY(uint8_x<FR>, c_uint8<FR>)
+    DEFN_CMP_ARRAY(c_uint8<FR>, uint8_x<FR>)
     DEFN_CMP_ARRAY(uint8_x<FR>, std::uint8_t)
     DEFN_CMP_ARRAY(std::uint8_t, uint8_x<FR>)
 
     DEFN_CMP_ARRAY(uint32_x<FR>, uint32_x<FR>)
+    DEFN_CMP_ARRAY(uint32_x<FR>, c_uint32<FR>)
+    DEFN_CMP_ARRAY(c_uint32<FR>, uint32_x<FR>)
     DEFN_CMP_ARRAY(uint32_x<FR>, std::uint32_t)
     DEFN_CMP_ARRAY(std::uint32_t, uint32_x<FR>)
 
     DEFN_CMP_ARRAY(uint64_x<FR>, uint64_x<FR>)
+    DEFN_CMP_ARRAY(uint64_x<FR>, c_uint64<FR>)
+    DEFN_CMP_ARRAY(c_uint64<FR>, uint64_x<FR>)
     DEFN_CMP_ARRAY(uint64_x<FR>, std::uint64_t)
     DEFN_CMP_ARRAY(std::uint64_t, uint64_x<FR>)
 
@@ -472,6 +478,22 @@ std::array<V, N> ternary(                       \
 #undef COMMA
 
 #undef DEFN_TERNARY_ARRAY
+
+////////////////////////////////////////////////////////////////////////////////
+// array subscript
+//
+
+template <typename FR, std::size_t N>
+AST_Op<Alg_uint8<FR>> subscript(const std::array<std::uint8_t, N>& a,
+                                const AST_Node<Alg_uint8<FR>>& idx) {
+    return BitwiseAST<Alg_uint8<FR>>::lookuptable(a, idx);
+}
+
+template <typename FR, std::size_t N>
+AST_Op<Alg_uint8<FR>> subscript(const std::array<AST_Var<Alg_uint8<FR>>, N>& a,
+                                const AST_Node<Alg_uint8<FR>>& idx) {
+    return BitwiseAST<Alg_uint8<FR>>::arraysubscript(a, idx);
+}
 
 } // namespace snarkfront
 
