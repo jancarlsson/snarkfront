@@ -67,7 +67,7 @@ template <typename PAIRING>
 snarklib::PPZK_Keypair<PAIRING> keypair()
 {
     return TL<R1C<typename PAIRING::Fr>>::singleton()
-        ->keypair<PAIRING>();
+        ->template keypair<PAIRING>();
 }
 
 template <typename PAIRING>
@@ -75,7 +75,7 @@ snarklib::PPZK_Keypair<PAIRING> keypair(
     snarklib::ProgressCallback& callback)
 {
     return TL<R1C<typename PAIRING::Fr>>::singleton()
-        ->keypair<PAIRING>(std::addressof(callback));
+        ->template keypair<PAIRING>(std::addressof(callback));
 }
 
 template <typename PAIRING>
